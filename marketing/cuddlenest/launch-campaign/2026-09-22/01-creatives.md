@@ -7,7 +7,8 @@ emails (obligatoire selon la LCAP/CASL). Les textes entre crochets comme `[Voir 
 libellés de boutons, et `[nom du motif]` indique le texte de chaque carte. Les liens pointent
 vers la fiche produit réelle, avec les UTM du PLAN § 9.
 
-Lien de base : `https://yapsonbeauty.ca/products/baby-training-learning-pants-baby-gauze-diaper-pants`
+Lien de base : `https://www.cuddlenest.ca/products/baby-training-learning-pants-baby-gauze-diaper-pants`
+(⚠️ le 2026-09-22 à 16 h 16, cette page renvoyait vers l'accueil : produit indisponible, voir PLAN B0)
 
 ---
 
@@ -61,7 +62,7 @@ Lien de base : `https://yapsonbeauty.ca/products/baby-training-learning-pants-ba
 
 **EN**
 - Primary text: Whale, unicorn, outer space or little fox? Let your toddler pick their own
-  training pants. When it's *theirs*, they want to wear it. 17 prints, sizes 90 / 100 / 110 cm.
+  training pants. When it's *theirs*, they want to wear it. 17 prints, sizes 90–110 cm depending on the print.
 - Card headlines: [print name], e.g. "Whale", "Unicorn", "Space"
 - CTA: Shop now
 
@@ -86,7 +87,7 @@ Titres (≤ 30 caractères, vérifiés dans scorecard.md) :
 | 17 motifs pour tout-petits | 17 Fun Toddler Prints |
 | Petits pas, grandes étapes | Small Steps, Big Milestones |
 | Pour l'apprentissage de jour | For Daytime Potty Training |
-| Tailles 90, 100 et 110 cm | Sizes 90, 100 & 110 cm |
+| Tailles de 90 à 110 cm | Sizes 90 to 110 cm |
 
 Descriptions (≤ 90 caractères) :
 

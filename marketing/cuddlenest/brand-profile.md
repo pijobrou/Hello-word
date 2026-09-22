@@ -1,4 +1,4 @@
-# Brand profile — CuddleNest (vendu sur yapsonbeauty.ca)
+# Brand profile — CuddleNest (cuddlenest.ca)
 
 Chaque capacité lit ce fichier en premier. Toute correction se fait **ici** (Update-Back Rule),
 avec une montée de version.
@@ -7,22 +7,25 @@ Légende : **[Stone]** = fait vérifié sur le site le 2026-09-22 · **[Opinion]
 valider par le client (question de recherche, pas une prémisse).
 
 ## Identity
-- ★ **Name / slug :** CuddleNest · `cuddlenest` — boutique hébergée sur le domaine `yapsonbeauty.ca` [Stone]
+- ★ **Name / slug :** CuddleNest · `cuddlenest` — domaine **https://www.cuddlenest.ca** depuis le 2026-09-22 (ancien : yapsonbeauty.ca) [Stone]
 - ★ **One-line description :** culottes d'apprentissage de la propreté lavables et réutilisables
   pour tout-petits (≈ 6 mois – 3 ans), vendues en ligne aux parents canadiens [Stone]
 - **Founded / stage :** pré-lancement / tout début — les visuels du site sont datés du
   20–22 sept. 2026 (noms de fichiers) [Stone] ; aucun historique de ventes communiqué [Opinion]
-- **Website / key properties :** https://yapsonbeauty.ca (Shopify) [Stone] · Instagram
+- **Website / key properties :** https://www.cuddlenest.ca (Shopify) [Stone] · Instagram
   @yapson150 « Beauty's products & health care » — positionnement beauté, **incohérent** avec
-  le produit actuel [Stone]
+  le produit actuel : créer un compte @cuddlenest [Stone]
+- **Fournisseur :** les SKU commencent par `CJWJYENB…`, un préfixe typique de CJ Dropshipping
+  [Opinion : à confirmer] → délais de livraison à afficher clairement
 
 ## Business model
 - ★ **Revenue model :** transactionnel, e-commerce DTC, mono-produit [Stone]
-- **Price points :** 12,05 $ la culotte (devise à confirmer : CAD attendu, mais le lien de
-  connexion porte `region_country=US`) [Stone/à vérifier] · livraison gratuite dès 39 $ [Stone]
-  · garantie 30 jours remboursé [Stone]
+- **Price points (2026-09-22, 16 h 16) :** **deux prix selon le motif** : 6,00 $ (motifs
+  offerts en 90/100 seulement) et 10,50 $ (motifs offerts en 90/100/110) ; 41 variantes, **toutes
+  « indisponibles »** [Stone] · devise à confirmer (le lien de connexion porte
+  `region_country=US`) · livraison gratuite dès 39 $ · garantie 30 jours [Stone, lu en v1]
 - **Packs conseillés sur la fiche :** 3 (démarrage), 5 (routine), 7 (semaine d'apprentissage)
-  — mais **aucun prix de pack** : 3 × 12,05 = 36,15 $, sous le seuil de livraison gratuite [Stone]
+  — mais **aucun prix de pack** [Stone]
 - **Sales motion :** self-serve [Stone]
 - **Unit economics :** COGS, marge brute, frais d'expédition, CAC, LTV — **inconnus** [Opinion → à fournir]
 
@@ -77,5 +80,13 @@ Amazon.ca et par des marques de couches lavables canadiennes. [Opinion]
   (Meta, TikTok) peuvent toutefois étiqueter les contenus IA.
 
 ## Provenance
-- **Created :** 2026-09-22 · **Last updated :** 2026-09-22 · **Version :** v1
-- Source : lecture de https://yapsonbeauty.ca et de la fiche produit le 2026-09-22.
+- **Created :** 2026-09-22 · **Last updated :** 2026-09-22 · **Version :** v2
+- Source : lecture de https://www.cuddlenest.ca, de la fiche produit et de `/products.json`
+  le 2026-09-22.
+
+### Journal des versions
+- **v2 (2026-09-22, soir) :** nouveau domaine cuddlenest.ca (donné par le client) ; prix
+  6,00 $ / 10,50 $ selon le motif ; toutes les variantes indisponibles ; préfixe SKU CJ.
+- **v1 (2026-09-22, après-midi) :** domaine yapsonbeauty.ca ; prix unique 12,05 $ ;
+  « Low stock, only 6 left » ; 17 motifs × 3 tailles affichés. Conservé ici comme trace de
+  l'état initial.

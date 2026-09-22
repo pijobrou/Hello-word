@@ -1,10 +1,10 @@
-# Plan de campagne de lancement — CuddleNest (yapsonbeauty.ca)
+# Plan de campagne de lancement — CuddleNest (cuddlenest.ca)
 
 **Mode : PLAN UNIQUEMENT.** Rien n'a été publié, envoyé ni dépensé. Aucune plateforme
 publicitaire ni outil d'emailing n'est connecté à cette session (Brevo attend une
 autorisation). Chaque mise en ligne demande ton « go » écrit (voir § 10).
 
-- **Marque active :** `cuddlenest` (domaine yapsonbeauty.ca)
+- **Marque active :** `cuddlenest` (domaine https://www.cuddlenest.ca, anciennement yapsonbeauty.ca)
 - **Nom de campagne :** **« Petits pas, grandes étapes »** — EN : *Small Steps, Big Milestones*
   (reprend la signature déjà sur le site)
 - **Période :** préparation 23–30 sept. · lancement **1er oct.** · montée en puissance
@@ -18,12 +18,12 @@ autorisation). Chaque mise en ligne demande ton « go » écrit (voir § 10).
 | Élément | Constat | Tag |
 |---|---|---|
 | Produit | 1 seul : culotte d'apprentissage lavable, coton + gaze absorbante + doublure TPU, 17 motifs, tailles 90/100/110 cm | Stone |
-| Prix | 12,05 $ l'unité ; livraison gratuite dès 39 $ ; garantie 30 jours | Stone |
+| Prix | v1 : 12,05 $ l'unité. **Mise à jour 16 h 16 : 6,00 $ ou 10,50 $ selon le motif, et les 41 variantes sont indisponibles.** Livraison gratuite dès 39 $ ; garantie 30 jours | Stone |
 | Packs | FAQ recommande 3 / 5 / 7 paires, mais aucun pack vendable | Stone |
 | Langue | Site 100 % anglais | Stone |
 | Preuve sociale | « 4.8 — 350 reviews » + 5 témoignages, sur une boutique dont les visuels datent du 20–22 sept. 2026 | Stone (vérifiabilité : inconnue) |
 | Rareté | « Low stock, only 6 left » | Stone (exactitude : inconnue) |
-| Marque | Domaine « yapsonbeauty », Instagram @yapson150 orienté beauté, produit = puériculture | Stone |
+| Marque | Domaine passé à **cuddlenest.ca** ✅ ; Instagram @yapson150 encore orienté beauté | Stone |
 | Suivi | Aucun pixel publicitaire confirmé | Opinion |
 
 ---
@@ -36,14 +36,16 @@ le motif n° 1 de refus/suspension de compte chez Meta, TikTok et Google.
 
 | # | Bloquant | Pourquoi | Action |
 |---|---|---|---|
+| **B0** | **Produit impossible à acheter** (nouveau, 2026-09-22 à 16 h 16) | Les 41 variantes sont marquées « indisponibles », la recherche du site affiche « No products found » et l'URL du produit renvoie vers l'accueil. Toute pub lancée maintenant paierait des clics sans vente possible. | Remettre du stock (ou activer « Continuer à vendre en rupture » si le fournisseur livre à la demande), vérifier que le produit est publié sur la boutique en ligne, faire un achat test. |
+| B0b | **Prix incohérents** | 6,00 $ pour certains motifs, 10,50 $ pour d'autres, sans raison visible pour le client. | Choisir **un prix unique** (ou un écart justifié, par exemple la taille 110). Voir § 4. |
 | B1 | **« 350 avis, 4,8/5 »** | La Loi sur la concurrence (Canada) interdit les indications fausses ou trompeuses, y compris les faux avis et notes. Si ces avis ne viennent pas de vrais acheteurs **de ce produit, sur cette boutique**, il faut les retirer. | Confirme la source. Sinon : retirer le compteur et les témoignages, installer une app d'avis vérifiés (Judge.me, Loox…) et solliciter les premiers acheteurs. |
 | B2 | **« Only 6 left »** | Une fausse rareté est aussi une indication trompeuse. | Afficher seulement si c'est le vrai stock Shopify, sinon retirer. |
 | B3 | **« Eco-friendly »** | Depuis la réforme de 2024 de la Loi sur la concurrence, une allégation environnementale doit être étayée par des preuves adéquates. | Remplacer par un fait : « Lavable et réutilisable » (sans « écologique »). |
 | B4 | **Site sans français** | Pour vendre au Québec, la Charte de la langue française exige le français sur le site et les inscriptions du produit. Le Québec est aussi un gros marché. | Installer Shopify Translate & Adapt (ou Weglot), traduire la fiche, la FAQ et le paiement. Sinon, exclure le Québec du ciblage publicitaire. |
-| B5 | **Devise / pays** | Le lien de connexion indique `region_country=US`. | Vérifier que Shopify Markets affiche bien le CAD aux visiteurs canadiens. |
+| B5 | **Devise / pays** | Le lien de connexion indique toujours `region_country=US` sur cuddlenest.ca. | Vérifier que Shopify Markets affiche bien le CAD aux visiteurs canadiens. |
 | B6 | **Étiquetage et sécurité produit** | Produit textile pour enfants : étiquette de composition (Loi sur l'étiquetage des textiles) et conformité à la Loi canadienne sur la sécurité des produits de consommation. | Demander au fournisseur la fiche de composition et les rapports de test. |
 | B7 | **Suivi des conversions** | Sans pixel, on ne peut ni optimiser ni mesurer. | Installer : Meta (Pixel + API Conversions), Google & YouTube, TikTok, GA4 via les apps Shopify officielles. Faire un achat test. |
-| B8 | **Incohérence de marque** | « Yapson Beauty » qui vend des culottes pour bébé : doute à l'achat, et Meta demande de vérifier le domaine. | Minimum : logo + nom CuddleNest partout, page « À propos », politique de retour, coordonnées. Idéal : domaine cuddlenest.ca et compte Instagram dédié. |
+| B8 | **Cohérence de marque** | ✅ Domaine cuddlenest.ca en place. Reste : Instagram @yapson150 (beauté), redirection de l'ancien domaine, vérification du domaine chez Meta. | Rediriger yapsonbeauty.ca vers cuddlenest.ca (Shopify → Domaines), vérifier **cuddlenest.ca** dans Meta Business Suite, créer @cuddlenest (Instagram/TikTok), ajouter une page « À propos » et les coordonnées. |
 
 > Les références juridiques ci-dessus datent d'août 2026 dans ma documentation. Ce ne sont pas
 > des avis juridiques : fais-les vérifier avant de publier.
@@ -56,25 +58,28 @@ le motif n° 1 de refus/suspension de compte chez Meta, TikTok et Google.
 budget médias.** [Opinion : à recalibrer dès que tu me donnes ta marge réelle]
 
 Indicateurs de pilotage : taux de clic (CTR) · coût par clic · taux d'ajout au panier ·
-taux de conversion du site · panier moyen (objectif ≥ 50 $) · ROAS · inscriptions email.
+taux de conversion du site · panier moyen (objectif ≥ 45 $) · ROAS · inscriptions email.
 
 **Formule du CPA de rentabilité** (à calculer avec tes chiffres) :
 `CPA max = panier moyen − coût produit − expédition − frais de paiement (~3 %) − retours`
-*Exemple illustratif, pas un chiffre réel :* pack 5 à 55 $, coût 5 × 3 $ = 15 $, expédition
-10 $, frais 2 $ → marge ≈ 28 $ → CPA max ≈ 28 $.
+*Exemple illustratif, pas un chiffre réel :* pack 5 à 45 $, coût 5 × 3 $ = 15 $, expédition
+8 $, frais 2 $ → marge ≈ 20 $ → CPA max ≈ 20 $. Si ta marge réelle est plus basse, l'objectif
+de 25 $ par commande n'est pas rentable : envoie-moi ton coût fournisseur et je recalcule.
 
 ---
 
 ## 4. L'offre (à créer dans Shopify avant le lancement)
 
-Aujourd'hui, 3 culottes = 36,15 $ : **juste sous** le seuil de livraison gratuite. On transforme
-la FAQ en vraies offres groupées :
+Mise à jour du 2026-09-22 (soir) : les prix sont passés à 6,00 $ / 10,50 $ selon le motif.
+Les prix de packs ci-dessous supposent **un prix unique de 10,50 $** à l'unité ; ils restent
+une proposition [Opinion] à valider selon ta marge. On transforme la FAQ en vraies offres
+groupées :
 
 | Pack | Prix proposé | Prix/unité | Rôle |
 |---|---|---|---|
-| Découverte — 3 paires | 34 $ + livraison | 11,33 $ | Porte d'entrée |
-| **Routine — 5 paires** ⭐ | **55 $, livraison gratuite** | 11 $ | **Pack mis en avant dans la pub** |
-| Grande semaine — 7 paires | 72 $, livraison gratuite + guide PDF | 10,29 $ | Meilleur panier moyen |
+| Découverte — 3 paires | 29 $ + livraison | 9,67 $ | Porte d'entrée |
+| **Routine — 5 paires** ⭐ | **45 $, livraison gratuite** | 9 $ | **Pack mis en avant dans la pub** |
+| Grande semaine — 7 paires | 59 $, livraison gratuite + guide PDF | 8,43 $ | Meilleur panier moyen |
 
 - **Code de bienvenue** contre inscription email : `GRANDSPAS10` (−10 %, 1 fois par client).
 - **Garantie 30 jours** mise en avant partout : c'est ton meilleur argument.
@@ -157,10 +162,10 @@ ajuste après 7 jours de données.*
 
 | Dates | Phase | Tâches |
 |---|---|---|
-| 23–30 sept. | **Préparation** | Régler B1–B8 · créer les packs et le code · installer les pixels + achat test · envoyer les packs UGC · écrire le guide PDF · configurer pop-up et série de bienvenue · traduire le site en FR |
+| 23–30 sept. | **Préparation** | Régler B0–B8 · créer les packs et le code · installer les pixels + achat test · envoyer les packs UGC · écrire le guide PDF · configurer pop-up et série de bienvenue · traduire le site en FR |
 | **Jeu. 1er oct.** | **Lancement** | Mise en ligne Meta (3 angles FR/EN) + Google Search · publication Instagram « On est là ! » · email aux premiers abonnés |
 | 1–7 oct. | Test | Aucune modification les 3 premiers jours ; bilan le 5 et le 7 oct. |
-| 8–12 oct. | **Action de grâce** (lun. 12 oct.) | Message « Merci aux parents qui avancent un petit pas à la fois » ; livraison gratuite dès 34 $ (pack 3 inclus) du 9 au 12 oct. |
+| 8–12 oct. | **Action de grâce** (lun. 12 oct.) | Message « Merci aux parents qui avancent un petit pas à la fois » ; livraison gratuite sur tous les packs (pack 3 inclus) du 9 au 12 oct. |
 | 10–25 oct. | Montée en puissance | Intégrer les vidéos UGC · lancer TikTok Spark Ads · reciblage paniers abandonnés · Google Shopping |
 | 24–31 oct. | **Halloween** | « Pas de frayeur pour les petits accidents » · mettre en avant les motifs · email + story |
 | 2–15 nov. | Bilan + avis | Rapport de performance · email de demande d'avis J+14 après livraison · premiers vrais avis sur la fiche |
@@ -182,7 +187,7 @@ ajuste après 7 jours de données.*
 ## 10. Pour passer du plan à la mise en ligne (`launch-campaign`)
 
 Je peux lancer **seulement** si :
-1. Tu confirmes par écrit que B1 à B8 sont réglés (ou tu me dis lesquels tu acceptes de
+1. Tu confirmes par écrit que B0 à B8 sont réglés (ou tu me dis lesquels tu acceptes de
    reporter, et pourquoi).
 2. Tu valides le budget, les prix des packs et l'objectif (ou tu me donnes les tiens).
 3. Les comptes sont connectés : ici, je n'ai accès ni à Meta Ads, ni à Google Ads, ni à
