@@ -9,7 +9,7 @@ autorisation). Chaque mise en ligne demande ton « go » écrit (voir § 10).
   (reprend la signature déjà sur le site)
 - **Période :** préparation 23–30 sept. · lancement **1er oct.** · montée en puissance
   jusqu'au 31 oct. · relais Black Friday / Cyber Monday (27–30 nov. 2026)
-- **Marché :** Canada (FR + EN) · **Budget médias proposé :** 1 500 $ CA sur octobre [Opinion]
+- **Marché :** Canada (FR + EN) · **Budget médias :** phase test 420 $ CA (1er–14 oct.), puis ≈ 1 080 $ si CPA ≤ 12 $ (§ 3)
 
 ---
 
@@ -52,20 +52,44 @@ le motif n° 1 de refus/suspension de compte chez Meta, TikTok et Google.
 
 ---
 
-## 3. Objectif (SMART)
+## 3. Objectif et rentabilité (recalculé le 2026-09-22 avec les coûts du client)
 
-**60 commandes entre le 1er et le 31 octobre 2026, avec un CPA moyen ≤ 25 $, pour 1 500 $ de
-budget médias.** [Opinion : à recalibrer dès que tu me donnes ta marge réelle]
+### Coûts fournis par le client [Stone, 2026-09-22]
+- Coût fournisseur : **2,76 $** par paire (gamme 12,05 $) · **1,05 $** par paire (gamme 6,95 $)
+- Livraison Canada : **34,71 $** pour 6 paires à 2,76 $ · **21,30 $** pour 8 paires à 1,05 $
+  (États-Unis : 20 $ pour 8 paires à 1,05 $ ; la boutique ne vise que le Canada pour l'instant)
+
+### Marge par commande, avant publicité
+Méthode : prix payé − coût produits − livraison − frais de paiement (estimés à 2,9 % + 0,30 $,
+tarif Shopify Payments standard à confirmer sur ta facture). Les livraisons marquées « estimée »
+extrapolent le coût par paire (5,79 $ gamme 12,05 $ ; 2,66 $ gamme 6,95 $) ; le vrai tarif
+fournisseur peut être plus bas quand on ajoute des paires au même colis.
+
+| Offre | Le client paie | Produits | Livraison | Frais | **Marge avant pub** |
+|---|---|---|---|---|---|
+| A — 6 + 2 | 72,30 $ | 18,66 $ | 34,71 à 40,04 $ (estimée) | 2,40 $ | **11,21 à 16,53 $** |
+| B — 8 + 2 | 55,60 $ | 10,50 $ | 21,30 à 26,62 $ (estimée) | 1,91 $ | **16,56 à 21,89 $** |
+| C — 6 + 1 | 41,70 $ | 7,35 $ | ≈ 18,64 $ (estimée) | 1,51 $ | **≈ 14,20 $** |
+
+**Conclusion :** tu gagnes environ **11 à 22 $ par commande avant la pub**. C'est donc le
+**coût publicitaire maximum par commande (CPA max)**. Au-delà, chaque vente fait perdre de
+l'argent.
+
+- **CPA cible : ≤ 12 $** (ce qui laisse un bénéfice sur toutes les offres).
+- **Seuil d'arrêt : CPA > 16 $** sur 7 jours → on coupe ou on change la créa / l'offre.
+- L'ancien objectif « 60 commandes à ≤ 25 $ » (v1) est **abandonné** : il faisait perdre de
+  l'argent sur chaque commande.
+- La **livraison est ton plus gros coût** (jusqu'à 55 % du prix de l'offre A). Leviers :
+  mode d'expédition moins cher chez le fournisseur, entrepôt canadien, ou livraison gratuite
+  réservée aux offres (et payante à l'unité).
+
+### Objectif (SMART)
+**Phase test du 1er au 14 octobre 2026 : 420 $ de budget, au moins 30 commandes, CPA moyen
+≤ 12 $.** Si c'est atteint le 14 octobre, on débloque le reste du budget d'octobre (≈ 1 080 $).
+Sinon, on corrige d'abord (créa, offre, coût de livraison) avant de dépenser plus.
 
 Indicateurs de pilotage : taux de clic (CTR) · coût par clic · taux d'ajout au panier ·
-taux de conversion du site · panier moyen (objectif ≥ 55 $) · ROAS · inscriptions email.
-
-**Formule du CPA de rentabilité** (à calculer avec tes chiffres) :
-`CPA max = panier moyen − coût produit − expédition − frais de paiement (~3 %) − retours`
-*Exemple illustratif, pas un chiffre réel :* offre A à 72,30 $, coût 8 × 3 $ = 24 $, expédition
-10 $, frais 2,50 $ → marge ≈ 36 $ → CPA max ≈ 36 $. Offre B à 55,60 $, coût 9 × 3 $ = 27 $,
-expédition 10 $, frais 2 $ → marge ≈ 17 $ → CPA max ≈ 17 $. Si ta marge réelle est plus basse, l'objectif
-de 25 $ par commande n'est pas rentable : envoie-moi ton coût fournisseur et je recalcule.
+taux de conversion du site · panier moyen · CPA · marge après pub · inscriptions email.
 
 ---
 
@@ -188,14 +212,19 @@ l'utiliser en pub. Tout contenu sponsorisé doit porter la mention **#partenaria
 
 ---
 
-## 7. Canaux et budget (octobre, 1 500 $ CA) [Opinion]
+## 7. Canaux et budget
+
+**Phase test, 1er–14 octobre : 420 $** (décidé après le calcul de marge du § 3)
 
 | Canal | Budget | Rôle | Réglage |
 |---|---|---|---|
-| Meta (Facebook + Instagram) | 950 $ | Acquisition principale + reciblage | Campagne Ventes, Advantage+, 3 angles × FR/EN ; ~31 $/jour |
-| Google Search + Shopping | 400 $ | Capter la demande existante | Mots-clés : « culotte d'apprentissage lavable », « culotte apprentissage propreté », « potty training pants Canada », « reusable training underwear » ; flux Google Merchant Center |
-| Échantillons UGC | 150 $ | 8–10 packs offerts (coût produit + envoi) | Semaine du 23 sept. |
-| **Total** | **1 500 $** | | |
+| Meta (Facebook + Instagram) | 280 $ (20 $/jour) | Acquisition + reciblage | Campagne Ventes, Advantage+, 3 angles × FR/EN |
+| Google Search + Shopping | 140 $ (10 $/jour) | Capter la demande existante | Mots-clés : « culotte d'apprentissage lavable », « culotte apprentissage propreté », « potty training pants Canada », « reusable training underwear » ; Shopping via Google & YouTube |
+| **Total phase test** | **420 $** | | |
+
+**Si CPA ≤ 12 $ le 14 octobre :** ≈ 1 080 $ pour le reste d'octobre (même répartition
+2/3 Meta, 1/3 Google), hausse de 20 % max par jour. Échantillons UGC (150 $) : à engager
+seulement après la phase test.
 
 **Gratuit, à faire en parallèle :**
 - Instagram (et TikTok organique si tu le souhaites, sans pub) : 3 publications/semaine (calendrier dans `01-creatives.md`).
@@ -205,8 +234,9 @@ l'utiliser en pub. Tout contenu sponsorisé doit porter la mention **#partenaria
 - Pinterest : épingles « apprentissage de la propreté » vers le guide PDF.
 
 **Règles d'optimisation :**
-- Après 3 jours et environ 30 $ dépensés par annonce : couper toute annonce avec un CTR
-  < 0,8 % ou sans ajout au panier.
+- Après 3 jours et environ 15 $ dépensés par annonce : couper toute annonce sans ajout au
+  panier, ou avec un CTR < 0,8 %.
+- Couper toute annonce dont le coût par achat dépasse 16 $ après 2 achats ou 30 $ dépensés.
 - Déplacer le budget vers l'angle au meilleur CPA chaque lundi.
 - Ne pas augmenter le budget de plus de 20 %/jour sur un ensemble qui marche.
 

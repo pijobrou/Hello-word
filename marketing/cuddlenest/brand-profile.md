@@ -28,7 +28,9 @@ valider par le client (question de recherche, pas une prémisse).
 - **Packs conseillés sur la fiche :** 3 (démarrage), 5 (routine), 7 (semaine d'apprentissage)
   — mais **aucun prix de pack** [Stone]
 - **Sales motion :** self-serve [Stone]
-- **Unit economics :** COGS, marge brute, frais d'expédition, CAC, LTV — **inconnus** [Opinion → à fournir]
+- **Unit economics [Stone, client, 2026-09-22] :** coût 2,76 $/paire (gamme 12,05 $), 1,05 $/paire
+  (gamme 6,95 $) ; livraison Canada 34,71 $ (6 paires à 2,76 $), 21,30 $ (8 paires à 1,05 $).
+  Marge avant pub ≈ 11–22 $ par commande selon l'offre → **CPA max ≈ 12 $** (PLAN § 3).
 
 ## Market and compliance
 - ★ **Target markets :** Canada entier (« shipping across Canada ») [Stone] → CASL, PIPEDA,
@@ -69,8 +71,8 @@ Déduite de la copie du site (« Small steps. Big milestones. », « That is lea
 - **Owned lists :** inconnues [Opinion]
 
 ## Goals and measurement
-- ★ **Primary goal (proposé) :** 60 commandes entre le 1er et le 31 octobre 2026, à un coût
-  par achat (CPA) ≤ 25 $ [Opinion — à valider avec le budget et la marge réels]
+- ★ **Primary goal :** phase test 1er–14 oct. 2026, 420 $, ≥ 30 commandes à CPA ≤ 12 $ ; si
+  atteint, ≈ 1 080 $ pour le reste d'octobre [Opinion, recalculé sur les coûts réels]
 - **Measurement stack :** Meta ✅ (canal Facebook & Instagram installé) · Google & YouTube ✅
   (canal installé, produit publié) [Stone, 2026-09-22 soir]
 
@@ -85,11 +87,13 @@ Amazon.ca et par des marques de couches lavables canadiennes. [Opinion]
   (Meta, TikTok) peuvent toutefois étiqueter les contenus IA.
 
 ## Provenance
-- **Created :** 2026-09-22 · **Last updated :** 2026-09-22 · **Version :** v3
+- **Created :** 2026-09-22 · **Last updated :** 2026-09-22 · **Version :** v4
 - Source : lecture de https://www.cuddlenest.ca, de la fiche produit et de `/products.json`
   le 2026-09-22.
 
 ### Journal des versions
+- **v4 (2026-09-22, soir) :** coûts fournisseur et livraison fournis ; objectif recalculé
+  (CPA max ≈ 12 $, phase test 420 $) ; offres A 6+2, B 8+2, C 6+1.
 - **v3 (2026-09-22, 17 h) :** lecture de l'admin Shopify via le connecteur : CAD, prix
   12,05 $ / 6,95 $, produit en vente, stock ≈ 519 000 ; Meta connecté, Google absent ;
   TikTok exclu de la pub.
