@@ -186,6 +186,15 @@ anglaise corrigée (sans « no waste », tailles précisées par motif) + bloc �
 avec les 3 offres et la liste des motifs sélectionnés ; **traduction française enregistrée**
 dans Shopify (titre + description).
 
+**Modèle de fiche produit (2026-09-22, 19 h 20, « go modèle ») :** la fiche passe du modèle
+Amose (`product.amose2-ai-8487694860401`, son bouton « Add to cart » changeait de page) au
+modèle standard Horizon (`product.json`, ajout au panier sans quitter la page). Retour
+possible : Produits → fiche → Modèle de thème → « amose2-ai-8487694860401 ».
+À supprimer par le client dans l'éditeur : sections de démonstration du modèle standard
+(« Intentional design / Quality first / Customer care », « Feature 1 », « Feature 2 »,
+citation « At the heart of every product… ») — texte générique et affirmations non fondées
+(« bestseller », « loved by our customers »).
+
 ## 5. Audiences
 
 | Segment | Qui | Message principal | Canal |
