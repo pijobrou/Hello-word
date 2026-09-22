@@ -20,10 +20,11 @@ valider par le client (question de recherche, pas une prémisse).
 
 ## Business model
 - ★ **Revenue model :** transactionnel, e-commerce DTC, mono-produit [Stone]
-- **Price points (2026-09-22, 16 h 16) :** **deux prix selon le motif** : 6,00 $ (motifs
-  offerts en 90/100 seulement) et 10,50 $ (motifs offerts en 90/100/110) ; 41 variantes, **toutes
-  « indisponibles »** [Stone] · devise à confirmer (le lien de connexion porte
-  `region_country=US`) · livraison gratuite dès 39 $ · garantie 30 jours [Stone, lu en v1]
+- **Price points (admin Shopify, 2026-09-22 17 h) :** devise **CAD** ; **12,05 $** (7 motifs
+  en 90/100/110) et **6,95 $** (10 motifs en 90/100) ; 41 variantes en vente ; stock ≈ 519 000
+  unités (synchronisé fournisseur) [Stone] · livraison gratuite dès 39 $ · garantie 30 jours
+  [Stone, lu en v1]. Le site public affichait 6,00 $ / 10,50 $ et « indisponible » à 16 h 16
+  (probablement un état transitoire ou une conversion de devise).
 - **Packs conseillés sur la fiche :** 3 (démarrage), 5 (routine), 7 (semaine d'apprentissage)
   — mais **aucun prix de pack** [Stone]
 - **Sales motion :** self-serve [Stone]
@@ -60,14 +61,17 @@ Déduite de la copie du site (« Small steps. Big milestones. », « That is lea
   FAQ « Can these pants help with potty training? »
 
 ## Channels
-- **Active :** site Shopify ; Instagram @yapson150 (hors sujet actuellement) [Stone]
+- **Active :** site Shopify (plan Basic) ; canaux Shopify : Boutique en ligne, Shop, Inbox,
+  Facebook & Instagram, TikTok (installé) [Stone] ; Instagram @yapson150 (hors sujet) [Stone]
+- **Publicité payante :** Meta + Google uniquement ; **TikTok exclu** (décision du client,
+  2026-09-22) [Stone]
 - **Owned lists :** inconnues [Opinion]
 
 ## Goals and measurement
 - ★ **Primary goal (proposé) :** 60 commandes entre le 1er et le 31 octobre 2026, à un coût
   par achat (CPA) ≤ 25 $ [Opinion — à valider avec le budget et la marge réels]
-- **Measurement stack :** à installer — Meta Pixel + Conversions API, GA4, TikTok Pixel,
-  Google Ads (tous via apps Shopify) [Opinion : non détectés]
+- **Measurement stack :** Meta ✅ (canal Facebook & Instagram installé) · Google & YouTube /
+  GA4 ❌ pas encore installé [Stone, 2026-09-22 17 h]
 
 ## Competitors
 Non encore analysés (`competitor-analysis` à lancer). Substituts connus : couches-culottes
@@ -80,11 +84,14 @@ Amazon.ca et par des marques de couches lavables canadiennes. [Opinion]
   (Meta, TikTok) peuvent toutefois étiqueter les contenus IA.
 
 ## Provenance
-- **Created :** 2026-09-22 · **Last updated :** 2026-09-22 · **Version :** v2
+- **Created :** 2026-09-22 · **Last updated :** 2026-09-22 · **Version :** v3
 - Source : lecture de https://www.cuddlenest.ca, de la fiche produit et de `/products.json`
   le 2026-09-22.
 
 ### Journal des versions
+- **v3 (2026-09-22, 17 h) :** lecture de l'admin Shopify via le connecteur : CAD, prix
+  12,05 $ / 6,95 $, produit en vente, stock ≈ 519 000 ; Meta connecté, Google absent ;
+  TikTok exclu de la pub.
 - **v2 (2026-09-22, soir) :** nouveau domaine cuddlenest.ca (donné par le client) ; prix
   6,00 $ / 10,50 $ selon le motif ; toutes les variantes indisponibles ; préfixe SKU CJ.
 - **v1 (2026-09-22, après-midi) :** domaine yapsonbeauty.ca ; prix unique 12,05 $ ;
