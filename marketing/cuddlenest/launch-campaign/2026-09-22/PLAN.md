@@ -240,7 +240,7 @@ seulement après la phase test.
 - Déplacer le budget vers l'angle au meilleur CPA chaque lundi.
 - Ne pas augmenter le budget de plus de 20 %/jour sur un ensemble qui marche.
 
-**TikTok retiré à ta demande (2026-09-22) :** ses 250 $ passent sur Meta (+150 $) et Google (+100 $).
+**TikTok retiré à ta demande (2026-09-22)** : pas de pub TikTok.
 
 *Ces seuils sont des repères de départ, pas des références mesurées pour ta catégorie :
 ajuste après 7 jours de données.*
