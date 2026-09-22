@@ -194,6 +194,8 @@ possible : Produits → fiche → Modèle de thème → « amose2-ai-84876948604
 (« Intentional design / Quality first / Customer care », « Feature 1 », « Feature 2 »,
 citation « At the heart of every product… ») — texte générique et affirmations non fondées
 (« bestseller », « loved by our customers »).
+**Annulé le 2026-09-22 (19 h 30) à la demande du client** : la fiche est revenue au modèle Amose.
+Piste retenue : placer le bloc « Ajax add to cart » (créé par l'IA Shopify) sous la section Amose.
 
 ## 5. Audiences
 
