@@ -62,7 +62,8 @@ Déduite de la copie du site (« Small steps. Big milestones. », « That is lea
 
 ## Channels
 - **Active :** site Shopify (plan Basic) ; canaux Shopify : Boutique en ligne, Shop, Inbox,
-  Facebook & Instagram, TikTok (installé) [Stone] ; Instagram @yapson150 (hors sujet) [Stone]
+  Facebook & Instagram, Google & YouTube, TikTok (installé) [Stone] ; langues : anglais
+  (principale), français ajouté mais non publié [Stone] ; Instagram @yapson150 (hors sujet) [Stone]
 - **Publicité payante :** Meta + Google uniquement ; **TikTok exclu** (décision du client,
   2026-09-22) [Stone]
 - **Owned lists :** inconnues [Opinion]
@@ -70,8 +71,8 @@ Déduite de la copie du site (« Small steps. Big milestones. », « That is lea
 ## Goals and measurement
 - ★ **Primary goal (proposé) :** 60 commandes entre le 1er et le 31 octobre 2026, à un coût
   par achat (CPA) ≤ 25 $ [Opinion — à valider avec le budget et la marge réels]
-- **Measurement stack :** Meta ✅ (canal Facebook & Instagram installé) · Google & YouTube /
-  GA4 ❌ pas encore installé [Stone, 2026-09-22 17 h]
+- **Measurement stack :** Meta ✅ (canal Facebook & Instagram installé) · Google & YouTube ✅
+  (canal installé, produit publié) [Stone, 2026-09-22 soir]
 
 ## Competitors
 Non encore analysés (`competitor-analysis` à lancer). Substituts connus : couches-culottes

@@ -20,11 +20,11 @@ autorisation). Chaque mise en ligne demande ton « go » écrit (voir § 10).
 | Produit | 1 seul : culotte d'apprentissage lavable, coton + gaze absorbante + doublure TPU, 17 motifs, tailles 90/100/110 cm | Stone |
 | Prix | Admin Shopify (vérifié à 17 h, devise **CAD**) : **12,05 $** pour les 7 motifs offerts en 90/100/110, **6,95 $** pour les 10 motifs offerts en 90/100. Les 41 variantes sont **en vente**. Livraison gratuite dès 39 $ ; garantie 30 jours | Stone |
 | Packs | FAQ recommande 3 / 5 / 7 paires, mais aucun pack vendable | Stone |
-| Langue | Site 100 % anglais | Stone |
+| Langue | Anglais principal ; français ajouté dans Shopify mais **non publié** (2026-09-22 au soir) | Stone |
 | Preuve sociale | « 4.8 — 350 reviews » + 5 témoignages, sur une boutique dont les visuels datent du 20–22 sept. 2026 | Stone (vérifiabilité : inconnue) |
 | Rareté | « Low stock, only 6 left » | Stone (exactitude : inconnue) |
 | Marque | Domaine passé à **cuddlenest.ca** ✅ ; Instagram @yapson150 encore orienté beauté | Stone |
-| Canaux Shopify | Boutique en ligne, Shop, Inbox, **Facebook & Instagram ✅**, TikTok (canal installé, pas utilisé pour la pub). **Google & YouTube : absent** | Stone |
+| Canaux Shopify | Boutique en ligne, Shop, Inbox, **Facebook & Instagram ✅**, **Google & YouTube ✅** (ajouté le 2026-09-22 au soir), TikTok (installé, pas utilisé pour la pub) | Stone |
 
 ---
 
@@ -41,10 +41,10 @@ le motif n° 1 de refus/suspension de compte chez Meta, TikTok et Google.
 | ~~B1~~ | ✅ **Réglé** (client, confirmé le 2026-09-22 à 17 h 20) | Le modèle de fiche produit du thème ne contient plus le compteur « 350 avis », la note 4,8 ni les témoignages. | Installer une app d'avis vérifiés (Judge.me, Loox…) et demander un avis aux premiers acheteurs (email J+14). |
 | ~~B2~~ | ✅ **Probablement réglé** : le modèle de fiche produit ne contient plus de bloc de stock | Stock réel ≈ 519 000 unités, donc toute mention « X restants » serait fausse. | Vérifier visuellement la fiche produit depuis le Canada. |
 | B3 | 🟡 **« Eco-friendly » retiré** du thème ✅ ; reste **« no waste »** dans la description du produit | « Machine washable and reusable, no waste » est aussi une allégation environnementale absolue (zéro déchet), difficile à prouver. | Remplacer par « Machine washable and reusable » dans Produits → description. |
-| B4 | **Site sans français** | Pour vendre au Québec, la Charte de la langue française exige le français sur le site et les inscriptions du produit. Le Québec est aussi un gros marché. | Installer Shopify Translate & Adapt (ou Weglot), traduire la fiche, la FAQ et le paiement. Sinon, exclure le Québec du ciblage publicitaire. |
+| B4 | 🟡 **Français : en cours** (vérifié le 2026-09-22 vers 18 h) | Le client indique avoir un traducteur sur la boutique. Dans Shopify, la langue **fr est ajoutée mais pas publiée**, et le produit n'a **aucune traduction française enregistrée**. Si le traducteur est un widget (traduction à la volée), le site s'ouvre d'abord en anglais : pour le Québec, le français doit être au moins aussi accessible que l'anglais. | **Paramètres → Langues → publier le français**. Vérifier en français : fiche produit, règle des offres, panier, paiement, politique de retour. Relire la traduction automatique. |
 | ~~B5~~ | ✅ **Devise : CAD** confirmée dans Shopify | Le paramètre `region_country=US` du lien de connexion reste à surveiller. | Ouvrir le site en navigation privée depuis le Canada : les prix doivent s'afficher en $ CA. |
 | B6 | **Étiquetage et sécurité produit** | Produit textile pour enfants : étiquette de composition (Loi sur l'étiquetage des textiles) et conformité à la Loi canadienne sur la sécurité des produits de consommation. | Demander au fournisseur la fiche de composition et les rapports de test. |
-| B7 | **Suivi des conversions** | Meta ✅ connecté (canal Facebook & Instagram installé). **Google & YouTube n'apparaît pas** parmi les canaux. TikTok : exclu à ta demande. | Installer l'app **Google & YouTube** (Google Ads + Merchant Center + GA4). Vérifier dans Meta que le partage de données est « Maximum ». Faire un achat test et le voir arriver dans le Gestionnaire d'événements Meta. |
+| ~~B7~~ | ✅ **Suivi : Meta et Google connectés** (vérifié le 2026-09-22) | Le produit est publié sur le canal **Google & YouTube**. | Achat test : vérifier qu'il arrive dans Meta (Gestionnaire d'événements) et dans Google Ads (conversions). Vérifier que Merchant Center approuve le produit. |
 | B8 | **Cohérence de marque** | ✅ Domaine cuddlenest.ca en place. Reste : Instagram @yapson150 (beauté), redirection de l'ancien domaine, vérification du domaine chez Meta. | Rediriger yapsonbeauty.ca vers cuddlenest.ca (Shopify → Domaines), vérifier **cuddlenest.ca** dans Meta Business Suite, créer @cuddlenest (Instagram/TikTok), ajouter une page « À propos » et les coordonnées. |
 
 > Les références juridiques ci-dessus datent d'août 2026 dans ma documentation. Ce ne sont pas

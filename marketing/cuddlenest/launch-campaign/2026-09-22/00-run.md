@@ -12,5 +12,5 @@ Mode : **plan uniquement** : rien n'a été publié, envoyé ni dépensé.
 | Offre | PLAN § 4 | ✅ décidée par le client : A « 6 + 2 offertes », B « 8 + 1 offerte » ; **créées dans Shopify** (2026-09-22, 17 h 45) |
 | Validation client (budget, objectif, bloquants restants) | — | ⏸ **en attente de toi** |
 | Analyse concurrentielle | — | ⬜ pas lancée (recommandée) |
-| Connexion des comptes | — | 🟡 Shopify ✅ · Meta ✅ · Google ❌ · TikTok exclu |
+| Connexion des comptes | — | 🟡 Shopify ✅ · Meta ✅ · Google ✅ · TikTok exclu |
 | Mise en ligne | — | ⬜ nécessite ton « go » écrit |
