@@ -3,7 +3,8 @@
 Statut : **brouillons passés au contrôle qualité (voir scorecard.md), NON publiés.**
 Aucun texte ne cite de nombre d'avis ni de note tant que B1 n'est pas réglé.
 **Règle des offres (client, 2026-09-22) :** les pubs ne citent **pas** « motifs à 6,95 $ ».
-Elles disent « 2 paires offertes (motifs sélectionnés) ». La liste des motifs offerts et les
+Depuis le 2026-09-22 (18 h 45), les offres s'annoncent **« X paires pour le prix de Y »** pour que
+le client ajoute toutes les paires au panier (Shopify n'ajoute pas les paires offertes tout seul). La liste des motifs offerts et les
 tailles 90–100 cm sont détaillées sur la fiche produit (PLAN § 4).
 **Élément à remplacer avant tout envoi :** `[adresse postale]` dans le pied de page des
 emails (obligatoire selon la LCAP/CASL). Les textes entre crochets comme `[Voir les culottes]` sont des
@@ -24,7 +25,7 @@ Lien de base : `https://www.cuddlenest.ca/products/baby-training-learning-pants-
   une vraie culotte, avec une protection légère pour les petites fuites de jour. Lavables,
   réutilisables, 17 motifs. Garantie 30 jours, remboursé.
 - Titre : Petits pas, grandes étapes
-- Description : 6 achetées = 2 offertes* · livraison gratuite
+- Description : 8 paires pour le prix de 6* · livraison gratuite
 - *Mention sous l'annonce ou dans le texte : « *Motifs sélectionnés, détails sur la fiche. »
 - Bouton : Acheter
 
@@ -34,7 +35,7 @@ Lien de base : `https://www.cuddlenest.ca/products/baby-training-learning-pants-
   light protection for small daytime leaks. Washable, reusable, 17 fun prints. 30-day
   money-back guarantee.
 - Headline: Small steps. Big milestones.
-- Description: Buy 6, get 2 free* · free shipping
+- Description: 8 pairs for the price of 6* · free shipping
 - *Line in the text: "*Selected prints, details on the product page."
 - CTA: Shop now
 
@@ -73,11 +74,11 @@ Lien de base : `https://www.cuddlenest.ca/products/baby-training-learning-pants-
 
 ### Reciblage (visiteurs + paniers abandonnés)
 - **FR :** Vous hésitez encore ? Essayez CuddleNest sans risque : si ça ne convient pas,
-  vous êtes remboursé sous 30 jours. Offre : 6 paires achetées, 2 offertes (motifs
+  vous êtes remboursé sous 30 jours. Offre : 8 paires pour le prix de 6 (motifs
   sélectionnés, 90 ou 100 cm), livraison gratuite.
 - **EN:** Still deciding? Try CuddleNest risk-free: if it's not right for your family, get a
-  full refund within 30 days. Buy 6 pairs, get 2 free (selected prints, sizes
-  90–100), free shipping.
+  full refund within 30 days. 8 pairs for the price of 6 (selected prints,
+  sizes 90–100), free shipping.
 
 ---
 
@@ -95,16 +96,16 @@ Titres (≤ 30 caractères, vérifiés dans scorecard.md) :
 | Petits pas, grandes étapes | Small Steps, Big Milestones |
 | Pour l'apprentissage de jour | For Daytime Potty Training |
 | Tailles de 90 à 110 cm | Sizes 90 to 110 cm |
-| 6 achetées, 2 offertes | Buy 6, Get 2 Free |
-| 8 achetées, 2 offertes | Buy 8, Get 2 Free |
-| 6 achetées, 1 offerte | Buy 6, Get 1 Free |
+| 8 paires au prix de 6 | 8 Pairs for the Price of 6 |
+| 10 paires au prix de 8 | 10 Pairs for the Price of 8 |
+| 7 paires au prix de 6 | 7 Pairs for the Price of 6 |
 
 Descriptions (≤ 90 caractères) :
 
 | FR | EN |
 |---|---|
 | Coton doux, gaze absorbante et doublure anti-humidité pour les petites fuites de jour. | Soft cotton, absorbent gauze and a moisture-resistant lining for small daytime leaks. |
-| Jusqu'à 2 paires offertes selon les motifs choisis. Livraison gratuite au Canada. | Up to 2 free pairs depending on the prints you pick. Free shipping in Canada. |
+| 8 paires pour le prix de 6 ou 10 pour le prix de 8. Livraison gratuite au Canada. | 8 pairs for the price of 6, or 10 for the price of 8. Free shipping in Canada. |
 
 Mots-clés négatifs de départ : `adulte`, `adult`, `incontinence`, `nuit`, `overnight`,
 `gratuit`, `free sample`, `jetable`, `disposable`.
@@ -133,9 +134,8 @@ désabonnement qui fonctionne. Envoyer seulement à des personnes qui ont accept
 - Corps FR : L'apprentissage de la propreté n'est pas une ligne droite. Un jour il y arrive
   tout seul, le lendemain il y a une fuite. C'est normal. Nos culottes laissent votre enfant
   sentir qu'il est mouillé, pour qu'il fasse le lien, tout en gardant les petites fuites loin
-  du canapé. Combien en prévoir ? Notre offre : 6 paires achetées, 2 offertes (motifs sélectionnés,
-  90 ou 100 cm), 8 achetées + 2 offertes ou 6 achetées + 1 offerte
-  (motifs sélectionnés). Livraison gratuite. [Voir les offres]
+  du canapé. Combien en prévoir ? Nos offres : 8 paires pour le prix de 6, 10 pour le prix de 8,
+  ou 7 pour le prix de 6 (motifs sélectionnés, 90 ou 100 cm). Livraison gratuite. [Voir les offres]
 
 **Email 3 — J+5 : garantie + motifs**
 - Objet FR : Laissez-le choisir son motif 🐳🦄🚀
@@ -155,7 +155,7 @@ désabonnement qui fonctionne. Envoyer seulement à des personnes qui ont accept
 
 | Date | Format | Idée |
 |---|---|---|
-| 1er oct. | Reel | « On est là ! » : déballage de l'offre « 6 + 2 offertes », les motifs un par un |
+| 1er oct. | Reel | « On est là ! » : déballage de l'offre « 8 paires pour le prix de 6 », les motifs un par un |
 | 3 oct. | Carrousel | « 5 signes que votre enfant est peut-être prêt » (conseils généraux) |
 | 6 oct. | Reel UGC | Enfant qui remonte sa culotte tout seul (avec accord des parents) |
 | 8 oct. | Story | Sondage : « Quel motif pour votre petit ? » |

@@ -133,7 +133,15 @@ seule. Il n'y a rien de plus à configurer pour elle.
    maximum.
 5. **Les deux offres ne se cumulent pas** entre elles ni avec le code `GRANDSPAS10`.
 
-**État final dans Shopify (vérifié le 2026-09-22 vers 18 h, après « corrige les remises afin d'éviter les doublons ») :**
+**Correction du 2026-09-22 (18 h 45, « go correction ») :** Shopify n'ajoute pas les paires
+offertes au panier ; le client doit les ajouter lui-même. Les offres sont donc renommées pour
+indiquer le nombre total de paires à mettre au panier :
+- A → **« 8 paires pour le prix de 6 »** · B → **« 10 paires pour le prix de 8 »** ·
+  C → **« 7 paires pour le prix de 6 »** (titres des remises, fiche produit EN + FR, pubs).
+- Livraison gratuite dès 39 $ **plafonnée à 15 $** : elle couvre la livraison Standard mais ne
+  rend plus gratuite l'Express à 135 $.
+
+**État dans Shopify (vérifié le 2026-09-22 vers 18 h, après « corrige les remises afin d'éviter les doublons ») :**
 - ✅ A « 6 achetées + 2 offertes / Buy 6, get 2 free » : 6 × 12,05 $ → 2 × 6,95 $ offertes.
 - ✅ B « 8 achetées + 2 offertes / Buy 8, get 2 free » : 8 × 6,95 $ → 2 × 6,95 $ offertes.
 - ✅ C « 6 achetées + 1 offerte / Buy 6, get 1 free » (nouvelle) : 6 × 6,95 $ → 1 × 6,95 $ offerte.
