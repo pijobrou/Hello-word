@@ -81,7 +81,8 @@ Deux gammes de prix dans Shopify (CAD) :
 | Offre | Le client paie | Il reçoit | Prix réel / paire | Livraison |
 |---|---|---|---|---|
 | **A — « 6 + 2 offertes »** ⭐ | 6 paires de la gamme 12,05 $ = **72,30 $** | 8 paires (les 2 offertes viennent de la gamme 6,95 $) | 9,04 $ | Gratuite |
-| **B — « 8 + 1 offerte »** | 8 paires de la gamme 6,95 $ = **55,60 $** | 9 paires | 6,18 $ | Gratuite |
+| **B — « 8 + 2 offertes »** | 8 paires de la gamme 6,95 $ = **55,60 $** | 10 paires | 5,56 $ | Gratuite |
+| **C — « 6 + 1 offerte »** | 6 paires de la gamme 6,95 $ = **41,70 $** | 7 paires | 5,96 $ | Gratuite |
 | À l'unité | 12,05 $ ou 6,95 $ | 1 paire | — | Gratuite dès 39 $ |
 
 Les deux offres dépassent déjà le seuil de 39 $, donc la livraison gratuite s'applique toute
@@ -102,13 +103,22 @@ seule. Il n'y a rien de plus à configurer pour elle.
    pas les paires offertes toute seule. Le client doit mettre 8 (ou 9) paires dans son panier,
    et Shopify rend les 2 (ou 1) moins chères gratuites. Il faut l'écrire sur la fiche :
    « Ajoutez 8 paires, les 2 dernières sont offertes. »
-4. **Rentabilité :** offre B = 55,60 $ pour 9 paires expédiées gratuitement. Si le coût
+4. **Rentabilité :** offre B = 55,60 $ pour 10 paires, offre C = 41,70 $ pour 7 paires expédiées gratuitement. Si le coût
    fournisseur + l'expédition dépasse environ 30 $, il ne reste presque rien pour la pub.
    **Envoie-moi ton coût CJ par paire et le coût d'expédition** pour que je calcule le CPA
    maximum.
 5. **Les deux offres ne se cumulent pas** entre elles ni avec le code `GRANDSPAS10`.
 
-**État dans Shopify (fait le 2026-09-22 vers 17 h 45, après le « go remise » du client) :**
+**État final dans Shopify (vérifié le 2026-09-22 vers 18 h, après « corrige les remises afin d'éviter les doublons ») :**
+- ✅ A « 6 achetées + 2 offertes / Buy 6, get 2 free » : 6 × 12,05 $ → 2 × 6,95 $ offertes.
+- ✅ B « 8 achetées + 2 offertes / Buy 8, get 2 free » : 8 × 6,95 $ → 2 × 6,95 $ offertes.
+- ✅ C « 6 achetées + 1 offerte / Buy 6, get 1 free » (nouvelle) : 6 × 6,95 $ → 1 × 6,95 $ offerte.
+- A, B et C : **1 fois par commande**, **non cumulables entre elles** (Shopify applique la
+  meilleure pour le client), cumulables avec la livraison gratuite.
+- ⛔ Code « Get One » **désactivé** (doublon de B).
+- GRANDSPAS10 et livraison gratuite dès 39 $ : inchangés.
+
+**Historique (17 h 45) :**
 - ✅ Offre A = remise automatique **« Get 2 »**, créée plus tôt par le client (6 variantes
   12,05 $ → 2 variantes 6,95 $ à 100 %). Modifiée : elle se cumule maintenant avec la livraison
   gratuite.

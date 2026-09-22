@@ -96,14 +96,15 @@ Titres (≤ 30 caractères, vérifiés dans scorecard.md) :
 | Pour l'apprentissage de jour | For Daytime Potty Training |
 | Tailles de 90 à 110 cm | Sizes 90 to 110 cm |
 | 6 achetées, 2 offertes | Buy 6, Get 2 Free |
-| 8 achetées, 1 offerte | Buy 8, Get 1 Free |
+| 8 achetées, 2 offertes | Buy 8, Get 2 Free |
+| 6 achetées, 1 offerte | Buy 6, Get 1 Free |
 
 Descriptions (≤ 90 caractères) :
 
 | FR | EN |
 |---|---|
 | Coton doux, gaze absorbante et doublure anti-humidité pour les petites fuites de jour. | Soft cotton, absorbent gauze and a moisture-resistant lining for small daytime leaks. |
-| 6 paires achetées, 2 offertes, ou 8 achetées, 1 offerte. Livraison gratuite. | Buy 6 pairs, get 2 free, or buy 8, get 1 free. Free shipping across Canada. |
+| Jusqu'à 2 paires offertes selon les motifs choisis. Livraison gratuite au Canada. | Up to 2 free pairs depending on the prints you pick. Free shipping in Canada. |
 
 Mots-clés négatifs de départ : `adulte`, `adult`, `incontinence`, `nuit`, `overnight`,
 `gratuit`, `free sample`, `jetable`, `disposable`.
@@ -133,7 +134,8 @@ désabonnement qui fonctionne. Envoyer seulement à des personnes qui ont accept
   tout seul, le lendemain il y a une fuite. C'est normal. Nos culottes laissent votre enfant
   sentir qu'il est mouillé, pour qu'il fasse le lien, tout en gardant les petites fuites loin
   du canapé. Combien en prévoir ? Notre offre : 6 paires achetées, 2 offertes (motifs sélectionnés,
-  90 ou 100 cm), ou 8 paires achetées + 1 offerte. Livraison gratuite. [Voir les offres]
+  90 ou 100 cm), 8 achetées + 2 offertes ou 6 achetées + 1 offerte
+  (motifs sélectionnés). Livraison gratuite. [Voir les offres]
 
 **Email 3 — J+5 : garantie + motifs**
 - Objet FR : Laissez-le choisir son motif 🐳🦄🚀
