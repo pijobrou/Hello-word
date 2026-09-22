@@ -75,8 +75,8 @@ Deux gammes de prix dans Shopify (CAD) :
 - **Gamme 12,05 $** : 7 motifs (Alpaca, Clouds, Ice cream, Ocean, Space, Unicorn, Woods),
   tailles 90 / 100 / 110.
 - **Gamme 6,95 $** : 10 motifs (Bunny, Elephant baby, Flamingo, Forest fox, Owl, Panda, Polar
-  bear, Stars moon, Traveller, Whale), **tailles 90 / 100 seulement**. Tu as écrit 6,96 $, mais
-  Shopify affiche **6,95 $** : à corriger dans Shopify si tu veux 6,96 $.
+  bear, Stars moon, Traveller, Whale), **tailles 90 / 100 seulement**. Tu as écrit 6,96 $, le client
+  a confirmé **6,95 $** (2026-09-22).
 
 | Offre | Le client paie | Il reçoit | Prix réel / paire | Livraison |
 |---|---|---|---|---|
@@ -108,7 +108,21 @@ seule. Il n'y a rien de plus à configurer pour elle.
    maximum.
 5. **Les deux offres ne se cumulent pas** entre elles ni avec le code `GRANDSPAS10`.
 
-**Configuration Shopify prévue (rien n'est créé tant que tu ne dis pas « go ») :**
+**État dans Shopify (fait le 2026-09-22 vers 17 h 45, après le « go remise » du client) :**
+- ✅ Offre A = remise automatique **« Get 2 »**, créée plus tôt par le client (6 variantes
+  12,05 $ → 2 variantes 6,95 $ à 100 %). Modifiée : elle se cumule maintenant avec la livraison
+  gratuite.
+- ✅ Offre B = nouvelle remise automatique **« 8 achetées + 1 offerte / Buy 8, get 1 free »**
+  (8 variantes 6,95 $ → 1 variante 6,95 $ à 100 %, 1 fois par commande), cumulable avec la
+  livraison gratuite.
+- ✅ Code **GRANDSPAS10** : −10 %, 1 fois par client, cumulable seulement avec la livraison
+  gratuite.
+- ✅ « Free Shipping for 39 $ » : modifiée pour se cumuler avec les remises produits. Avant, un
+  client qui prenait l'offre A **payait la livraison**.
+- ⚠️ Code **« Get One »** (créé par le client) : toujours actif, en doublon avec l'offre B, et
+  sa paire offerte peut être n'importe quel motif, **y compris à 12,05 $**. À désactiver.
+
+**Configuration initialement prévue :**
 - Remise automatique 1 : « Achetez 6 variantes 12,05 $, obtenez 2 variantes 6,95 $ à 100 % »,
   1 fois par commande, non cumulable.
 - Remise automatique 2 : « Achetez 8 variantes 6,95 $, obtenez 1 variante 6,95 $ à 100 % »,

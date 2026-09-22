@@ -9,7 +9,7 @@ Mode : **plan uniquement** : rien n'a été publié, envoyé ni dépensé.
 | Plan de campagne (objectif, offre, audiences, canaux, budget, calendrier, mesure) | PLAN.md § 3–9 | ✅ fait |
 | Créations FR/EN (Meta, Google, emails, organique, brief UGC) | 01-creatives.md | ✅ fait |
 | Contrôle qualité | scorecard.md | ✅ PASS avec notes · lancement BLOCKED |
-| Offre | PLAN § 4 | ✅ décidée par le client : A « 6 + 2 offertes », B « 8 + 1 offerte » ; à créer dans Shopify après ton « go » |
+| Offre | PLAN § 4 | ✅ décidée par le client : A « 6 + 2 offertes », B « 8 + 1 offerte » ; **créées dans Shopify** (2026-09-22, 17 h 45) |
 | Validation client (budget, objectif, bloquants restants) | — | ⏸ **en attente de toi** |
 | Analyse concurrentielle | — | ⬜ pas lancée (recommandée) |
 | Connexion des comptes | — | 🟡 Shopify ✅ · Meta ✅ · Google ❌ · TikTok exclu |
