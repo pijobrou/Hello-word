@@ -9,7 +9,7 @@ Vérification refaite à partir des fichiers, pas de ce tableau.
 | Voix de marque | Notée à la main par Claude avec une grille sur les 4 axes (Casual 7 · Playful 6 · Bold 4 · Accessible 9). Écart moyen estimé ≈ 0,5 point sur 10, soit ≈ 0,05. **Estimation, pas une mesure** : le scanner de l'outil d'origine n'est pas inclus ici. | ≤ 0,15 | **PASS (estimé)** |
 | Longueurs Google | 16 titres ≤ 30 car. (max 28) · 4 descriptions ≤ 90 car. (max 86), comptés par script | ≤ 30 / ≤ 90 | **PASS** |
 | Structure + conformité | CTA présent partout · mentions #partenariat pour le contenu UGC · règles CASL/LCAP pour l'email · usage de nuit exclu | présent | **PASS avec notes** : il faut remplacer `[adresse postale]` avant l'envoi des emails |
-| Conformité et état du site cible | prix incohérents (B0b), **fausse rareté confirmée (B2)**, Google non connecté (B7), faux avis possibles, fausse rareté, « eco-friendly », site sans français, devise | 0 point critique | **BLOCKED** : voir PLAN § 2, B0–B8 |
+| Conformité et état du site cible | offres A/B à configurer, « no waste » (B3), site sans français (B4), Google non connecté (B7) ; avis et « Eco-friendly » réglés, faux avis possibles, fausse rareté, « eco-friendly », site sans français, devise | 0 point critique | **BLOCKED** : voir PLAN § 2, B0–B8 |
 | Données de performance | Seuils d'optimisation et budget | sourcés | **N/A** : pas de données de compte ni de référence sourcée pour la catégorie. Les seuils sont étiquetés comme repères de départ. |
 
 ## Verdict

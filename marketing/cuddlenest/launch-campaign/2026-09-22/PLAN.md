@@ -38,9 +38,9 @@ le motif n° 1 de refus/suspension de compte chez Meta, TikTok et Google.
 |---|---|---|---|
 | ~~B0~~ | ✅ **Réglé à 17 h** : produit actif, publié, 41 variantes en vente | À 16 h 16, le site public montrait le produit indisponible. | Faire quand même un **achat test** de bout en bout. |
 | B0b | **Prix incohérents** | 6,95 $ pour 10 motifs, 12,05 $ pour 7 autres, sans raison visible pour le client. | Choisir **un prix unique** (ou un écart justifié, par exemple la taille 110). Voir § 4. |
-| B1 | **« 350 avis, 4,8/5 »** | La Loi sur la concurrence (Canada) interdit les indications fausses ou trompeuses, y compris les faux avis et notes. Si ces avis ne viennent pas de vrais acheteurs **de ce produit, sur cette boutique**, il faut les retirer. | Confirme la source. Sinon : retirer le compteur et les témoignages, installer une app d'avis vérifiés (Judge.me, Loox…) et solliciter les premiers acheteurs. |
-| B2 | **« Only 6 left »** — **confirmé faux** | Shopify indique environ 10 000 à 15 000 unités par variante (519 036 au total, stock synchronisé du fournisseur). Afficher « 6 restants » est donc une fausse rareté, donc une indication trompeuse. | **Retirer** ce bloc du thème (Boutique en ligne → Personnaliser → fiche produit). |
-| B3 | **« Eco-friendly »** | Depuis la réforme de 2024 de la Loi sur la concurrence, une allégation environnementale doit être étayée par des preuves adéquates. | Remplacer par un fait : « Lavable et réutilisable » (sans « écologique »). |
+| ~~B1~~ | ✅ **Réglé** (client, confirmé le 2026-09-22 à 17 h 20) | Le modèle de fiche produit du thème ne contient plus le compteur « 350 avis », la note 4,8 ni les témoignages. | Installer une app d'avis vérifiés (Judge.me, Loox…) et demander un avis aux premiers acheteurs (email J+14). |
+| ~~B2~~ | ✅ **Probablement réglé** : le modèle de fiche produit ne contient plus de bloc de stock | Stock réel ≈ 519 000 unités, donc toute mention « X restants » serait fausse. | Vérifier visuellement la fiche produit depuis le Canada. |
+| B3 | 🟡 **« Eco-friendly » retiré** du thème ✅ ; reste **« no waste »** dans la description du produit | « Machine washable and reusable, no waste » est aussi une allégation environnementale absolue (zéro déchet), difficile à prouver. | Remplacer par « Machine washable and reusable » dans Produits → description. |
 | B4 | **Site sans français** | Pour vendre au Québec, la Charte de la langue française exige le français sur le site et les inscriptions du produit. Le Québec est aussi un gros marché. | Installer Shopify Translate & Adapt (ou Weglot), traduire la fiche, la FAQ et le paiement. Sinon, exclure le Québec du ciblage publicitaire. |
 | ~~B5~~ | ✅ **Devise : CAD** confirmée dans Shopify | Le paramètre `region_country=US` du lien de connexion reste à surveiller. | Ouvrir le site en navigation privée depuis le Canada : les prix doivent s'afficher en $ CA. |
 | B6 | **Étiquetage et sécurité produit** | Produit textile pour enfants : étiquette de composition (Loi sur l'étiquetage des textiles) et conformité à la Loi canadienne sur la sécurité des produits de consommation. | Demander au fournisseur la fiche de composition et les rapports de test. |
@@ -58,36 +58,67 @@ le motif n° 1 de refus/suspension de compte chez Meta, TikTok et Google.
 budget médias.** [Opinion : à recalibrer dès que tu me donnes ta marge réelle]
 
 Indicateurs de pilotage : taux de clic (CTR) · coût par clic · taux d'ajout au panier ·
-taux de conversion du site · panier moyen (objectif ≥ 50 $) · ROAS · inscriptions email.
+taux de conversion du site · panier moyen (objectif ≥ 55 $) · ROAS · inscriptions email.
 
 **Formule du CPA de rentabilité** (à calculer avec tes chiffres) :
 `CPA max = panier moyen − coût produit − expédition − frais de paiement (~3 %) − retours`
-*Exemple illustratif, pas un chiffre réel :* pack 5 à 52 $, coût 5 × 3 $ = 15 $, expédition
-8 $, frais 2 $ → marge ≈ 27 $ → CPA max ≈ 27 $. Si ta marge réelle est plus basse, l'objectif
+*Exemple illustratif, pas un chiffre réel :* offre A à 72,30 $, coût 8 × 3 $ = 24 $, expédition
+10 $, frais 2,50 $ → marge ≈ 36 $ → CPA max ≈ 36 $. Offre B à 55,60 $, coût 9 × 3 $ = 27 $,
+expédition 10 $, frais 2 $ → marge ≈ 17 $ → CPA max ≈ 17 $. Si ta marge réelle est plus basse, l'objectif
 de 25 $ par commande n'est pas rentable : envoie-moi ton coût fournisseur et je recalcule.
 
 ---
 
-## 4. L'offre (à créer dans Shopify avant le lancement)
+## 4. L'offre (décidée par le client le 2026-09-22 ; à créer dans Shopify)
 
-Prix actuels dans Shopify (CAD) : 12,05 $ ou 6,95 $ selon le motif. Les prix de packs
-ci-dessous supposent **un prix unique de 12,05 $** à l'unité ; ils restent une proposition
-[Opinion] à valider selon ta marge. On transforme la FAQ en vraies offres
-groupées :
+Deux gammes de prix dans Shopify (CAD) :
+- **Gamme 12,05 $** : 7 motifs (Alpaca, Clouds, Ice cream, Ocean, Space, Unicorn, Woods),
+  tailles 90 / 100 / 110.
+- **Gamme 6,95 $** : 10 motifs (Bunny, Elephant baby, Flamingo, Forest fox, Owl, Panda, Polar
+  bear, Stars moon, Traveller, Whale), **tailles 90 / 100 seulement**. Tu as écrit 6,96 $, mais
+  Shopify affiche **6,95 $** : à confirmer.
 
-| Pack | Prix proposé | Prix/unité | Rôle |
-|---|---|---|---|
-| Découverte — 3 paires | 33 $ + livraison | 11 $ | Porte d'entrée |
-| **Routine — 5 paires** ⭐ | **52 $, livraison gratuite** | 10,40 $ | **Pack mis en avant dans la pub** |
-| Grande semaine — 7 paires | 69 $, livraison gratuite + guide PDF | 9,86 $ | Meilleur panier moyen |
+| Offre | Le client paie | Il reçoit | Prix réel / paire | Livraison |
+|---|---|---|---|---|
+| **A — « 6 + 2 offertes »** ⭐ | 6 paires de la gamme 12,05 $ = **72,30 $** | 8 paires (les 2 offertes viennent de la gamme 6,95 $) | 9,04 $ | Gratuite |
+| **B — « 8 + 1 offerte »** | 8 paires de la gamme 6,95 $ = **55,60 $** | 9 paires | 6,18 $ | Gratuite |
+| À l'unité | 12,05 $ ou 6,95 $ | 1 paire | — | Gratuite dès 39 $ |
 
-- **Code de bienvenue** contre inscription email : `GRANDSPAS10` (−10 %, 1 fois par client).
+Les deux offres dépassent déjà le seuil de 39 $, donc la livraison gratuite s'applique toute
+seule. Il n'y a rien de plus à configurer pour elle.
+
+**Points à régler avant de mettre ces offres en pub :**
+1. **Taille 110 :** dans l'offre A, les 2 paires offertes viennent de la gamme 6,95 $, qui
+   n'existe pas en 110. Un parent qui commande en 110 recevrait 2 paires trop petites. Il faut
+   soit l'écrire clairement (« paires offertes en 90 ou 100 »), soit permettre de choisir les
+   paires offertes dans la gamme 12,05 $ pour la taille 110.
+2. **Mention obligatoire dans les pubs et sur la fiche :** « Les 2 paires offertes sont à
+   choisir parmi les motifs Bunny, Panda, Whale… (tailles 90 et 100). » Si c'est écrit
+   « 2 offertes » sans préciser, c'est une indication trompeuse.
+3. **Ajout au panier :** une remise automatique Shopify « Achetez X, obtenez Y » n'ajoute
+   pas les paires offertes toute seule. Le client doit mettre 8 (ou 9) paires dans son panier,
+   et Shopify rend les 2 (ou 1) moins chères gratuites. Il faut l'écrire sur la fiche :
+   « Ajoutez 8 paires, les 2 dernières sont offertes. »
+4. **Rentabilité :** offre B = 55,60 $ pour 9 paires expédiées gratuitement. Si le coût
+   fournisseur + l'expédition dépasse environ 30 $, il ne reste presque rien pour la pub.
+   **Envoie-moi ton coût CJ par paire et le coût d'expédition** pour que je calcule le CPA
+   maximum.
+5. **Les deux offres ne se cumulent pas** entre elles ni avec le code `GRANDSPAS10`.
+
+**Configuration Shopify prévue (rien n'est créé tant que tu ne dis pas « go ») :**
+- Remise automatique 1 : « Achetez 6 variantes 12,05 $, obtenez 2 variantes 6,95 $ à 100 % »,
+  1 fois par commande, non cumulable.
+- Remise automatique 2 : « Achetez 8 variantes 6,95 $, obtenez 1 variante 6,95 $ à 100 % »,
+  1 fois par commande, non cumulable.
+- Code `GRANDSPAS10` : −10 %, 1 utilisation par client, non cumulable avec A et B.
+
 - **Garantie 30 jours** mise en avant partout : c'est ton meilleur argument.
 - **Aimant à prospects :** « Guide des 7 premiers jours sans couche (le jour) » — PDF gratuit
   de 6 pages avec conseils généraux, tableau d'autocollants à imprimer et liste de vérification
   « mon enfant est-il prêt ? ». Pas de promesse de résultat ni de conseil médical.
 
-[Opinion : les prix sont à valider selon ta marge]
+### Version précédente (v1 de l'offre, conservée pour référence)
+Packs 3 / 5 / 7 à prix unique (33 $ / 52 $ / 69 $). Remplacée par les offres A et B du client.
 
 ---
 
@@ -98,7 +129,7 @@ groupées :
 | A — « C'est le moment » | Parents d'enfants de 18 mois à 3 ans qui commencent l'apprentissage | « Entre la couche et la culotte, il y a un entre-deux. » | Meta, Google |
 | B — Rentrée en garderie/CPE | Parents dont l'enfant doit être propre pour un groupe | « Des petits accidents sans changer tout le linge à la garderie. » | Meta, Google |
 | C — Moins de jetables | Parents qui veulent réduire les couches-culottes jetables | « Lavable, réutilisable, se lave à la machine. » | Meta, Pinterest (phase 2) |
-| D — Reciblage | Visiteurs, ajouts au panier, abonnés email | Garantie 30 j + pack 5 + avis réels | Meta, Google, email |
+| D — Reciblage | Visiteurs, ajouts au panier, abonnés email | Garantie 30 j + offre « 6 + 2 offertes » + avis réels | Meta, Google, email |
 
 Ciblage Meta : Canada, 22–45 ans, **audience large (Advantage+)** avec la créa qui fait le
 tri, plutôt qu'un micro-ciblage par centres d'intérêt. Deux ensembles séparés FR (Québec +
@@ -123,7 +154,7 @@ Trois angles à tester (même budget chacun, semaine 1) :
 **Important :** montrer le **vrai produit** en vraies photos. Les visuels générés par IA
 peuvent rester pour les illustrations, mais pas pour montrer le produit ou des « clients ».
 
-**Production UGC :** envoyer gratuitement un pack de 5 à **8–10 familles** (micro-créatrices
+**Production UGC :** envoyer gratuitement 5 paires à **8–10 familles** (micro-créatrices
 maman/papa, 2 000–20 000 abonnés, FR et EN) contre une vidéo honnête et le droit de
 l'utiliser en pub. Tout contenu sponsorisé doit porter la mention **#partenariat / #ad**
 (exigence du Bureau de la concurrence et des plateformes).
@@ -163,14 +194,14 @@ ajuste après 7 jours de données.*
 
 | Dates | Phase | Tâches |
 |---|---|---|
-| 23–30 sept. | **Préparation** | Régler B0–B8 · créer les packs et le code · installer les pixels + achat test · envoyer les packs UGC · écrire le guide PDF · configurer pop-up et série de bienvenue · traduire le site en FR |
+| 23–30 sept. | **Préparation** | Régler B0–B8 · créer les offres A/B et le code · installer les pixels + achat test · envoyer les packs UGC · écrire le guide PDF · configurer pop-up et série de bienvenue · traduire le site en FR |
 | **Jeu. 1er oct.** | **Lancement** | Mise en ligne Meta (3 angles FR/EN) + Google Search · publication Instagram « On est là ! » · email aux premiers abonnés |
 | 1–7 oct. | Test | Aucune modification les 3 premiers jours ; bilan le 5 et le 7 oct. |
-| 8–12 oct. | **Action de grâce** (lun. 12 oct.) | Message « Merci aux parents qui avancent un petit pas à la fois » ; livraison gratuite sur tous les packs (pack 3 inclus) du 9 au 12 oct. |
+| 8–12 oct. | **Action de grâce** (lun. 12 oct.) | Message « Merci aux parents qui avancent un petit pas à la fois » ; livraison gratuite dès 20 $ du 9 au 12 oct. |
 | 10–25 oct. | Montée en puissance | Intégrer les vidéos UGC dans les pubs Meta · reciblage paniers abandonnés · Google Shopping |
 | 24–31 oct. | **Halloween** | « Pas de frayeur pour les petits accidents » · mettre en avant les motifs · email + story |
 | 2–15 nov. | Bilan + avis | Rapport de performance · email de demande d'avis J+14 après livraison · premiers vrais avis sur la fiche |
-| 20–30 nov. | **Black Friday / Cyber Monday** (27 et 30 nov.) | Pack 7 + guide, meilleure offre de l'année, email à la liste · angle cadeau pour grands-parents |
+| 20–30 nov. | **Black Friday / Cyber Monday** (27 et 30 nov.) | Offre A ou B + guide PDF offert, email à la liste · angle cadeau pour grands-parents |
 
 ---
 
@@ -199,6 +230,6 @@ Je peux lancer **seulement** si :
 4. Pour chaque action, j'indique exactement ce qui part, à qui, combien de destinataires
    et quel coût, puis j'attends ton « go » écrit.
 
-Ce que je peux faire tout de suite, avec ton accord : créer les packs et le code
+Ce que je peux faire tout de suite, avec ton accord : créer les offres A/B et le code
 `GRANDSPAS10` dans Shopify (via le connecteur Shopify), rédiger le guide PDF, traduire la
 fiche produit en français, ou lancer une analyse des concurrents.

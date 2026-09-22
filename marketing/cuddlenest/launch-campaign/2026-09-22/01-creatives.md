@@ -2,6 +2,8 @@
 
 Statut : **brouillons passés au contrôle qualité (voir scorecard.md), NON publiés.**
 Aucun texte ne cite de nombre d'avis ni de note tant que B1 n'est pas réglé.
+**Règle des offres :** toute mention « 2 offertes » précise, sur la pub ou sur la page d'arrivée,
+que les paires offertes sont des motifs à 6,95 $ en tailles 90–100 (PLAN § 4).
 **Élément à remplacer avant tout envoi :** `[adresse postale]` dans le pied de page des
 emails (obligatoire selon la LCAP/CASL). Les textes entre crochets comme `[Voir les culottes]` sont des
 libellés de boutons, et `[nom du motif]` indique le texte de chaque carte. Les liens pointent
@@ -21,7 +23,7 @@ Lien de base : `https://www.cuddlenest.ca/products/baby-training-learning-pants-
   une vraie culotte, avec une protection légère pour les petites fuites de jour. Lavables,
   réutilisables, 17 motifs. Garantie 30 jours, remboursé.
 - Titre : Petits pas, grandes étapes
-- Description : Pack de 5 · livraison gratuite
+- Description : 6 achetées = 2 offertes · livraison gratuite
 - Bouton : Acheter
 
 **EN**
@@ -30,7 +32,7 @@ Lien de base : `https://www.cuddlenest.ca/products/baby-training-learning-pants-
   light protection for small daytime leaks. Washable, reusable, 17 fun prints. 30-day
   money-back guarantee.
 - Headline: Small steps. Big milestones.
-- Description: 5-pack · free shipping
+- Description: Buy 6, get 2 free · free shipping
 - CTA: Shop now
 
 ### Angle 2 — Problème / solution
@@ -68,9 +70,11 @@ Lien de base : `https://www.cuddlenest.ca/products/baby-training-learning-pants-
 
 ### Reciblage (visiteurs + paniers abandonnés)
 - **FR :** Vous hésitez encore ? Essayez CuddleNest sans risque : si ça ne convient pas,
-  vous êtes remboursé sous 30 jours. Pack de 5, livraison gratuite.
+  vous êtes remboursé sous 30 jours. Offre : 6 paires achetées, 2 offertes (motifs à 6,95 $,
+  tailles 90–100), livraison gratuite.
 - **EN:** Still deciding? Try CuddleNest risk-free: if it's not right for your family, get a
-  full refund within 30 days. 5-pack, free shipping.
+  full refund within 30 days. Buy 6 pairs, get 2 free (from the $6.95 prints, sizes
+  90–100), free shipping.
 
 ---
 
@@ -88,13 +92,15 @@ Titres (≤ 30 caractères, vérifiés dans scorecard.md) :
 | Petits pas, grandes étapes | Small Steps, Big Milestones |
 | Pour l'apprentissage de jour | For Daytime Potty Training |
 | Tailles de 90 à 110 cm | Sizes 90 to 110 cm |
+| 6 achetées, 2 offertes | Buy 6, Get 2 Free |
+| 8 achetées, 1 offerte | Buy 8, Get 1 Free |
 
 Descriptions (≤ 90 caractères) :
 
 | FR | EN |
 |---|---|
 | Coton doux, gaze absorbante et doublure anti-humidité pour les petites fuites de jour. | Soft cotton, absorbent gauze and a moisture-resistant lining for small daytime leaks. |
-| Plus proche d'une vraie culotte qu'une couche. Pack de 5 avec livraison gratuite. | Feels closer to real underwear than a diaper. 5-pack ships free across Canada. |
+| 6 paires achetées, 2 offertes, ou 8 achetées, 1 offerte. Livraison gratuite. | Buy 6 pairs, get 2 free, or buy 8, get 1 free. Free shipping across Canada. |
 
 Mots-clés négatifs de départ : `adulte`, `adult`, `incontinence`, `nuit`, `overnight`,
 `gratuit`, `free sample`, `jetable`, `disposable`.
@@ -123,8 +129,8 @@ désabonnement qui fonctionne. Envoyer seulement à des personnes qui ont accept
 - Corps FR : L'apprentissage de la propreté n'est pas une ligne droite. Un jour il y arrive
   tout seul, le lendemain il y a une fuite. C'est normal. Nos culottes laissent votre enfant
   sentir qu'il est mouillé, pour qu'il fasse le lien, tout en gardant les petites fuites loin
-  du canapé. Combien en prévoir ? 3 pour commencer, 5 pour une routine, 7 pour la semaine
-  d'apprentissage. [Choisir mon pack]
+  du canapé. Combien en prévoir ? Notre offre : 6 paires achetées, 2 offertes (motifs à 6,95 $, tailles
+  90–100), ou 8 paires à 6,95 $ + 1 offerte. Livraison gratuite. [Voir les offres]
 
 **Email 3 — J+5 : garantie + motifs**
 - Objet FR : Laissez-le choisir son motif 🐳🦄🚀
@@ -144,7 +150,7 @@ désabonnement qui fonctionne. Envoyer seulement à des personnes qui ont accept
 
 | Date | Format | Idée |
 |---|---|---|
-| 1er oct. | Reel | « On est là ! » : déballage du pack de 5, les motifs un par un |
+| 1er oct. | Reel | « On est là ! » : déballage de l'offre « 6 + 2 offertes », les motifs un par un |
 | 3 oct. | Carrousel | « 5 signes que votre enfant est peut-être prêt » (conseils généraux) |
 | 6 oct. | Reel UGC | Enfant qui remonte sa culotte tout seul (avec accord des parents) |
 | 8 oct. | Story | Sondage : « Quel motif pour votre petit ? » |
@@ -166,7 +172,7 @@ EN: #pottytraining #toddlermom #canadianmom #pottytrainingtips #toddlerlife
 
 ## E. Brief UGC (à envoyer aux familles partenaires)
 
-- **Produit :** pack de 5 culottes CuddleNest offert.
+- **Produit :** 5 culottes CuddleNest offertes.
 - **Livrable :** 1 vidéo verticale de 20–45 s, filmée au téléphone, lumière naturelle.
 - **À montrer :** le déballage, l'enfant qui choisit son motif, qui remonte sa culotte seul,
   le lavage/séchage. Votre avis **honnête**, même avec des nuances.
