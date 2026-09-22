@@ -40,7 +40,7 @@ le motif n° 1 de refus/suspension de compte chez Meta, TikTok et Google.
 | B0b | **Prix incohérents** | 6,95 $ pour 10 motifs, 12,05 $ pour 7 autres, sans raison visible pour le client. | Choisir **un prix unique** (ou un écart justifié, par exemple la taille 110). Voir § 4. |
 | ~~B1~~ | ✅ **Réglé** (client, confirmé le 2026-09-22 à 17 h 20) | Le modèle de fiche produit du thème ne contient plus le compteur « 350 avis », la note 4,8 ni les témoignages. | Installer une app d'avis vérifiés (Judge.me, Loox…) et demander un avis aux premiers acheteurs (email J+14). |
 | ~~B2~~ | ✅ **Probablement réglé** : le modèle de fiche produit ne contient plus de bloc de stock | Stock réel ≈ 519 000 unités, donc toute mention « X restants » serait fausse. | Vérifier visuellement la fiche produit depuis le Canada. |
-| B3 | 🟡 **« Eco-friendly » retiré** du thème ✅ ; reste **« no waste »** dans la description du produit | « Machine washable and reusable, no waste » est aussi une allégation environnementale absolue (zéro déchet), difficile à prouver. | Remplacer par « Machine washable and reusable » dans Produits → description. |
+| ~~B3~~ | ✅ **Réglé** : « Eco-friendly » retiré (client) ; « no waste » retiré de la description (Claude, 2026-09-22, 18 h 16) | La description dit maintenant « Machine washable and reusable ». | — |
 | ~~B4~~ | ✅ **Français publié** dans Shopify (vérifié le 2026-09-22 au soir) | Aucune traduction française n'est stockée dans Shopify pour le produit : la traduction vient sans doute de l'application de traduction. | Relire la fiche, les offres, le panier et le paiement en français. |
 | ~~B5~~ | ✅ **Devise : CAD** confirmée dans Shopify | Le paramètre `region_country=US` du lien de connexion reste à surveiller. | Ouvrir le site en navigation privée depuis le Canada : les prix doivent s'afficher en $ CA. |
 | B6 | **Étiquetage et sécurité produit** | Produit textile pour enfants : étiquette de composition (Loi sur l'étiquetage des textiles) et conformité à la Loi canadienne sur la sécurité des produits de consommation. | Demander au fournisseur la fiche de composition et les rapports de test. |
@@ -172,6 +172,11 @@ seule. Il n'y a rien de plus à configurer pour elle.
 Packs 3 / 5 / 7 à prix unique (33 $ / 52 $ / 69 $). Remplacée par les offres A et B du client.
 
 ---
+
+**Fiche produit (mise à jour le 2026-09-22 à 18 h 16, après « go fiche ») :** description
+anglaise corrigée (sans « no waste », tailles précisées par motif) + bloc « Bundle offers »
+avec les 3 offres et la liste des motifs sélectionnés ; **traduction française enregistrée**
+dans Shopify (titre + description).
 
 ## 5. Audiences
 
