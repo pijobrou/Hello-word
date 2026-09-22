@@ -2,8 +2,9 @@
 
 Statut : **brouillons passés au contrôle qualité (voir scorecard.md), NON publiés.**
 Aucun texte ne cite de nombre d'avis ni de note tant que B1 n'est pas réglé.
-**Règle des offres :** toute mention « 2 offertes » précise, sur la pub ou sur la page d'arrivée,
-que les paires offertes sont des motifs à 6,95 $ en tailles 90–100 (PLAN § 4).
+**Règle des offres (client, 2026-09-22) :** les pubs ne citent **pas** « motifs à 6,95 $ ».
+Elles disent « 2 paires offertes (motifs sélectionnés) ». La liste des motifs offerts et les
+tailles 90–100 cm sont détaillées sur la fiche produit (PLAN § 4).
 **Élément à remplacer avant tout envoi :** `[adresse postale]` dans le pied de page des
 emails (obligatoire selon la LCAP/CASL). Les textes entre crochets comme `[Voir les culottes]` sont des
 libellés de boutons, et `[nom du motif]` indique le texte de chaque carte. Les liens pointent
@@ -23,7 +24,8 @@ Lien de base : `https://www.cuddlenest.ca/products/baby-training-learning-pants-
   une vraie culotte, avec une protection légère pour les petites fuites de jour. Lavables,
   réutilisables, 17 motifs. Garantie 30 jours, remboursé.
 - Titre : Petits pas, grandes étapes
-- Description : 6 achetées = 2 offertes · livraison gratuite
+- Description : 6 achetées = 2 offertes* · livraison gratuite
+- *Mention sous l'annonce ou dans le texte : « *Motifs sélectionnés, détails sur la fiche. »
 - Bouton : Acheter
 
 **EN**
@@ -32,7 +34,8 @@ Lien de base : `https://www.cuddlenest.ca/products/baby-training-learning-pants-
   light protection for small daytime leaks. Washable, reusable, 17 fun prints. 30-day
   money-back guarantee.
 - Headline: Small steps. Big milestones.
-- Description: Buy 6, get 2 free · free shipping
+- Description: Buy 6, get 2 free* · free shipping
+- *Line in the text: "*Selected prints, details on the product page."
 - CTA: Shop now
 
 ### Angle 2 — Problème / solution
@@ -70,10 +73,10 @@ Lien de base : `https://www.cuddlenest.ca/products/baby-training-learning-pants-
 
 ### Reciblage (visiteurs + paniers abandonnés)
 - **FR :** Vous hésitez encore ? Essayez CuddleNest sans risque : si ça ne convient pas,
-  vous êtes remboursé sous 30 jours. Offre : 6 paires achetées, 2 offertes (motifs à 6,95 $,
-  tailles 90–100), livraison gratuite.
+  vous êtes remboursé sous 30 jours. Offre : 6 paires achetées, 2 offertes (motifs
+  sélectionnés, 90 ou 100 cm), livraison gratuite.
 - **EN:** Still deciding? Try CuddleNest risk-free: if it's not right for your family, get a
-  full refund within 30 days. Buy 6 pairs, get 2 free (from the $6.95 prints, sizes
+  full refund within 30 days. Buy 6 pairs, get 2 free (selected prints, sizes
   90–100), free shipping.
 
 ---
@@ -129,8 +132,8 @@ désabonnement qui fonctionne. Envoyer seulement à des personnes qui ont accept
 - Corps FR : L'apprentissage de la propreté n'est pas une ligne droite. Un jour il y arrive
   tout seul, le lendemain il y a une fuite. C'est normal. Nos culottes laissent votre enfant
   sentir qu'il est mouillé, pour qu'il fasse le lien, tout en gardant les petites fuites loin
-  du canapé. Combien en prévoir ? Notre offre : 6 paires achetées, 2 offertes (motifs à 6,95 $, tailles
-  90–100), ou 8 paires à 6,95 $ + 1 offerte. Livraison gratuite. [Voir les offres]
+  du canapé. Combien en prévoir ? Notre offre : 6 paires achetées, 2 offertes (motifs sélectionnés,
+  90 ou 100 cm), ou 8 paires achetées + 1 offerte. Livraison gratuite. [Voir les offres]
 
 **Email 3 — J+5 : garantie + motifs**
 - Objet FR : Laissez-le choisir son motif 🐳🦄🚀

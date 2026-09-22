@@ -76,7 +76,7 @@ Deux gammes de prix dans Shopify (CAD) :
   tailles 90 / 100 / 110.
 - **Gamme 6,95 $** : 10 motifs (Bunny, Elephant baby, Flamingo, Forest fox, Owl, Panda, Polar
   bear, Stars moon, Traveller, Whale), **tailles 90 / 100 seulement**. Tu as écrit 6,96 $, mais
-  Shopify affiche **6,95 $** : à confirmer.
+  Shopify affiche **6,95 $** : à corriger dans Shopify si tu veux 6,96 $.
 
 | Offre | Le client paie | Il reçoit | Prix réel / paire | Livraison |
 |---|---|---|---|---|
@@ -92,9 +92,12 @@ seule. Il n'y a rien de plus à configurer pour elle.
    n'existe pas en 110. Un parent qui commande en 110 recevrait 2 paires trop petites. Il faut
    soit l'écrire clairement (« paires offertes en 90 ou 100 »), soit permettre de choisir les
    paires offertes dans la gamme 12,05 $ pour la taille 110.
-2. **Mention obligatoire dans les pubs et sur la fiche :** « Les 2 paires offertes sont à
-   choisir parmi les motifs Bunny, Panda, Whale… (tailles 90 et 100). » Si c'est écrit
-   « 2 offertes » sans préciser, c'est une indication trompeuse.
+2. **Mention dans les pubs (décision client, 2026-09-22) :** les pubs ne citent pas « motifs
+   à 6,95 $ ». Elles disent « 2 paires offertes (motifs sélectionnés) » avec un astérisque, et la
+   **fiche produit** détaille la règle : « Les 2 paires offertes sont à choisir parmi Bunny,
+   Elephant baby, Flamingo, Forest fox, Owl, Panda, Polar bear, Stars moon, Traveller et Whale
+   (90 ou 100 cm). » Cette précision sur la fiche est indispensable : sans elle, « 2 offertes »
+   devient une indication trompeuse.
 3. **Ajout au panier :** une remise automatique Shopify « Achetez X, obtenez Y » n'ajoute
    pas les paires offertes toute seule. Le client doit mettre 8 (ou 9) paires dans son panier,
    et Shopify rend les 2 (ou 1) moins chères gratuites. Il faut l'écrire sur la fiche :
