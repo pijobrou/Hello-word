@@ -321,7 +321,7 @@ passer à ce budget **dès le 1er octobre** plutôt qu'après 2 jours à 30 $/jo
 - **Google 5 $/jour :** garder seulement les mots-clés exacts et les plus précis :
   `[culotte d'apprentissage]`, `"culotte d'apprentissage lavable"`, `[potty training pants]`,
   `"reusable training pants"`, `"washable training pants"`. Mettre les autres en pause.
-- **Durée :** 28 jours (1er–28 oct.) pour dépenser les mêmes ≈ 420 $.
-- **Premier bilan :** après ~100 $ dépensés sur Meta (≈ 10 jours), pas avant.
+- **Durée :** 28 jours, **du 24 sept. au 21 oct. 2026** (client, 2026-09-23 : on démarre dès demain au lieu du 1er oct.), pour dépenser les mêmes ≈ 420 $.
+- **Premier bilan :** après ~100 $ dépensés sur Meta (≈ 3 oct.), pas avant.
 - Aucun résultat n'est garanti : au CPA cible de 12 $, 15 $/jour correspond à environ
   1 commande par jour **si** la cible est atteinte ; les premiers jours coûtent souvent plus.
