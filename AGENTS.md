@@ -29,3 +29,11 @@ install the upstream plugin (`indranilbanerjee/neels-plugins` →
 Reference files: `references/strategy-flow.md`, `references/skills-catalog.md` (all 163),
 `references/agents.md` (24 specialist roles), `references/compliance.md`,
 `references/quality-gates.md`, `assets/brand-profile-template.md`, `assets/skills-index.json`.
+
+## Firecrawl skills (web search)
+
+`.claude/skills/firecrawl-search/SKILL.md` (web search, optional page content; `/firecrawl-search`)
+and `.claude/skills/firecrawl-build-search/SKILL.md` (integrating Firecrawl `/search` into product
+code), from <https://github.com/firecrawl/skills>. The Firecrawl MCP server is declared in
+`.mcp.json` and reads `FIRECRAWL_API_KEY` from the environment. Never write the key into a file of
+this repository. Search output goes to `.firecrawl/` (git-ignored).

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><title>Traducteur Audio — Voix IA (n8n)</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="wrap page">
+  <h1>🎙️ Voix humaine IA via n8n</h1>
+  <p class="hint">L'extension envoie chaque phrase anglaise à votre workflow n8n, qui renvoie la traduction
+    et une voix IA (ElevenLabs ou OpenAI). Guide : dossier <code>n8n/README.md</code> de l'extension.</p>
+
+  <div class="card">
+    <div class="row">
+      <label for="engineN8n"><strong>Utiliser mon workflow n8n</strong><br>
+        <span class="hint">Décoché : voix du navigateur.</span></label>
+      <input type="checkbox" id="engineN8n">
+    </div>
+    <label class="field">URL du webhook (« Production URL » du nœud Webhook)
+      <input type="url" id="n8nUrl" placeholder="https://…/webhook/traducteur-audio"></label>
+    <label class="field">Clé secrète (valeur de la credential « Traducteur - clé extension »)
+      <input type="password" id="n8nKey" autocomplete="off"></label>
+    <div class="buttons">
+      <button id="n8nSave">💾 Enregistrer et tester</button>
+      <button id="n8nOpen" class="secondary">🌐 Ouvrir l'adresse du serveur</button>
+    </div>
+    <p id="n8nStatus" class="hint"></p>
+  </div>
+</div>
+<script src="common.js"></script>
+<script src="options.js"></script>
+</body>
+</html>
