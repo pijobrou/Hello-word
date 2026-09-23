@@ -13,10 +13,12 @@ français s'affiche en bas de l'écran.
 
 ## Installation (2 minutes)
 
-1. Téléchargez ce dossier `traducteur-audio` (bouton **Code → Download ZIP** sur GitHub, puis dézippez).
+1. Téléchargez **`dist/traducteur-audio-v1.2.0.zip`** (sur GitHub : ouvrez le fichier, puis le
+   bouton de téléchargement ↓) et **décompressez-le** dans un dossier que vous garderez
+   (par ex. `Documents/traducteur-audio`). Chrome n'installe pas un ZIP directement.
 2. Ouvrez `chrome://extensions` (ou `edge://extensions`).
 3. Activez le **Mode développeur** (en haut à droite).
-4. Cliquez **Charger l'extension non empaquetée** et choisissez le dossier `traducteur-audio`.
+4. Cliquez **Charger l'extension non empaquetée** et choisissez le dossier décompressé (celui qui contient `manifest.json`).
 5. Épinglez l'icône 🔊 dans la barre d'outils.
 
 ## Utilisation
@@ -24,7 +26,8 @@ français s'affiche en bas de l'écran.
 **N'importe quelle vidéo :** ouvrez la vidéo, cliquez l'icône de l'extension puis
 *🔊 Traduire le son de cet onglet*. Une petite fenêtre s'ouvre : elle affiche l'anglais reconnu
 et sa traduction, lit le français et baisse le son de la vidéo pendant ce temps. Gardez-la
-ouverte (vous pouvez la réduire).
+ouverte (vous pouvez la réduire). Si vous changez de page dans l'onglet, recliquez l'icône puis
+le bouton : Chrome n'autorise la capture qu'après ce clic.
 
 **Via les sous-titres (YouTube) :** activez le bouton *Vidéos : doublage FR* dans la popup, lancez la vidéo et
 activez les sous-titres anglais (touche **C**, les sous-titres auto-générés marchent aussi).
@@ -57,4 +60,5 @@ popup.html / popup.js    réglages
 listen.html / listen.js  fenêtre d'écoute (son de l'onglet ou micro)
 diagnostics/             page de diagnostics
 common.js, style.css     code et style partagés
+build.sh                 reconstruit le ZIP dans ../dist/
 ```

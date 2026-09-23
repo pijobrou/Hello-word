@@ -82,20 +82,38 @@ function resumeRecognition() {
   if (listening) startRecognition();
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+async function captureTab() {
+  const streamId = await chrome.tabCapture.getMediaStreamId({ targetTabId: Number(params.get('tab')) });
+  return navigator.mediaDevices.getUserMedia({
+    audio: { mandatory: { chromeMediaSource: 'tab', chromeMediaSourceId: streamId } }
+  });
+}
+
 async function openTabStream() {
   if (tabTrack && tabTrack.readyState === 'live') return;
-  const stream = await navigator.mediaDevices.getUserMedia({
-    audio: { mandatory: { chromeMediaSource: 'tab', chromeMediaSourceId: params.get('stream') } }
-  });
+  let stream;
+  // Chrome refuse parfois la première capture (« Error starting tab capture ») : on réessaie.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      stream = await captureTab();
+      break;
+    } catch (e) {
+      if (attempt >= 3) throw e;
+      await sleep(500 * attempt);
+    }
+  }
   tabTrack = stream.getAudioTracks()[0];
   const ctx = new AudioContext();
   tabGain = ctx.createGain();
   tabGain.gain.value = Number($('tabVolume').value);
   ctx.createMediaStreamSource(stream).connect(tabGain).connect(ctx.destination);
   tabTrack.onended = () => {
-    listening = false;
-    $('toggle').disabled = true;
-    setStatus('L\'onglet a été fermé ou la capture s\'est arrêtée. Relancez depuis la popup.', 'status-warn');
+    tabTrack = null;
+    stop();
+    setStatus('La capture de l\'onglet s\'est arrêtée (onglet fermé ou changé de page). '
+      + 'Relancez depuis l\'icône de l\'extension sur la vidéo.', 'status-warn');
   };
 }
 
@@ -154,9 +172,11 @@ async function start() {
       return;
     }
     try {
+      setStatus('Connexion au son de l\'onglet…');
       await openTabStream();
     } catch (e) {
-      setStatus('Impossible de capter l\'onglet : ' + e.message + '. Relancez depuis la popup.', 'status-err');
+      setStatus('Impossible de capter l\'onglet : ' + e.message
+        + '. Retournez sur la vidéo, cliquez l\'icône de l\'extension puis « Traduire le son de cet onglet ».', 'status-err');
       return;
     }
   }
@@ -197,7 +217,6 @@ if (SOURCE === 'tab') {
   $('headphonesRow').hidden = true;
   $('tabVolumeRow').hidden = false;
   $('tabVolume').oninput();
-  // La capture doit être ouverte vite (l'identifiant expire) : on démarre tout de suite.
   start();
 } else {
   $('intro').textContent = 'Le micro écoute l\'anglais (une personne, un haut-parleur, une réunion…), '

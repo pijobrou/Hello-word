@@ -39,13 +39,9 @@ function openListener(params) {
 $('mic').onclick = () => openListener({ source: 'mic' });
 $('tab').onclick = async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  try {
-    // L'identifiant n'est valable que quelques secondes et seulement pour cette extension.
-    const stream = await chrome.tabCapture.getMediaStreamId({ targetTabId: tab.id });
-    openListener({ source: 'tab', stream, title: tab.title || '' });
-  } catch (e) {
-    $('tab').textContent = '❌ ' + e.message;
-  }
+  // Ouvrir la popup a donné l'accès « activeTab » à cet onglet : la fenêtre d'écoute
+  // demande elle-même la capture (avec nouvel essai si Chrome refuse la première fois).
+  openListener({ source: 'tab', tab: tab.id, title: tab.title || '' });
 };
 $('diag').onclick = () => chrome.tabs.create({ url: chrome.runtime.getURL('diagnostics/diagnostics.html') });
 $('test').onclick = async () => {
