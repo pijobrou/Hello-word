@@ -13,13 +13,20 @@ français s'affiche en bas de l'écran.
 
 ## Installation (2 minutes)
 
-1. Téléchargez **`dist/traducteur-audio-v1.5.1.zip`** (sur GitHub : ouvrez le fichier, puis le
+1. Téléchargez **`dist/traducteur-audio-v1.5.2.zip`** (sur GitHub : ouvrez le fichier, puis le
    bouton de téléchargement ↓) et **décompressez-le** dans un dossier que vous garderez
    (par ex. `Documents/traducteur-audio`). Chrome n'installe pas un ZIP directement.
 2. Ouvrez `chrome://extensions` (ou `edge://extensions`).
 3. Activez le **Mode développeur** (en haut à droite).
 4. Cliquez **Charger l'extension non empaquetée** et choisissez le dossier décompressé (celui qui contient `manifest.json`).
 5. Épinglez l'icône 🔊 dans la barre d'outils.
+
+### ⚠️ Mettre à jour sans créer de doublon
+
+Décompressez toujours la nouvelle version **dans le même dossier**, par-dessus l'ancienne, puis cliquez
+**↻ Recharger** dans `chrome://extensions`. Un nouveau dossier crée **une deuxième extension** : ses
+réglages sont vides (plus de n8n) et les deux copies parlent en même temps, ce qui donne des voix qui
+changent. La fenêtre d'écoute le détecte et l'affiche en rouge. Il faut alors garder une seule copie.
 
 ## Utilisation
 
@@ -56,7 +63,10 @@ refusent souvent). Un refus passager (« trop de requêtes », réseau, 5xx) est
 n'est mis en pause qu'après 3 échecs d'affilée. Si une phrase échoue quand même, le réglage **Si la voix
 IA échoue** décide : **Texte seulement** (par défaut : la phrase s'affiche sans être lue, pour ne jamais
 entendre deux voix) ou **Voix du navigateur**. La voix du navigateur, elle, reste la même pour toute la
-session. Dans le journal de la fenêtre d'écoute : 🎙️ = voix IA, 🔇 = texte seul.
+session. Dans le journal de la fenêtre d'écoute : 🎙️ = voix IA, 🔇 = texte seul, et sous chaque phrase
+le nom exact de la voix qui l'a lue. En haut de la fenêtre, le moteur actif s'affiche (voix IA n8n ou
+voix du navigateur). Pendant que la fenêtre d'écoute traite un onglet, le mode « Doublage par les
+sous-titres » se tait sur cet onglet, pour éviter deux lecteurs en même temps.
 
 ## 🌍 Langues
 

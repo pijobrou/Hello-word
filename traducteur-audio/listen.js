@@ -26,8 +26,10 @@ function addEntry(en, fr) {
   const enEl = document.createElement('div'); enEl.className = 'en'; enEl.textContent = src.flag + ' ' + en;
   const frEl = document.createElement('div'); frEl.className = 'fr'; frEl.textContent = dst.flag + ' ' + fr;
   if (settings) frEl.style.fontSize = Math.max(16, settings.overlaySize - 2) + 'px';
-  card.append(enEl, frEl);
+  const voiceEl = document.createElement('div'); voiceEl.className = 'voice-used hint';
+  card.append(enEl, frEl, voiceEl);
   $('log').prepend(card);
+  return voiceEl;
 }
 
 function chromeVersion() {
@@ -90,10 +92,11 @@ async function processQueue() {
       setStatus('Erreur de traduction : ' + dub.error.message, 'status-err');
       continue;
     }
-    addEntry(dub.en, dub.fr + ({ n8n: '  🎙️', silent: '  🔇', local: '' }[dub.via] || ''));
+    const voiceEl = addEntry(dub.en, dub.fr + ({ n8n: '  🎙️', silent: '  🔇', local: '' }[dub.via] || ''));
     if (SOURCE === 'mic' && !$('headphones').checked) pauseRecognition();
     duck(true, settings);
-    await playDub(dub, { ...settings, rate: settings.rate * boost });
+    const used = await playDub(dub, { ...settings, rate: settings.rate * boost });
+    voiceEl.textContent = '🔈 ' + used;
     duck(false, settings);
     if (settings.gapMs && !queue.length) await sleep(settings.gapMs);   // pas de pause si on a du retard
   }
@@ -284,6 +287,8 @@ $('tabVolume').oninput = () => {
 
 function updateDirection() {
   if (!settings) return;
+  $('engine').textContent = settings.engine === 'n8n' && settings.n8nUrl
+    ? '🎙️ Moteur : voix IA (n8n)' : '🔈 Moteur : voix du navigateur (n8n désactivé)';
   const src = langInfo(settings.sourceLang), dst = langInfo(settings.targetLang);
   $('direction').textContent = `${src.flag} ${src.fr} → ${dst.flag} ${dst.fr}`;
   $('qSource').value = settings.sourceLang;
@@ -363,3 +368,20 @@ $('qSource').onchange = (e) => chrome.storage.sync.set({ sourceLang: e.target.va
 $('qTarget').onchange = (e) => chrome.storage.sync.set({ targetLang: e.target.value, voiceName: '' });
 $('qSwap').onclick = () => chrome.storage.sync.set({ sourceLang: $('qTarget').value, targetLang: $('qSource').value, voiceName: '' });
 getSettings().then((s) => { settings = s; updateDirection(); });
+
+// Pendant l'écoute d'un onglet, on prévient cet onglet : son mode « sous-titres » se tait,
+// sinon deux lecteurs parleraient en même temps avec deux voix différentes.
+if (SOURCE === 'tab') {
+  const notify = () => chrome.tabs.sendMessage(Number(params.get('tab')), { type: 'listenWindowActive' })
+    .then((res) => {
+      const copies = (res && res.copies) || [];
+      if (copies.length > 1) {
+        $('dupWarning').hidden = false;
+        $('dupWarning').textContent = `⚠️ ${copies.length} copies de « Traducteur Audio » sont installées et parlent en même temps `
+          + '(voix qui changent). Ouvrez chrome://extensions, gardez la plus récente et supprimez les autres.';
+      }
+    })
+    .catch(() => {});
+  notify();
+  setInterval(notify, 3000);
+}

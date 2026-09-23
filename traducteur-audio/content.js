@@ -73,7 +73,25 @@
     speaking = false;
   }
 
+  // Chaque copie installée de l'extension laisse son identifiant sur la page : si on en voit deux,
+  // deux extensions « Traducteur Audio » tournent en même temps (deux voix qui se relaient).
+  const root = document.documentElement;
+  const ids = new Set((root.getAttribute('data-traducteur-audio') || '').split(',').filter(Boolean));
+  ids.add(chrome.runtime.id);
+  root.setAttribute('data-traducteur-audio', [...ids].join(','));
+
+  // La fenêtre « Traduire le son de cet onglet » est ouverte sur cet onglet : elle s'occupe de la voix.
+  let listenWindowUntil = 0;
+  chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
+    if (msg && msg.type === 'listenWindowActive') {
+      if (Date.now() >= listenWindowUntil && speaking) { queue = []; stopDub(); }
+      listenWindowUntil = Date.now() + 8000;
+      reply({ copies: (root.getAttribute('data-traducteur-audio') || '').split(',').filter(Boolean) });
+    }
+  });
+
   function onEnglish(text) {
+    if (Date.now() < listenWindowUntil) return;
     text = text.replace(/\s+/g, ' ').trim();
     if (!settings.enabled || !text || text === lastText) return;
     // Sous-titres « roulants » (YouTube) : on n'envoie que la partie nouvelle.

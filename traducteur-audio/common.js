@@ -153,7 +153,11 @@ async function speakFrench(text, opts = {}) {
   if (!chosenVoice.has(key) || !speechSynthesis.getVoices().includes(chosenVoice.get(key))) {
     chosenVoice.set(key, pickVoice(voiceName, targetLang));
   }
-  return speakWith(text, opts, chosenVoice.get(key));
+  const voice = chosenVoice.get(key);
+  let r = await speakWith(text, opts, voice);
+  // Les voix « en ligne » (Google, Microsoft Online) échouent parfois à cause du réseau : même voix, 2e essai.
+  if (!r.ok) r = await speakWith(text, opts, voice);
+  return (voice ? voice.name : 'voix par défaut du système') + (r.ok ? '' : ' (échec : ' + r.error + ')');
 }
 
 function speakWith(text, { rate = 1, pitch = 1, voiceVolume = 1, targetLang = 'fr-FR' } = {}, voice) {
@@ -164,7 +168,8 @@ function speakWith(text, { rate = 1, pitch = 1, voiceVolume = 1, targetLang = 'f
     u.pitch = Math.max(0.5, Math.min(2, pitch));
     u.volume = Math.max(0, Math.min(1, voiceVolume));
     u.voice = voice;
-    u.onend = u.onerror = () => resolve();
+    u.onend = () => resolve({ ok: true });
+    u.onerror = (e) => resolve({ ok: e.error === 'interrupted' || e.error === 'canceled', error: e.error });
     speechSynthesis.speak(u);
   });
 }
@@ -253,7 +258,7 @@ async function playDub(dub, settings) {
   if (dub.via === 'silent') {
     // Le temps de lire la phrase à l'écran (sans voix), pour rester à peu près synchro.
     await sleep(Math.min(6000, 400 + dub.fr.length * 45));
-    return;
+    return 'texte seul (voix IA indisponible)';
   }
   if (dub.audio) {
     try {
@@ -275,14 +280,14 @@ async function playDub(dub, settings) {
         player.onerror = () => reject(new Error('lecture audio impossible'));
         player.play().catch(reject);
       });
-      return;
+      return 'voix IA (n8n)';
     } catch (e) {
       console.warn('[Traducteur Audio]', e.message);
     } finally {
       currentPlayer = null;
     }
   }
-  await speakFrench(dub.fr, settings);
+  return 'navigateur : ' + await speakFrench(dub.fr, settings);
 }
 
 // ---------- Nettoyage de l'anglais reconnu ----------

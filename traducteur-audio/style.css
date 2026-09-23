@@ -65,3 +65,5 @@ button.wide { width: 100%; margin-top: 8px; }
 .langs label { flex: 1; font-size: 13px; }
 .langs select { display: block; width: 100%; max-width: none; margin-top: 3px; }
 .langs button { padding: 6px 10px; font-size: 16px; }
+.voice-used { margin-top: 4px; font-size: 11px; }
+.engine { margin: 0 0 6px; font-weight: 600; }
