@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Traducteur Audio EN → FR",
-  "version": "1.0.0",
-  "description": "Traduit l'audio anglais (sous-titres de vidéos ou micro) et le lit à voix haute en français.",
-  "permissions": ["storage", "activeTab"],
+  "version": "1.1.0",
+  "description": "Traduit l'audio anglais (son de l'onglet, sous-titres de vidéos ou micro) et le lit à voix haute en français.",
+  "permissions": ["storage", "activeTab", "tabCapture"],
   "host_permissions": [
     "https://translate.googleapis.com/*",
     "https://api.mymemory.translated.net/*"

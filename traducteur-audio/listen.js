@@ -1,11 +1,18 @@
+// Fenêtre d'écoute : reconnaît l'anglais (micro ou son d'un onglet), traduit, lit en français.
 const $ = (id) => document.getElementById(id);
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const params = new URLSearchParams(location.search);
+const SOURCE = params.get('source') === 'tab' ? 'tab' : 'mic';
 
 let listening = false;   // l'utilisateur veut écouter
-let paused = false;      // pause pendant que la voix française parle (sans casque)
+let paused = false;      // pause pendant la voix française (micro sans casque)
 let queue = [];
 let speaking = false;
 let rec = null;
+
+// Mode onglet : flux audio de l'onglet, rejoué via un GainNode (sinon l'onglet devient muet).
+let tabTrack = null;
+let tabGain = null;
 
 function setStatus(text, cls = '') {
   $('status').textContent = text;
@@ -21,12 +28,25 @@ function addEntry(en, fr) {
   $('log').prepend(card);
 }
 
+function chromeVersion() {
+  const m = navigator.userAgent.match(/Chrom(?:e|ium)\/(\d+)/);
+  return m ? Number(m[1]) : 0;
+}
+
+// Baisse le son de l'onglet pendant la voix française.
+function duck(on, settings) {
+  if (!tabGain) return;
+  const base = Number($('tabVolume').value);
+  tabGain.gain.value = on ? base * settings.duckVolume : base;
+}
+
 async function processQueue() {
   if (speaking) return;
   speaking = true;
   const settings = await getSettings();
   while (queue.length) {
-    const en = queue.shift();
+    // Si on prend du retard, on regroupe ce qui reste en une seule phrase.
+    const en = queue.length > 2 ? queue.splice(0).join(' ') : queue.shift();
     let fr;
     try {
       fr = await translateText(en);
@@ -35,11 +55,19 @@ async function processQueue() {
       continue;
     }
     addEntry(en, fr);
-    if (!$('headphones').checked) pauseRecognition();
+    if (SOURCE === 'mic' && !$('headphones').checked) pauseRecognition();
+    duck(true, settings);
     await speakFrench(fr, settings);
+    duck(false, settings);
   }
   speaking = false;
   resumeRecognition();
+}
+
+function startRecognition() {
+  // Chrome 135+ : start(track) reconnaît la parole d'une piste audio au lieu du micro.
+  if (SOURCE === 'tab') rec.start(tabTrack);
+  else rec.start();
 }
 
 function pauseRecognition() {
@@ -51,7 +79,24 @@ function pauseRecognition() {
 function resumeRecognition() {
   if (!paused) return;
   paused = false;
-  if (listening) rec.start();
+  if (listening) startRecognition();
+}
+
+async function openTabStream() {
+  if (tabTrack && tabTrack.readyState === 'live') return;
+  const stream = await navigator.mediaDevices.getUserMedia({
+    audio: { mandatory: { chromeMediaSource: 'tab', chromeMediaSourceId: params.get('stream') } }
+  });
+  tabTrack = stream.getAudioTracks()[0];
+  const ctx = new AudioContext();
+  tabGain = ctx.createGain();
+  tabGain.gain.value = Number($('tabVolume').value);
+  ctx.createMediaStreamSource(stream).connect(tabGain).connect(ctx.destination);
+  tabTrack.onended = () => {
+    listening = false;
+    $('toggle').disabled = true;
+    setStatus('L\'onglet a été fermé ou la capture s\'est arrêtée. Relancez depuis la popup.', 'status-warn');
+  };
 }
 
 function buildRecognition() {
@@ -76,7 +121,9 @@ function buildRecognition() {
   r.onerror = (e) => {
     if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
       listening = false;
-      setStatus('Micro refusé : autorisez le micro pour cette page (icône dans la barre d\'adresse).', 'status-err');
+      setStatus(SOURCE === 'mic'
+        ? 'Micro refusé : autorisez le micro pour cette page (icône dans la barre d\'adresse).'
+        : 'Reconnaissance refusée : ' + e.error, 'status-err');
       $('toggle').textContent = '▶️ Démarrer l\'écoute';
     } else if (e.error !== 'no-speech' && e.error !== 'aborted') {
       setStatus('Erreur : ' + e.error, 'status-warn');
@@ -85,7 +132,7 @@ function buildRecognition() {
   // Chrome coupe la reconnaissance régulièrement : on relance tant qu'on écoute.
   r.onend = () => {
     if (listening && !paused) {
-      try { r.start(); } catch (_) { /* déjà démarrée */ }
+      try { startRecognition(); } catch (_) { /* déjà démarrée */ }
     } else if (!listening) {
       setStatus('À l\'arrêt.');
     } else {
@@ -95,22 +142,64 @@ function buildRecognition() {
   return r;
 }
 
-$('toggle').onclick = () => {
+async function start() {
   if (!Recognition) {
     setStatus('Reconnaissance vocale indisponible dans ce navigateur (utilisez Chrome ou Edge).', 'status-err');
     return;
   }
-  if (!rec) rec = buildRecognition();
-  listening = !listening;
-  $('toggle').textContent = listening ? '⏹️ Arrêter' : '▶️ Démarrer l\'écoute';
-  if (listening) {
-    paused = false;
-    rec.start();
-  } else {
-    rec.stop();
-    queue = [];
-    speechSynthesis.cancel();
+  if (SOURCE === 'tab') {
+    if (chromeVersion() && chromeVersion() < 135) {
+      setStatus(`Le mode onglet demande Chrome/Edge 135 ou plus (vous avez ${chromeVersion()}). `
+        + 'Mettez le navigateur à jour, ou utilisez le doublage par sous-titres.', 'status-err');
+      return;
+    }
+    try {
+      await openTabStream();
+    } catch (e) {
+      setStatus('Impossible de capter l\'onglet : ' + e.message + '. Relancez depuis la popup.', 'status-err');
+      return;
+    }
   }
+  if (!rec) rec = buildRecognition();
+  listening = true;
+  paused = false;
+  $('toggle').textContent = '⏹️ Arrêter';
+  try {
+    startRecognition();
+  } catch (e) {
+    listening = false;
+    $('toggle').textContent = '▶️ Démarrer l\'écoute';
+    setStatus('Erreur au démarrage : ' + e.message, 'status-err');
+  }
+}
+
+function stop() {
+  listening = false;
+  $('toggle').textContent = '▶️ Démarrer l\'écoute';
+  if (rec) rec.stop();
+  queue = [];
+  speechSynthesis.cancel();
+}
+
+$('toggle').onclick = () => (listening ? stop() : start());
+$('clear').onclick = () => { $('log').innerHTML = ''; };
+$('tabVolume').oninput = () => {
+  $('tabVolumeVal').textContent = `(${Math.round($('tabVolume').value * 100)} %)`;
+  if (tabGain && !speaking) tabGain.gain.value = Number($('tabVolume').value);
 };
 
-$('clear').onclick = () => { $('log').innerHTML = ''; };
+if (SOURCE === 'tab') {
+  const title = params.get('title');
+  $('heading').textContent = '🔊 Son de l\'onglet → voix française';
+  $('intro').textContent = (title ? `Onglet : « ${title} ». ` : '')
+    + 'La parole anglaise de l\'onglet est reconnue, traduite puis lue en français ; '
+    + 'le son de l\'onglet baisse pendant la voix.';
+  $('headphonesRow').hidden = true;
+  $('tabVolumeRow').hidden = false;
+  $('tabVolume').oninput();
+  // La capture doit être ouverte vite (l'identifiant expire) : on démarre tout de suite.
+  start();
+} else {
+  $('intro').textContent = 'Le micro écoute l\'anglais (une personne, un haut-parleur, une réunion…), '
+    + 'puis chaque phrase est traduite et lue en français.';
+}

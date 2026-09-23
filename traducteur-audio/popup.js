@@ -28,7 +28,25 @@ $('voiceName').onchange = (e) => chrome.storage.sync.set({ voiceName: e.target.v
 $('rate').oninput = (e) => { labels(); chrome.storage.sync.set({ rate: Number(e.target.value) }); };
 $('duckVolume').oninput = (e) => { labels(); chrome.storage.sync.set({ duckVolume: Number(e.target.value) }); };
 
-$('mic').onclick = () => chrome.tabs.create({ url: chrome.runtime.getURL('listen.html') });
+function openListener(params) {
+  chrome.windows.create({
+    url: chrome.runtime.getURL('listen.html?' + new URLSearchParams(params)),
+    type: 'popup', width: 440, height: 640
+  });
+  window.close();
+}
+
+$('mic').onclick = () => openListener({ source: 'mic' });
+$('tab').onclick = async () => {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  try {
+    // L'identifiant n'est valable que quelques secondes et seulement pour cette extension.
+    const stream = await chrome.tabCapture.getMediaStreamId({ targetTabId: tab.id });
+    openListener({ source: 'tab', stream, title: tab.title || '' });
+  } catch (e) {
+    $('tab').textContent = '❌ ' + e.message;
+  }
+};
 $('diag').onclick = () => chrome.tabs.create({ url: chrome.runtime.getURL('diagnostics/diagnostics.html') });
 $('test').onclick = async () => {
   const s = await getSettings();

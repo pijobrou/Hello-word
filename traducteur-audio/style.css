@@ -37,3 +37,5 @@ table { width: 100%; border-collapse: collapse; }
 td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
 td:first-child { width: 28px; }
 .page { max-width: 760px; margin: 0 auto; }
+button.big { width: 100%; padding: 12px; font-size: 15px; font-weight: 600; }
+[hidden] { display: none !important; }

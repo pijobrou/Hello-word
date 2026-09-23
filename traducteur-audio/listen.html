@@ -1,15 +1,18 @@
 <!doctype html>
 <html lang="fr">
-<head><meta charset="utf-8"><title>Traducteur Audio — Micro</title><link rel="stylesheet" href="style.css"></head>
+<head><meta charset="utf-8"><title>Traducteur Audio — Écoute</title><link rel="stylesheet" href="style.css"></head>
 <body>
 <div class="wrap page">
-  <h1>🎙️ Mode micro : anglais parlé → voix française</h1>
-  <p class="hint">Le micro écoute l'anglais (une personne, un haut-parleur, une réunion…), puis
-    chaque phrase est traduite et lue en français.</p>
+  <h1 id="heading">🎙️ Anglais → voix française</h1>
+  <p class="hint" id="intro"></p>
 
-  <div class="row">
+  <div class="row" id="headphonesRow">
     <label for="headphones">J'utilise un casque (continuer d'écouter pendant la voix française)</label>
     <input type="checkbox" id="headphones">
+  </div>
+  <div class="row" id="tabVolumeRow" hidden>
+    <label for="tabVolume">Volume de l'onglet <span id="tabVolumeVal"></span></label>
+    <input type="range" id="tabVolume" min="0" max="1" step="0.05" value="1">
   </div>
 
   <div class="buttons">

@@ -51,6 +51,14 @@ async function run() {
   if (Recognition) recog('ok', 'Disponible (Chrome/Edge, nécessite Internet).');
   else recog('err', 'Indisponible : utilisez Chrome ou Edge pour le mode micro.');
 
+  // 2 bis. Mode onglet
+  const tabMode = row('Traduction du son de l\'onglet (Chrome/Edge 135+)');
+  const version = Number((navigator.userAgent.match(/Chrom(?:e|ium)\/(\d+)/) || [])[1] || 0);
+  if (!chrome.tabCapture) tabMode('err', 'Permission tabCapture absente.');
+  else if (!Recognition) tabMode('err', 'Reconnaissance vocale indisponible.');
+  else if (version && version < 135) tabMode('err', `Version ${version} : mettez à jour Chrome/Edge (135+ requis).`);
+  else tabMode('ok', `Disponible (navigateur ${version || 'inconnu'}).`);
+
   // 3. Micro
   const mic = row('Permission du micro');
   try {

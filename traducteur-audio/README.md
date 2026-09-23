@@ -1,9 +1,10 @@
 # 🎧 Traducteur Audio EN → FR (extension Chrome / Edge)
 
-Écoute de l'anglais et le **prononce en français**, avec deux modes :
+Écoute de l'anglais et le **prononce en français**, avec trois modes :
 
 | Mode | Source anglaise | Idéal pour |
 |---|---|---|
+| **🔊 Traduire le son de cet onglet** (recommandé) | l'audio de l'onglet lui-même, capté directement (Chrome/Edge 135+) | toute vidéo, live ou appel, **même sans sous-titres** |
 | **Vidéos : doublage FR** | les sous-titres anglais de la vidéo (YouTube, vidéos HTML5 avec piste `<track>`) | YouTube, cours en ligne, séries avec sous-titres |
 | **Mode micro** | ce que le micro entend (reconnaissance vocale de Chrome) | une personne qui parle, un podcast sur haut-parleur, une réunion |
 
@@ -20,7 +21,12 @@ français s'affiche en bas de l'écran.
 
 ## Utilisation
 
-**Sur YouTube :** activez le bouton *Vidéos : doublage FR* dans la popup, lancez la vidéo et
+**N'importe quelle vidéo :** ouvrez la vidéo, cliquez l'icône de l'extension puis
+*🔊 Traduire le son de cet onglet*. Une petite fenêtre s'ouvre : elle affiche l'anglais reconnu
+et sa traduction, lit le français et baisse le son de la vidéo pendant ce temps. Gardez-la
+ouverte (vous pouvez la réduire).
+
+**Via les sous-titres (YouTube) :** activez le bouton *Vidéos : doublage FR* dans la popup, lancez la vidéo et
 activez les sous-titres anglais (touche **C**, les sous-titres auto-générés marchent aussi).
 
 **Mode micro :** popup → *🎙️ Mode micro* → *Démarrer l'écoute* → autorisez le micro.
@@ -48,7 +54,7 @@ manifest.json            configuration de l'extension (Manifest V3)
 background.js            appels de traduction + cache
 content.js               mode vidéo : lit les sous-titres, traduit, parle, baisse le volume
 popup.html / popup.js    réglages
-listen.html / listen.js  mode micro
+listen.html / listen.js  fenêtre d'écoute (son de l'onglet ou micro)
 diagnostics/             page de diagnostics
 common.js, style.css     code et style partagés
 ```
