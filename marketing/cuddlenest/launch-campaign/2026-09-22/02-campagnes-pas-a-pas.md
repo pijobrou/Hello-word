@@ -305,3 +305,23 @@ démarre seule le 1er octobre.
 Ces seuils sont des repères de départ, pas des références mesurées : on les ajuste après
 7 jours de vraies données. Envoie-moi tes chiffres le 5 octobre (captures d'écran des
 tableaux Meta et Google) et je te dis quoi couper ou garder.
+
+---
+
+## 4. Variante « petit budget » (décision client, 2026-09-23)
+
+Client : budget serré, **10 $/jour Meta + 5 $/jour Google** (15 $/jour) ; un crédit Google
+Ads serait disponible (à vérifier dans Facturation → Promotions). Recommandation retenue :
+passer à ce budget **dès le 1er octobre** plutôt qu'après 2 jours à 30 $/jour (une baisse de
+50 % remet Meta en apprentissage, et 2 jours ne donnent aucune donnée fiable).
+
+- **Meta 10 $/jour :** un **seul** ensemble `CN | Canada` (pas de séparation FR/EN), 3 annonces.
+  Dans chaque annonce : texte FR par défaut, puis **Langues → Ajouter des langues → Anglais**
+  avec le texte EN correspondant. Meta affiche la bonne langue à chaque personne.
+- **Google 5 $/jour :** garder seulement les mots-clés exacts et les plus précis :
+  `[culotte d'apprentissage]`, `"culotte d'apprentissage lavable"`, `[potty training pants]`,
+  `"reusable training pants"`, `"washable training pants"`. Mettre les autres en pause.
+- **Durée :** 28 jours (1er–28 oct.) pour dépenser les mêmes ≈ 420 $.
+- **Premier bilan :** après ~100 $ dépensés sur Meta (≈ 10 jours), pas avant.
+- Aucun résultat n'est garanti : au CPA cible de 12 $, 15 $/jour correspond à environ
+  1 commande par jour **si** la cible est atteinte ; les premiers jours coûtent souvent plus.
