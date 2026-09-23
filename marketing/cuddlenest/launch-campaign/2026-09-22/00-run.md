@@ -1,6 +1,6 @@
 # Run — launch-campaign · cuddlenest · 2026-09-22
 
-Mode : **plan uniquement** : rien n'a été publié, envoyé ni dépensé.
+Mode : **campagnes en ligne depuis le 2026-09-23** (lancées par le client dans Meta et Google Ads).
 
 | Partie | Artefact | Statut |
 |---|---|---|
@@ -13,4 +13,4 @@ Mode : **plan uniquement** : rien n'a été publié, envoyé ni dépensé.
 | Validation client (budget, objectif, bloquants restants) | — | ⏸ **en attente de toi** |
 | Analyse concurrentielle | — | ⬜ pas lancée (recommandée) |
 | Connexion des comptes | — | 🟡 Shopify ✅ · Meta ✅ · Google ✅ · TikTok exclu |
-| Campagnes Meta + Google prêtes à coller | 02-campagnes-pas-a-pas.md | ✅ faites le 2026-09-23 (« go campagnes ») ; création et activation par le client, départ prévu le 1er oct. |
+| Campagnes Meta + Google | 02-campagnes-pas-a-pas.md (§ 4, petit budget) | ✅ **lancées par le client le 2026-09-23** · Meta 10 $/j + Google 5 $/j · 24 sept.–21 oct. · premier bilan ≈ 3 oct. |
