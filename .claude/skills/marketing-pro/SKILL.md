@@ -96,9 +96,11 @@ point at the upstream plugin:
 /plugin install digital-marketing-pro@neels-plugins
 ```
 
-Connectors are opt-in there too; nothing auto-connects. This repo ships no MCP config, so any
-"send" or "launch" here is a plan plus the exact request you would make — never a silent no-op
-reported as done.
+Connectors are opt-in there too; nothing auto-connects. This repo declares only the connectors in
+`.mcp.json` — check it, and treat everything else as unconnected: a "send" or "launch" with no
+connector behind it is a plan plus the exact request you would make, never a silent no-op reported
+as done. Where a connector *is* live, the approval rule stands: read freely, confirm before you
+write.
 
 ## Output discipline
 
