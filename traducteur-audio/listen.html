@@ -6,6 +6,7 @@
   <h1 id="heading">🎙️ Micro → voix traduite</h1>
   <p id="direction" class="direction"></p>
   <p id="engine" class="hint engine"></p>
+  <p id="lag" class="hint lag"></p>
   <p id="dupWarning" class="hint status-err" hidden></p>
   <p class="hint" id="intro"></p>
 
@@ -26,6 +27,8 @@
 
   <details class="card quick" id="quick" open>
     <summary><strong>🎚️ Réglages rapides</strong> <span class="hint">(appliqués à la phrase suivante)</span></summary>
+    <div class="row"><label for="qLive"><strong>⚡ Priorité au direct</strong> (jamais de silence, rattrapage du retard)</label>
+      <input type="checkbox" id="qLive"></div>
     <div class="row"><label for="qLock"><strong>🔒 Voix verrouillée</strong> (toujours la même)
       <br><span class="hint" id="qLockName"></span></label>
       <input type="checkbox" id="qLock"></div>
@@ -71,6 +74,11 @@
   </div>
   <p id="status" class="hint">À l'arrêt.</p>
   <p id="notice" class="hint status-warn" hidden></p>
+  <div id="aiSuspended" class="card suspended" hidden>
+    ⚡ La voix IA était trop lente pour le direct : la <strong>voix du navigateur</strong> la remplace pour la suite
+    de cette session (une seule voix, sans alterner).
+    <button id="retryAi" class="secondary">🎙️ Réessayer la voix IA</button>
+  </div>
   <p id="interim" class="hint"></p>
 
   <div id="log" class="log"></div>

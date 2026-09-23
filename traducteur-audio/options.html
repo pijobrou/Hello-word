@@ -45,6 +45,9 @@
       <input type="range" id="voiceVolume" data-setting="voiceVolume" min="0" max="1" step="0.05"></div>
     <div class="row"><label for="gapMs">Pause entre les phrases <span class="val" data-for="gapMs"></span></label>
       <input type="range" id="gapMs" data-setting="gapMs" min="0" max="1500" step="50"></div>
+    <div class="row"><label for="liveMode"><strong>⚡ Priorité au direct</strong> : jamais de silence, la voix accélère si le retard grandit
+      <br><span class="hint">Si la voix IA n'est pas prête à temps (ou échoue), la phrase est lue tout de suite par la voix du navigateur.</span></label>
+      <input type="checkbox" id="liveMode" data-setting="liveMode"></div>
     <div class="row"><label for="lockVoice"><strong>🔒 Voix verrouillée</strong> : toujours la même voix, jamais de remplacement
       <br><span class="hint">Si cette voix est indisponible, la phrase est affichée sans être lue.</span></label>
       <input type="checkbox" id="lockVoice" data-setting="lockVoice"></div>

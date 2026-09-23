@@ -13,7 +13,7 @@ français s'affiche en bas de l'écran.
 
 ## Installation (2 minutes)
 
-1. Téléchargez **`dist/traducteur-audio-v1.6.0.zip`** (sur GitHub : ouvrez le fichier, puis le
+1. Téléchargez **`dist/traducteur-audio-v1.6.1.zip`** (sur GitHub : ouvrez le fichier, puis le
    bouton de téléchargement ↓) et **décompressez-le** dans un dossier que vous garderez
    (par ex. `Documents/traducteur-audio`). Chrome n'installe pas un ZIP directement.
 2. Ouvrez `chrome://extensions` (ou `edge://extensions`).
@@ -55,6 +55,21 @@ française installée (« Natural », puis « Google »). Pour une voix vraiment
 OpenAI) et une traduction DeepL, branchez le workflow n8n fourni dans [`n8n/`](n8n/README.md) :
 popup → **⚙️ Configurer la voix IA** → URL du webhook + clé secrète → **Enregistrer et tester**.
 Les clés API restent dans n8n. Si n8n ne répond pas, l'extension revient à la voix locale.
+
+## ⚡ Priorité au direct (activée par défaut)
+
+En direct, un silence fait perdre des phrases. Avec ce mode :
+- si la voix IA n'est pas prête **2 s** après son tour, ou si elle échoue, la phrase est lue tout de suite
+  par la voix du navigateur (la voix verrouillée) ;
+- après **2 ratés**, la voix IA est **suspendue pour la session** et la voix du navigateur prend le relais
+  jusqu'au bout. Il y a donc au plus un changement de voix, annoncé, avec un bouton « Réessayer la voix IA » ;
+- la voix **accélère avec le retard réel** (jusqu'à 1,5×), en plus de la file d'attente ;
+- le **retard** (du moment où la phrase est reconnue au début de sa lecture) s'affiche en haut de la
+  fenêtre et sous chaque phrase ;
+- si la voix verrouillée échoue, la voix la plus proche (même langue, même éditeur, même genre supposé)
+  lit la phrase au lieu de laisser un silence.
+
+Désactivez-le pour le verrouillage strict : une seule voix, quitte à avoir des silences.
 
 ## 🔒 Voix verrouillée (activée par défaut)
 

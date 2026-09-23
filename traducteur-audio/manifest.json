@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Traducteur Audio — doublage multilingue",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Traduit la parole d'un onglet, d'une vidéo ou du micro dans plus de 50 langues et la lit à voix haute.",
   "permissions": [
     "storage",

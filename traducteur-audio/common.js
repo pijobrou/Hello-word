@@ -21,6 +21,8 @@ const DEFAULTS = {
   engine: 'local',     // 'local' (voix du navigateur) ou 'n8n' (voix IA via votre workflow)
   aiFallback: 'silent', // si la voix IA échoue pour une phrase : 'silent' (texte seul, une seule voix) ou 'local'
   lockVoice: true,     // 🔒 une seule voix : jamais de voix de remplacement, la voix choisie est mémorisée
+  liveMode: true,      // ⚡ priorité au direct : jamais de silence, rattrapage du retard (prime sur le verrou strict)
+  aiDeadlineMs: 2000,  // ⚡ voix IA pas prête 2 s après son tour → la phrase est lue par la voix du navigateur
   n8nUrl: ''           // URL du webhook n8n
 };
 // Le secret du webhook reste sur cet appareil (storage.local, jamais synchronisé).
@@ -157,6 +159,7 @@ async function speakFrench(text, opts = {}) {
     // toutes les pages et toutes les sessions utilisent exactement la même.
     const locked = await lockedVoiceName(targetLang, voiceName);
     voice = all.find((v) => v.name === locked);
+    if (!voice && opts.liveMode !== false) voice = closestVoice(locked, targetLang);   // ⚡ jamais de silence
     if (!voice) return lockedVoiceMissing(text, locked);
   } else {
     const key = targetLang + '|' + voiceName;
@@ -166,7 +169,28 @@ async function speakFrench(text, opts = {}) {
   let r = await speakWith(text, opts, voice);
   // Les voix « en ligne » (Google, Microsoft Online) échouent parfois à cause du réseau : même voix, 2e essai.
   if (!r.ok) r = await speakWith(text, opts, voice);
+  // ⚡ En direct : si la voix choisie échoue deux fois, la voix la plus proche lit la phrase.
+  if (!r.ok && opts.liveMode !== false) {
+    const alt = closestVoice(voice && voice.name, targetLang);
+    if (alt && alt !== voice) {
+      r = await speakWith(text, opts, alt);
+      if (r.ok) return alt.name + ' (remplacement ponctuel)';
+    }
+  }
   return (voice ? voice.name : 'voix par défaut du système') + (r.ok ? '' : ' (échec : ' + r.error + ', phrase non lue)');
+}
+
+// Voix de remplacement la plus proche : même langue et même région, même éditeur (Microsoft, Google…),
+// même genre supposé d'après le prénom quand on le reconnaît.
+const FEMALE = /denise|julie|hortense|vivienne|brigitte|celeste|coralie|eloise|jacqueline|josephine|yvette|sylvie|amelie|caroline|lea|marie|audrey|aurelie|virginie|nathalie|sophie|claire|isabelle|charlotte/i;
+function closestVoice(name, code) {
+  const voices = voicesFor(code);
+  if (!voices.length) return null;
+  const vendor = (n) => (/microsoft/i.test(n) ? 'ms' : /google/i.test(n) ? 'g' : /apple|siri/i.test(n) ? 'a' : '');
+  const female = FEMALE.test(name || '');
+  const score = (v) => (v.lang.replace('_', '-') === code ? 2 : 0) + (vendor(v.name) === vendor(name || '') ? 2 : 0)
+    + (FEMALE.test(v.name) === female ? 1 : 0) + (/natural|online/i.test(v.name) ? 0.5 : 0);
+  return voices.slice().sort((a, b) => score(b) - score(a))[0];
 }
 
 // Nom de la voix verrouillée pour une langue : celle choisie dans les réglages, sinon la meilleure
@@ -212,7 +236,8 @@ async function prepareDub(en, settings) {
       return { en, fr: res.translation, audio: `data:${res.mime || 'audio/mpeg'};base64,${res.audio}`, via: 'n8n',
         speed: Number(res.speed) || 1 };   // vitesse déjà appliquée par ElevenLabs/OpenAI
     } catch (e) {
-      const silent = settings.lockVoice !== false || (settings.aiFallback || 'silent') === 'silent';
+      // ⚡ En direct, un silence fait perdre des phrases : on lit avec la voix du navigateur.
+      const silent = settings.liveMode === false && (settings.lockVoice !== false || (settings.aiFallback || 'silent') === 'silent');
       console.warn('[Traducteur Audio] voix IA indisponible pour cette phrase :', e.message);
       if (typeof onN8nFallback === 'function') onN8nFallback(e.message, silent);
       const fr = await translateText(en, trCode(settings.sourceLang || 'en-US'), trCode(settings.targetLang || 'fr-FR'));
@@ -353,7 +378,7 @@ function cleanEnglish(text) {
 // Réglage « découpage » : réactivité ↔ clarté.
 const CHUNKING = {
   fast: { words: 8, stableMs: 700 },       // Rapide : démarre vite, phrases parfois coupées
-  balanced: { words: 12, stableMs: 900 },  // Équilibré (par défaut)
+  balanced: { words: 10, stableMs: 800 },  // Équilibré (par défaut)
   full: { words: 20, stableMs: 1200 }      // Phrases complètes : plus clair, ~2 s de plus
 };
 // Mots avant lesquels on coupe de préférence (début d'une nouvelle idée).
