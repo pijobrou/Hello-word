@@ -1,3 +1,13 @@
+// Codes de langue partagés avec les pages (common.js n'est pas chargé dans le service worker).
+function n8nCode(code, isTarget) {
+  const [l, r] = code.split('-');
+  if (isTarget && l === 'en') return r === 'GB' ? 'en-gb' : 'en-us';
+  if (isTarget && l === 'pt') return r === 'PT' ? 'pt-pt' : 'pt-br';
+  if (l === 'zh' || l === 'yue') return 'zh';
+  if (l === 'fil') return 'tl';
+  return l;
+}
+
 // Service worker : fait les appels de traduction (les content scripts sont soumis au CORS de la page).
 
 const cache = new Map();
@@ -56,7 +66,8 @@ async function dub(text, force) {
   if (!force && Date.now() < n8nPausedUntil) throw new Error('n8n en pause après une erreur : ' + n8nLastError);
   const { n8nUrl } = await chrome.storage.sync.get({ n8nUrl: '' });
   const { n8nKey } = await chrome.storage.local.get({ n8nKey: '' });
-  const { expressiveness, rate, aiQuality } = await chrome.storage.sync.get({ expressiveness: 0.4, rate: 1, aiQuality: 'fast' });
+  const { expressiveness, rate, aiQuality, sourceLang, targetLang } = await chrome.storage.sync.get(
+    { expressiveness: 0.4, rate: 1, aiQuality: 'fast', sourceLang: 'en-US', targetLang: 'fr-FR' });
   // Vitesse appliquée directement par le fournisseur de voix (plus fluide qu'accélérer l'audio ensuite).
   const speed = Math.max(0.7, Math.min(1.2, rate));
   if (!n8nUrl) throw new Error('URL n8n non configurée');
@@ -66,7 +77,8 @@ async function dub(text, force) {
     const res = await fetch(n8nUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Traducteur-Key': n8nKey },
-      body: JSON.stringify({ text, source: 'en', target: 'fr', voiceSettings: { expressiveness, speed, model: aiQuality } }),
+      body: JSON.stringify({ text, source: n8nCode(sourceLang, false), target: n8nCode(targetLang, true),
+        targetLang, voiceSettings: { expressiveness, speed, model: aiQuality } }),
       signal: controller.signal
     });
     if (!res.ok) {

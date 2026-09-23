@@ -22,8 +22,9 @@ function setStatus(text, cls = '') {
 function addEntry(en, fr) {
   const card = document.createElement('div');
   card.className = 'card';
-  const enEl = document.createElement('div'); enEl.className = 'en'; enEl.textContent = '🇬🇧 ' + en;
-  const frEl = document.createElement('div'); frEl.className = 'fr'; frEl.textContent = '🇫🇷 ' + fr;
+  const src = langInfo((settings && settings.sourceLang) || 'en-US'), dst = langInfo((settings && settings.targetLang) || 'fr-FR');
+  const enEl = document.createElement('div'); enEl.className = 'en'; enEl.textContent = src.flag + ' ' + en;
+  const frEl = document.createElement('div'); frEl.className = 'fr'; frEl.textContent = dst.flag + ' ' + fr;
   if (settings) frEl.style.fontSize = Math.max(16, settings.overlaySize - 2) + 'px';
   card.append(enEl, frEl);
   $('log').prepend(card);
@@ -53,12 +54,21 @@ function onN8nFallback(message) {
     + message.replace(/^n8n en pause après une erreur : /, '');
 }
 getSettings().then((s) => { settings = s; });
-chrome.storage.onChanged.addListener(() => getSettings().then((s) => { settings = s; }));
+chrome.storage.onChanged.addListener((changes) => getSettings().then((s) => {
+  settings = s;
+  updateDirection();
+  // Nouvelle langue parlée : la reconnaissance doit repartir avec la bonne langue.
+  if (changes.sourceLang && rec) {
+    rec.lang = s.sourceLang;
+    sentWords.clear();
+    if (listening && !paused) rec.abort();   // onend la relance aussitôt
+  }
+}));
 
 // Chaque phrase anglaise est préparée (traduction + audio) dès son arrivée.
 function enqueue(raw) {
   // On retire tics et exclamations ; un morceau qui n'en contient que ça n'est pas lu.
-  const en = cleanEnglish(raw);
+  const en = cleanSpeech(raw, (settings && settings.sourceLang) || 'en-US');
   if (!en) return;
   const job = prepareDub(en, settings || DEFAULTS).catch((e) => ({ en, error: e }));
   queue.push(job);
@@ -145,6 +155,7 @@ async function openTabStream() {
 // ce qui peut prendre 5 à 10 s dans une vidéo. On envoie donc le texte dès qu'il est stable.
 const KEEP_TAIL = 2;      // garde les 2 derniers mots provisoires (encore susceptibles de changer)
 const MIN_CHUNK = 5;      // jamais de morceau de moins de 5 mots quand on coupe une phrase en cours
+function isEnglishSource() { return !settings || (settings.sourceLang || 'en-US').startsWith('en'); }
 function chunkCfg() { return CHUNKING[(settings && settings.chunking) || 'balanced'] || CHUNKING.balanced; }
 const sentWords = new Map(); // index du résultat → nombre de mots déjà envoyés
 let stableTimer = null;
@@ -162,7 +173,7 @@ function emitWords(index, words, upto) {
 
 function buildRecognition() {
   const r = new Recognition();
-  r.lang = 'en-US';
+  r.lang = (settings && settings.sourceLang) || 'en-US';
   r.continuous = true;
   r.interimResults = true;
   r.onstart = () => { sentWords.clear(); setStatus('🔴 Écoute en cours…', 'status-ok'); };
@@ -182,7 +193,7 @@ function buildRecognition() {
         if (w.length - done >= chunkCfg().words + KEEP_TAIL) {
           let cut = w.length - KEEP_TAIL;
           for (let k = cut - 1; k >= done + MIN_CHUNK; k--) {
-            if (BREAK_BEFORE.has(w[k].toLowerCase())) { cut = k; break; }
+            if (isEnglishSource() && BREAK_BEFORE.has(w[k].toLowerCase())) { cut = k; break; }
           }
           emitWords(i, w, cut);
         }
@@ -269,19 +280,27 @@ $('tabVolume').oninput = () => {
   if (tabGain && !speaking) tabGain.gain.value = Number($('tabVolume').value);
 };
 
+function updateDirection() {
+  if (!settings) return;
+  const src = langInfo(settings.sourceLang), dst = langInfo(settings.targetLang);
+  $('direction').textContent = `${src.flag} ${src.fr} → ${dst.flag} ${dst.fr}`;
+  $('qSource').value = settings.sourceLang;
+  $('qTarget').value = settings.targetLang;
+}
+
 if (SOURCE === 'tab') {
   const title = params.get('title');
-  $('heading').textContent = '🔊 Son de l\'onglet → voix française';
+  $('heading').textContent = '🔊 Son de l\'onglet → voix traduite';
   $('intro').textContent = (title ? `Onglet : « ${title} ». ` : '')
-    + 'La parole anglaise de l\'onglet est reconnue, traduite puis lue en français ; '
+    + 'La parole de l\'onglet est reconnue, traduite puis lue dans la langue choisie ; '
     + 'le son de l\'onglet baisse pendant la voix.';
   $('headphonesRow').hidden = true;
   $('tabVolumeRow').hidden = false;
   $('tabVolume').oninput();
   start();
 } else {
-  $('intro').textContent = 'Le micro écoute l\'anglais (une personne, un haut-parleur, une réunion…), '
-    + 'puis chaque phrase est traduite et lue en français.';
+  $('intro').textContent = 'Le micro écoute la personne qui parle (en face de vous, un haut-parleur, une réunion…), '
+    + 'puis chaque phrase est traduite et lue dans la langue choisie.';
 }
 
 // ---------- Réglages rapides (modifiables pendant l'écoute) ----------
@@ -332,3 +351,11 @@ $('quick').ontoggle = () => { try { localStorage.setItem('quickOpen', $('quick')
 getSettings().then(fillQuick);
 // Réglages changés ailleurs (popup, page de réglages) : on met la fenêtre à jour.
 chrome.storage.onChanged.addListener(() => getSettings().then(fillQuick));
+
+// ---------- Langues dans la fenêtre d'écoute ----------
+fillLanguageSelect($('qSource'), DEFAULTS.sourceLang);
+fillLanguageSelect($('qTarget'), DEFAULTS.targetLang);
+$('qSource').onchange = (e) => chrome.storage.sync.set({ sourceLang: e.target.value });
+$('qTarget').onchange = (e) => chrome.storage.sync.set({ targetLang: e.target.value, voiceName: '' });
+$('qSwap').onclick = () => chrome.storage.sync.set({ sourceLang: $('qTarget').value, targetLang: $('qSource').value, voiceName: '' });
+getSettings().then((s) => { settings = s; updateDirection(); });

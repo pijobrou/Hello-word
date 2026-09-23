@@ -18,17 +18,20 @@ function showValues() {
     el.textContent = FORMAT[el.dataset.for] ? FORMAT[el.dataset.for](input.value) : '';
   });
   $('preview').style.fontSize = $('overlaySize').value + 'px';
+  $('preview').textContent = langInfo($('targetLang').value || DEFAULTS.targetLang).flag + ' Bonjour à tous, bienvenue dans cette vidéo.';
   $('preview').dataset.en = $('showEnglish').checked ? 'Hello everyone, welcome to this video.' : '';
 }
 
 function fillVoices(selected) {
-  const voices = frenchVoices();
+  const voices = voicesFor($('targetLang').value || DEFAULTS.targetLang);
   $('voiceName').replaceChildren(new Option('Automatique (la plus naturelle)', ''),
     ...voices.map((v) => new Option(v.name, v.name)));
   $('voiceName').value = selected;
 }
 
 function fillForm(s) {
+  fillLanguageSelect($('sourceLang'), s.sourceLang);
+  fillLanguageSelect($('targetLang'), s.targetLang);
   document.querySelectorAll('[data-setting]').forEach((el) => {
     const v = s[el.dataset.setting];
     if (el.type === 'checkbox') el.checked = !!v; else el.value = v;
@@ -49,7 +52,11 @@ document.querySelectorAll('[data-setting]').forEach((el) => {
   el.addEventListener(el.type === 'range' ? 'input' : 'change', () => {
     const value = el.type === 'checkbox' ? el.checked : el.type === 'range' ? Number(el.value) : el.value;
     // Un réglage modifié à la main : on n'est plus exactement sur le profil choisi.
-    chrome.storage.sync.set({ [el.dataset.setting]: value, profile: 'custom' });
+    const extra = el.dataset.setting === 'targetLang' ? { voiceName: '' } : {};
+    // Les langues ne font pas partie des profils : les changer ne « casse » pas le profil choisi.
+    const profile = ['sourceLang', 'targetLang', 'voiceName'].includes(el.dataset.setting) ? {} : { profile: 'custom' };
+    chrome.storage.sync.set({ [el.dataset.setting]: value, ...extra, ...profile });
+    if (el.dataset.setting === 'targetLang') fillVoices('');
     document.querySelectorAll('.profiles button').forEach((b) => b.classList.remove('active'));
     showValues();
     saved();
@@ -70,11 +77,20 @@ $('profiles').replaceChildren(...Object.entries(PROFILES).map(([key, p]) => {
   return b;
 }));
 
+$('swap').onclick = async () => {
+  const src = $('sourceLang').value, dst = $('targetLang').value;
+  await chrome.storage.sync.set({ sourceLang: dst, targetLang: src, voiceName: '' });
+  fillForm(await getSettings());
+  saved('✔ Langues inversées');
+};
+
 $('listen').onclick = async () => {
   stopDub();
   const s = await getSettings();
-  const dub = await prepareDub('Hello everyone, welcome to this video. Today we will learn something new.', s)
-    .catch(() => ({ fr: 'Bonjour à tous, bienvenue dans cette vidéo. Aujourd\'hui, nous allons apprendre quelque chose de nouveau.', audio: null }));
+  // Phrase d'essai traduite depuis le français vers la langue cible choisie.
+  const sample = 'Bonjour à tous, bienvenue dans cette vidéo. Aujourd\'hui, nous allons apprendre quelque chose de nouveau.';
+  const dub = await prepareDub(sample, { ...s, sourceLang: 'fr-FR' })
+    .catch(() => ({ fr: sample, audio: null }));
   playDub(dub, s);
 };
 $('stop').onclick = () => stopDub();

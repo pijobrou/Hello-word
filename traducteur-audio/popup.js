@@ -1,8 +1,10 @@
 const $ = (id) => document.getElementById(id);
 
+let currentTarget = DEFAULTS.targetLang;
+
 function fillVoices(selected) {
   const select = $('voiceName');
-  const voices = frenchVoices();
+  const voices = voicesFor(currentTarget);
   select.replaceChildren(new Option('Automatique', ''), ...voices.map((v) => new Option(v.name, v.name)));
   select.value = selected;
 }
@@ -13,6 +15,9 @@ function labels() {
 }
 
 getSettings().then((s) => {
+  currentTarget = s.targetLang;
+  fillLanguageSelect($('sourceLang'), s.sourceLang);
+  fillLanguageSelect($('targetLang'), s.targetLang);
   $('engineN8n').checked = s.engine === 'n8n';
   $('engineN8n').disabled = !s.n8nUrl;
   $('n8nBadge').textContent = !s.n8nUrl ? 'Non configurée' : s.engine === 'n8n' ? 'Activée' : 'Désactivée (voix locale)';
@@ -66,3 +71,16 @@ $('engineN8n').onchange = (e) => {
 // Réglages dans un onglet : la popup se ferme dès que Chrome affiche une demande d'autorisation.
 $('n8nConfig').onclick = () => { chrome.runtime.openOptionsPage(); window.close(); };
 $('settingsBtn').onclick = () => { chrome.runtime.openOptionsPage(); window.close(); };
+
+$('sourceLang').onchange = (e) => chrome.storage.sync.set({ sourceLang: e.target.value });
+$('targetLang').onchange = (e) => {
+  currentTarget = e.target.value;
+  chrome.storage.sync.set({ targetLang: currentTarget, voiceName: '' });
+  fillVoices('');
+};
+$('swap').onclick = () => {
+  const src = $('sourceLang').value, dst = $('targetLang').value;
+  $('sourceLang').value = dst; $('targetLang').value = src; currentTarget = src;
+  chrome.storage.sync.set({ sourceLang: dst, targetLang: src, voiceName: '' });
+  fillVoices('');
+};

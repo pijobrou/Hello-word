@@ -3,7 +3,12 @@
 <head><meta charset="utf-8"><title>Traducteur Audio</title><link rel="stylesheet" href="style.css"></head>
 <body class="popup">
 <div class="wrap">
-  <h1>🎧 Traducteur Audio EN → FR</h1>
+  <h1>🎧 Traducteur Audio</h1>
+  <div class="langs">
+    <label>Langue parlée<select id="sourceLang"></select></label>
+    <button id="swap" class="secondary" title="Inverser les langues">⇄</button>
+    <label>Traduire en<select id="targetLang"></select></label>
+  </div>
 
   <button id="tab" class="big">🔊 Traduire le son de cet onglet</button>
   <p class="hint">Écoute directement l'audio de l'onglet (vidéo, live, appel…), même sans sous-titres.
@@ -26,7 +31,7 @@
       <option value="balanced">Équilibré</option>
       <option value="full">Phrases complètes (plus clair)</option>
     </select></div>
-  <div class="row"><label for="voiceName">Voix française</label>
+  <div class="row"><label for="voiceName">Voix</label>
     <select id="voiceName"></select></div>
   <div class="row"><label for="showOverlay">Afficher le texte FR à l'écran</label>
     <input type="checkbox" id="showOverlay"></div>

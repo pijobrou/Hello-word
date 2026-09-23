@@ -40,7 +40,7 @@
       document.documentElement.appendChild(overlay);
     }
     overlay.style.fontSize = settings.overlaySize + 'px';
-    overlay.textContent = '🇫🇷 ' + fr;
+    overlay.textContent = langInfo(settings.targetLang).flag + ' ' + fr;
     if (settings.showEnglish && en) {
       const small = document.createElement('div');
       Object.assign(small.style, { fontSize: '0.7em', color: '#ddd', fontWeight: 400, marginTop: '4px' });
@@ -79,7 +79,7 @@
     // Sous-titres « roulants » (YouTube) : on n'envoie que la partie nouvelle.
     const fresh = lastText && text.startsWith(lastText) ? text.slice(lastText.length).trim() : text;
     lastText = text;
-    const cleaned = cleanEnglish(fresh);   // retire [Music], tics, exclamations seules
+    const cleaned = cleanSpeech(fresh, settings.sourceLang);   // retire [Music], tics, exclamations seules
     if (!cleaned) return;
     // Préparée tout de suite (traduction + audio) pendant que la phrase précédente est lue.
     queue.push(prepareDub(cleaned, settings).catch((error) => ({ error })));
@@ -103,7 +103,8 @@
       Array.from(video.textTracks || []).forEach((track) => {
         if (hookedTracks.has(track)) return;
         if (!['subtitles', 'captions'].includes(track.kind)) return;
-        if (track.language && !track.language.toLowerCase().startsWith('en')) return;
+        const base = (settings.sourceLang || 'en-US').split('-')[0];
+        if (track.language && !track.language.toLowerCase().startsWith(base)) return;
         hookedTracks.add(track);
         if (track.mode === 'disabled') track.mode = 'hidden';
         track.addEventListener('cuechange', () => {

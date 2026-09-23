@@ -40,13 +40,15 @@ async function run() {
   if (!('speechSynthesis' in window)) synth('err', 'API speechSynthesis absente.');
   else {
     await waitVoices();
-    const fr = frenchVoices();
-    if (fr.length) synth('ok', `${fr.length} voix française(s) : ${fr.map((v) => v.name).join(', ')}`);
-    else synth('warn', 'Aucune voix française installée : ajoutez le français dans les langues/voix du système.');
+    const target = (await getSettings()).targetLang;
+    const fr = voicesFor(target);
+    const name = langInfo(target).fr;
+    if (fr.length) synth('ok', `${fr.length} voix (${name}) : ${fr.map((v) => v.name).join(', ')}`);
+    else synth('warn', `Aucune voix « ${name} » installée : ajoutez cette langue dans les voix du système, ou utilisez la voix IA.`);
   }
 
   // 2. Reconnaissance vocale
-  const recog = row('Reconnaissance vocale anglaise (mode micro)');
+  const recog = row('Reconnaissance vocale (mode micro et onglet)');
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (Recognition) recog('ok', 'Disponible (Chrome/Edge, nécessite Internet).');
   else recog('err', 'Indisponible : utilisez Chrome ou Edge pour le mode micro.');

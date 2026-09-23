@@ -60,3 +60,8 @@ summary { cursor: pointer; }
 button.wide { width: 100%; margin-top: 8px; }
 .quick { margin: 12px 0; }
 .quick .row input[type=range] { width: 170px; }
+.direction { font-size: 16px; font-weight: 600; margin: 4px 0 8px; }
+.langs { display: flex; align-items: flex-end; gap: 8px; margin: 10px 0; }
+.langs label { flex: 1; font-size: 13px; }
+.langs select { display: block; width: 100%; max-width: none; margin-top: 3px; }
+.langs button { padding: 6px 10px; font-size: 16px; }

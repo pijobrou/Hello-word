@@ -1,6 +1,6 @@
-# 🎧 Traducteur Audio EN → FR (extension Chrome / Edge)
+# 🎧 Traducteur Audio — doublage multilingue (extension Chrome / Edge)
 
-Écoute de l'anglais et le **prononce en français**, avec trois modes :
+Écoute une langue et la **prononce dans une autre** (53 langues et variantes, comme la liste d'un téléphone : anglais, français, espagnol, portugais, arabe, chinois, japonais, hindi, swahili…), avec trois modes :
 
 | Mode | Source anglaise | Idéal pour |
 |---|---|---|
@@ -13,7 +13,7 @@ français s'affiche en bas de l'écran.
 
 ## Installation (2 minutes)
 
-1. Téléchargez **`dist/traducteur-audio-v1.4.3.zip`** (sur GitHub : ouvrez le fichier, puis le
+1. Téléchargez **`dist/traducteur-audio-v1.5.0.zip`** (sur GitHub : ouvrez le fichier, puis le
    bouton de téléchargement ↓) et **décompressez-le** dans un dossier que vous garderez
    (par ex. `Documents/traducteur-audio`). Chrome n'installe pas un ZIP directement.
 2. Ouvrez `chrome://extensions` (ou `edge://extensions`).
@@ -48,6 +48,17 @@ française installée (« Natural », puis « Google »). Pour une voix vraiment
 OpenAI) et une traduction DeepL, branchez le workflow n8n fourni dans [`n8n/`](n8n/README.md) :
 popup → **⚙️ Configurer la voix IA** → URL du webhook + clé secrète → **Enregistrer et tester**.
 Les clés API restent dans n8n. Si n8n ne répond pas, l'extension revient à la voix locale.
+
+## 🌍 Langues
+
+Dans la popup, la fenêtre d'écoute ou les Réglages : **Langue parlée** → **Traduire en**, avec un
+bouton **⇄** pour inverser. Changer la langue parlée pendant l'écoute relance la reconnaissance tout
+de suite. La voix du navigateur dépend des voix installées sur l'ordinateur pour la langue cible
+(Windows : Paramètres → Heure et langue → Voix). Les voix IA (OpenAI, ElevenLabs) parlent presque
+toutes les langues. Le filtre de tics (« um », « okay so »…) ne s'applique qu'à l'anglais. Avec n8n,
+l'extension envoie `source` / `target` (ex. `en` → `fr`, `en-us`, `pt-br`) et `targetLang` (ex. `ja-JP`).
+Si la consigne de votre nœud OpenAI précise une langue (« français de France »), adaptez-la ou
+utilisez `targetLang`.
 
 ## ⚙️ Réglages (adapter la voix à la personne qui écoute)
 

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Traducteur Audio EN → FR",
-  "version": "1.4.3",
-  "description": "Traduit l'audio anglais (son de l'onglet, sous-titres de vidéos ou micro) et le lit à voix haute en français.",
+  "name": "Traducteur Audio — doublage multilingue",
+  "version": "1.5.0",
+  "description": "Traduit la parole d'un onglet, d'une vidéo ou du micro dans plus de 50 langues et la lit à voix haute.",
   "permissions": [
     "storage",
     "activeTab",
@@ -19,7 +19,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Traducteur Audio EN → FR",
+    "default_title": "Traducteur Audio",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",

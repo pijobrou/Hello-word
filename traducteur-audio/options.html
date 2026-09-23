@@ -3,9 +3,18 @@
 <head><meta charset="utf-8"><title>Traducteur Audio — Réglages</title><link rel="stylesheet" href="style.css"></head>
 <body>
 <div class="wrap page settings">
-  <h1>⚙️ Réglages — Traducteur Audio EN → FR</h1>
+  <h1>⚙️ Réglages — Traducteur Audio</h1>
   <p class="hint">Chaque changement est enregistré tout de suite et s'applique à la phrase suivante,
     même pendant une traduction en cours.</p>
+
+  <h2>🌍 Langues</h2>
+  <div class="card langs">
+    <label>Langue parlée (vidéo, personne)<select id="sourceLang" data-setting="sourceLang"></select></label>
+    <button id="swap" class="secondary" title="Inverser les langues">⇄</button>
+    <label>Traduire en (voix entendue)<select id="targetLang" data-setting="targetLang"></select></label>
+  </div>
+  <p class="hint">La voix du navigateur dépend des voix installées sur l'ordinateur pour la langue choisie
+    (Windows : Paramètres → Heure et langue → Voix). Les voix IA parlent presque toutes les langues.</p>
 
   <h2>👤 Profil de la personne qui écoute</h2>
   <div class="card">
@@ -13,7 +22,7 @@
     <p class="hint">Un profil règle tout d'un coup. Vous pouvez ensuite ajuster chaque réglage ci-dessous.</p>
   </div>
 
-  <h2>🎚️ Voix française</h2>
+  <h2>🎚️ Voix</h2>
   <div class="card">
     <div class="row"><label for="rate">Vitesse <span class="val" data-for="rate"></span></label>
       <input type="range" id="rate" data-setting="rate" min="0.5" max="2" step="0.05"></div>
@@ -65,7 +74,7 @@
       <input type="checkbox" id="showEnglish" data-setting="showEnglish"></div>
     <div class="row"><label for="overlaySize">Taille du texte <span class="val" data-for="overlaySize"></span></label>
       <input type="range" id="overlaySize" data-setting="overlaySize" min="14" max="44" step="1"></div>
-    <p id="preview" class="overlay-preview">🇫🇷 Bonjour à tous, bienvenue dans cette vidéo.</p>
+    <p id="preview" class="overlay-preview">Bonjour à tous, bienvenue dans cette vidéo.</p>
   </div>
 
   <h2>🎙️ Voix humaine IA (n8n)</h2>

@@ -15,6 +15,8 @@ const DEFAULTS = {
   duckVolume: 0.2,     // volume de la vidéo pendant la lecture FR (0 = muet, 1 = inchangé)
   showOverlay: true,   // affiche le texte français sur la page
   voiceName: '',       // voix française locale choisie ('' = automatique)
+  sourceLang: 'en-US', // langue parlée dans la vidéo / par la personne
+  targetLang: 'fr-FR', // langue de la voix traduite
   chunking: 'balanced', // découpage des phrases : 'fast', 'balanced' ou 'full'
   engine: 'local',     // 'local' (voix du navigateur) ou 'n8n' (voix IA via votre workflow)
   n8nUrl: ''           // URL du webhook n8n
@@ -37,19 +39,79 @@ function sendMessage(msg) {
   });
 }
 
+// ---------- Langues (liste inspirée de celle d'un téléphone) ----------
+// code = BCP-47, utilisé pour la reconnaissance vocale et la voix ; la traduction utilise trCode().
+const LANGUAGES = [
+  ['en-US', 'English (US)', 'Anglais (États-Unis)', '🇺🇸'], ['en-GB', 'English (UK)', 'Anglais (Royaume-Uni)', '🇬🇧'],
+  ['en-AU', 'English (Australia)', 'Anglais (Australie)', '🇦🇺'], ['en-IN', 'English (India)', 'Anglais (Inde)', '🇮🇳'],
+  ['fr-FR', 'Français (France)', 'Français (France)', '🇫🇷'], ['fr-CA', 'Français (Canada)', 'Français (Canada)', '🇨🇦'],
+  ['es-ES', 'Español (España)', 'Espagnol (Espagne)', '🇪🇸'], ['es-MX', 'Español (México)', 'Espagnol (Mexique)', '🇲🇽'],
+  ['pt-BR', 'Português (Brasil)', 'Portugais (Brésil)', '🇧🇷'], ['pt-PT', 'Português (Portugal)', 'Portugais (Portugal)', '🇵🇹'],
+  ['de-DE', 'Deutsch', 'Allemand', '🇩🇪'], ['it-IT', 'Italiano', 'Italien', '🇮🇹'], ['nl-NL', 'Nederlands', 'Néerlandais', '🇳🇱'],
+  ['ar-SA', 'العربية', 'Arabe', '🇸🇦'], ['zh-CN', '中文（简体）', 'Chinois (simplifié)', '🇨🇳'],
+  ['zh-TW', '中文（繁體）', 'Chinois (traditionnel)', '🇹🇼'], ['yue-HK', '粵語（香港）', 'Cantonais (Hong Kong)', '🇭🇰'],
+  ['ja-JP', '日本語', 'Japonais', '🇯🇵'], ['ko-KR', '한국어', 'Coréen', '🇰🇷'], ['ru-RU', 'Русский', 'Russe', '🇷🇺'],
+  ['uk-UA', 'Українська', 'Ukrainien', '🇺🇦'], ['pl-PL', 'Polski', 'Polonais', '🇵🇱'], ['tr-TR', 'Türkçe', 'Turc', '🇹🇷'],
+  ['el-GR', 'Ελληνικά', 'Grec', '🇬🇷'], ['he-IL', 'עברית', 'Hébreu', '🇮🇱'], ['fa-IR', 'فارسی', 'Persan', '🇮🇷'],
+  ['hi-IN', 'हिन्दी', 'Hindi', '🇮🇳'], ['bn-IN', 'বাংলা', 'Bengali', '🇮🇳'], ['ur-PK', 'اردو', 'Ourdou', '🇵🇰'],
+  ['ta-IN', 'தமிழ்', 'Tamoul', '🇮🇳'], ['te-IN', 'తెలుగు', 'Télougou', '🇮🇳'], ['mr-IN', 'मराठी', 'Marathi', '🇮🇳'],
+  ['th-TH', 'ไทย', 'Thaï', '🇹🇭'], ['vi-VN', 'Tiếng Việt', 'Vietnamien', '🇻🇳'], ['id-ID', 'Bahasa Indonesia', 'Indonésien', '🇮🇩'],
+  ['ms-MY', 'Bahasa Melayu', 'Malais', '🇲🇾'], ['fil-PH', 'Filipino', 'Filipino', '🇵🇭'],
+  ['sv-SE', 'Svenska', 'Suédois', '🇸🇪'], ['da-DK', 'Dansk', 'Danois', '🇩🇰'], ['nb-NO', 'Norsk', 'Norvégien', '🇳🇴'],
+  ['fi-FI', 'Suomi', 'Finnois', '🇫🇮'], ['cs-CZ', 'Čeština', 'Tchèque', '🇨🇿'], ['sk-SK', 'Slovenčina', 'Slovaque', '🇸🇰'],
+  ['hu-HU', 'Magyar', 'Hongrois', '🇭🇺'], ['ro-RO', 'Română', 'Roumain', '🇷🇴'], ['bg-BG', 'Български', 'Bulgare', '🇧🇬'],
+  ['hr-HR', 'Hrvatski', 'Croate', '🇭🇷'], ['sr-RS', 'Српски', 'Serbe', '🇷🇸'], ['ca-ES', 'Català', 'Catalan', '🇪🇸'],
+  ['sw-KE', 'Kiswahili', 'Swahili', '🇰🇪'], ['am-ET', 'አማርኛ', 'Amharique', '🇪🇹'], ['zu-ZA', 'isiZulu', 'Zoulou', '🇿🇦'],
+  ['af-ZA', 'Afrikaans', 'Afrikaans', '🇿🇦']
+].map(([code, native, fr, flag]) => ({ code, native, fr, flag }));
+
+function langInfo(code) {
+  return LANGUAGES.find((l) => l.code === code) || { code, native: code, fr: code, flag: '🌐' };
+}
+
+// Code attendu par Google Translate / MyMemory.
+function trCode(code) {
+  const [l, r] = code.split('-');
+  if (l === 'zh') return r === 'CN' ? 'zh-CN' : 'zh-TW';
+  if (l === 'yue') return 'zh-TW';
+  if (l === 'fil') return 'tl';
+  if (l === 'nb') return 'no';
+  return l;
+}
+
+// Code envoyé au workflow n8n (DeepL veut EN-US/EN-GB et PT-BR/PT-PT pour la langue cible).
+function n8nCode(code, isTarget) {
+  const [l, r] = code.split('-');
+  if (isTarget && l === 'en') return r === 'GB' ? 'en-gb' : 'en-us';
+  if (isTarget && l === 'pt') return r === 'PT' ? 'pt-pt' : 'pt-br';
+  if (l === 'zh' || l === 'yue') return 'zh';
+  if (l === 'nb') return 'nb';
+  return trCode(code);
+}
+
+// Remplit un <select> avec toutes les langues (drapeau, nom local, nom en français).
+function fillLanguageSelect(select, selected) {
+  select.replaceChildren(...LANGUAGES.map((l) =>
+    new Option(`${l.flag} ${l.native}${l.native === l.fr ? '' : ' — ' + l.fr}`, l.code)));
+  select.value = selected;
+}
+
 async function translateText(text, from = 'en', to = 'fr') {
   return (await sendMessage({ type: 'translate', text, from, to })).translation;
 }
 
-function frenchVoices() {
-  return speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith('fr'));
+// Voix du navigateur pour une langue : même langue, la bonne région d'abord.
+function voicesFor(code = 'fr-FR') {
+  const base = code.split('-')[0].toLowerCase().replace('yue', 'zh');
+  return speechSynthesis.getVoices().filter((v) => v.lang.replace('_', '-').toLowerCase().split('-')[0] === base);
 }
+const frenchVoices = () => voicesFor('fr-FR');   // compatibilité
 
 // Meilleure voix locale : celle choisie, sinon les voix neuronales (« Natural », « Online »), puis Google.
-function pickVoice(voiceName) {
-  const voices = frenchVoices();
+function pickVoice(voiceName, code = 'fr-FR') {
+  const voices = voicesFor(code);
   const score = (v) => (/natural/i.test(v.name) ? 3 : 0) + (/online/i.test(v.name) ? 2 : 0)
-    + (/google/i.test(v.name) ? 1 : 0) + (v.lang === 'fr-FR' ? 0.5 : 0);
+    + (/google/i.test(v.name) ? 1 : 0) + (v.lang.replace('_', '-') === code ? 0.5 : 0);
   return voices.find((v) => v.name === voiceName)
     || voices.slice().sort((a, b) => score(b) - score(a))[0] || null;
 }
@@ -70,14 +132,14 @@ const PROFILES = {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-function speakFrench(text, { rate = 1, pitch = 1, voiceVolume = 1, voiceName = '' } = {}) {
+function speakFrench(text, { rate = 1, pitch = 1, voiceVolume = 1, voiceName = '', targetLang = 'fr-FR' } = {}) {
   return new Promise((resolve) => {
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'fr-FR';
+    u.lang = targetLang;
     u.rate = Math.max(0.5, Math.min(2, rate));
     u.pitch = Math.max(0.5, Math.min(2, pitch));
     u.volume = Math.max(0, Math.min(1, voiceVolume));
-    u.voice = pickVoice(voiceName);
+    u.voice = pickVoice(voiceName, targetLang);
     u.onend = u.onerror = () => resolve();
     speechSynthesis.speak(u);
   });
@@ -96,7 +158,8 @@ async function prepareDub(en, settings) {
       if (typeof onN8nFallback === 'function') onN8nFallback(e.message);
     }
   }
-  return { en, fr: await translateText(en), audio: null, via: 'local' };
+  return { en, fr: await translateText(en, trCode(settings.sourceLang || 'en-US'), trCode(settings.targetLang || 'fr-FR')),
+    audio: null, via: 'local' };
 }
 
 let currentPlayer = null;
@@ -198,6 +261,14 @@ const LEADING = new Set(['oh', 'wow', 'whoa', 'yeah', 'yep', 'yup', 'okay', 'ok'
 // Un morceau composé uniquement de ces mots n'est pas lu (« wow », « yeah right », « oh my god », « cool »…).
 const ONLY_EXCLAMATION = new Set([...LEADING, 'right', 'yes', 'no', 'cool', 'nice', 'awesome', 'great', 'damn',
   'boom', 'guys', 'man', 'dude', 'wait', 'god', 'amazing', 'perfect', 'exactly', 'sure', 'thanks', 'bye']);
+
+// Nettoyage adapté à la langue parlée : les listes de tics sont en anglais ; pour les autres
+// langues on retire seulement les étiquettes [Musique] et les mots répétés.
+function cleanSpeech(text, sourceLang = 'en-US') {
+  if (sourceLang.startsWith('en')) return cleanEnglish(text);
+  const words = String(text).replace(/\[[^\]]*\]|\([^)]*\)|♪/g, ' ').split(/\s+/).filter(Boolean);
+  return words.filter((w, i) => i === 0 || w.toLowerCase() !== words[i - 1].toLowerCase()).join(' ');
+}
 
 function cleanEnglish(text) {
   let t = String(text)
