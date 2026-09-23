@@ -25,8 +25,20 @@ const body = $input.first().json.body || {};
 const text = String(body.text || '').replace(/\s+/g, ' ').trim().slice(0, 1500);
 if (!text) throw new Error('Champ "text" manquant');
 
+// Expressivité choisie dans l'extension : 0 = posée et régulière, 1 = vivante et expressive.
+const expr = Math.max(0, Math.min(1, Number(body.voiceSettings?.expressiveness ?? 0.4)));
+const elevenSettings = {
+  stability: Number((0.8 - 0.55 * expr).toFixed(2)),   // stable = régulier ; bas = plus vivant
+  similarity_boost: 0.75,
+  style: Number((0.45 * expr).toFixed(2)),             // exagération du style
+  use_speaker_boost: true,
+};
+const tone = expr < 0.3 ? ' Ton posé, calme et régulier.' : expr > 0.65 ? ' Ton vivant, expressif et enthousiaste.' : '';
+
 return [{ json: {
   ...CONFIG,
+  openaiInstructions: CONFIG.openaiInstructions + tone,
+  elevenSettings,
   text,
   source: String(body.source || 'en').toLowerCase(),
   target: String(body.target || 'fr').toLowerCase(),
@@ -123,7 +135,7 @@ nodes = [
       "url": "=https://api.elevenlabs.io/v1/text-to-speech/{{ $json.elevenVoiceId }}?output_format=mp3_44100_128",
       "authentication": "genericCredentialType", "genericAuthType": "httpHeaderAuth",
       "sendBody": True, "specifyBody": "json",
-      "jsonBody": "={{ JSON.stringify({ text: $json.translation, model_id: $json.elevenModel, language_code: $json.target }) }}",
+      "jsonBody": "={{ JSON.stringify({ text: $json.translation, model_id: $json.elevenModel, language_code: $json.target, voice_settings: $json.elevenSettings }) }}",
       "options": {"response": {"response": {"responseFormat": "file", "outputPropertyName": "data"}}}},
       credentials=header_cred("elevenlabs", "ElevenLabs")),
   node("Réponse", "n8n-nodes-base.code", 2, [1540, 300], {"jsCode": RESPONSE}),

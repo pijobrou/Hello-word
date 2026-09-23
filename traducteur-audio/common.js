@@ -3,7 +3,8 @@
 const DEFAULTS = {
   enabled: false,      // mode sous-titres actif sur les pages
   rate: 1.1,           // vitesse de la voix française (0,5 à 2)
-  pitch: 1,            // hauteur de la voix du navigateur (0,5 grave … 2 aiguë) ; sans effet sur la voix IA
+  pitch: 1,            // hauteur de la voix (0,5 grave … 2 aiguë), voix du navigateur et voix IA
+  expressiveness: 0.4, // voix IA : 0 = posée et régulière … 1 = vivante et expressive
   voiceVolume: 1,      // volume de la voix française (0 à 1)
   gapMs: 150,          // pause entre deux phrases (ms)
   overlaySize: 20,     // taille du texte à l'écran (px)
@@ -54,15 +55,15 @@ function pickVoice(voiceName) {
 // Profils prêts à l'emploi : on les applique d'un clic, puis chaque réglage reste ajustable.
 const PROFILES = {
   standard: { label: 'Standard', rate: 1.1, pitch: 1, voiceVolume: 1, duckVolume: 0.2, gapMs: 150,
-    chunking: 'balanced', overlaySize: 20, showEnglish: false },
+    chunking: 'balanced', overlaySize: 20, showEnglish: false, expressiveness: 0.4 },
   learning: { label: 'Apprentissage (lent et clair)', rate: 0.85, pitch: 1, voiceVolume: 1, duckVolume: 0.15,
-    gapMs: 500, chunking: 'full', overlaySize: 22, showEnglish: true },
+    gapMs: 500, chunking: 'full', overlaySize: 22, showEnglish: true, expressiveness: 0.2 },
   fast: { label: 'Rapide', rate: 1.35, pitch: 1, voiceVolume: 1, duckVolume: 0.3, gapMs: 0,
-    chunking: 'fast', overlaySize: 20, showEnglish: false },
+    chunking: 'fast', overlaySize: 20, showEnglish: false, expressiveness: 0.5 },
   comfort: { label: 'Confort d\'écoute (malentendant)', rate: 0.95, pitch: 0.95, voiceVolume: 1, duckVolume: 0.05,
-    gapMs: 300, chunking: 'balanced', overlaySize: 30, showEnglish: false },
+    gapMs: 300, chunking: 'balanced', overlaySize: 30, showEnglish: false, expressiveness: 0.2 },
   kids: { label: 'Enfant', rate: 0.9, pitch: 1.15, voiceVolume: 1, duckVolume: 0.15, gapMs: 400,
-    chunking: 'full', overlaySize: 26, showEnglish: false }
+    chunking: 'full', overlaySize: 26, showEnglish: false, expressiveness: 0.8 }
 };
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -97,6 +98,36 @@ async function prepareDub(en, settings) {
 
 let currentPlayer = null;
 
+// Change la hauteur d'un audio sans changer sa durée finale : on le rééchantillonne (hauteur et
+// vitesse × p), puis la lecture à la vitesse ÷ p, qui conserve la hauteur, rétablit le tempo.
+async function pitchShift(dataUrl, p) {
+  const bytes = await (await fetch(dataUrl)).arrayBuffer();
+  const decoded = await new OfflineAudioContext(1, 1, 44100).decodeAudioData(bytes);
+  const off = new OfflineAudioContext(decoded.numberOfChannels, Math.ceil(decoded.length / p), decoded.sampleRate);
+  const src = off.createBufferSource();
+  src.buffer = decoded;
+  src.playbackRate.value = p;
+  src.connect(off.destination);
+  src.start();
+  return URL.createObjectURL(toWav(await off.startRendering()));
+}
+
+function toWav(buffer) {
+  const ch = buffer.numberOfChannels, len = buffer.length, rate = buffer.sampleRate;
+  const view = new DataView(new ArrayBuffer(44 + len * ch * 2));
+  const str = (o, t) => [...t].forEach((c, i) => view.setUint8(o + i, c.charCodeAt(0)));
+  str(0, 'RIFF'); view.setUint32(4, 36 + len * ch * 2, true); str(8, 'WAVEfmt ');
+  view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, ch, true);
+  view.setUint32(24, rate, true); view.setUint32(28, rate * ch * 2, true);
+  view.setUint16(32, ch * 2, true); view.setUint16(34, 16, true); str(36, 'data');
+  view.setUint32(40, len * ch * 2, true);
+  const data = [...Array(ch)].map((_, c) => buffer.getChannelData(c));
+  for (let i = 0, o = 44; i < len; i++) {
+    for (let c = 0; c < ch; c++, o += 2) view.setInt16(o, Math.max(-1, Math.min(1, data[c][i])) * 0x7fff, true);
+  }
+  return new Blob([view], { type: 'audio/wav' });
+}
+
 // Coupe immédiatement la voix en cours (IA ou locale).
 function stopDub() {
   if (currentPlayer) currentPlayer.pause();
@@ -107,9 +138,16 @@ function stopDub() {
 async function playDub(dub, settings) {
   if (dub.audio) {
     try {
-      const player = new Audio(dub.audio);
+      const p = Math.max(0.5, Math.min(2, settings.pitch ?? 1));
+      let src = dub.audio, blobUrl = null;
+      if (Math.abs(p - 1) > 0.02) {
+        try { src = blobUrl = await pitchShift(dub.audio, p); } catch (e) { console.warn('[Traducteur Audio] hauteur :', e.message); }
+      }
+      const player = new Audio(src);
+      player.preservesPitch = true;
       currentPlayer = player;
-      player.playbackRate = Math.max(0.5, Math.min(2, settings.rate));
+      player.onemptied = () => blobUrl && URL.revokeObjectURL(blobUrl);
+      player.playbackRate = Math.max(0.5, Math.min(2, settings.rate / (blobUrl ? p : 1)));
       player.volume = Math.max(0, Math.min(1, settings.voiceVolume ?? 1));
       await new Promise((resolve, reject) => {
         player.onended = player.onpause = resolve;

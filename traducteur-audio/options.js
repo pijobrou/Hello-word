@@ -3,7 +3,8 @@ const $ = (id) => document.getElementById(id);
 // ---------- Réglages de la voix, de la vidéo et de l'affichage ----------
 const FORMAT = {
   rate: (v) => `(${Number(v).toFixed(2)}×)`,
-  pitch: (v) => `(${Number(v).toFixed(2)})`,
+  pitch: (v) => `(${v < 0.97 ? 'plus grave' : v > 1.03 ? 'plus aiguë' : 'normale'}, ${Number(v).toFixed(2)})`,
+  expressiveness: (v) => `(${v < 0.3 ? 'posée' : v > 0.65 ? 'expressive' : 'naturelle'}, ${Math.round(v * 100)} %)`,
   voiceVolume: (v) => `(${Math.round(v * 100)} %)`,
   duckVolume: (v) => `(${Math.round(v * 100)} %)`,
   gapMs: (v) => `(${(v / 1000).toFixed(2)} s)`,

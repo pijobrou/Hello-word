@@ -287,6 +287,8 @@ if (SOURCE === 'tab') {
 // ---------- Réglages rapides (modifiables pendant l'écoute) ----------
 const QUICK = [
   ['qRate', 'rate', (v) => `(${Number(v).toFixed(2)}×)`],
+  ['qPitch', 'pitch', (v) => `(${v < 0.97 ? 'grave' : v > 1.03 ? 'aiguë' : 'normale'} ${Number(v).toFixed(2)})`],
+  ['qExpr', 'expressiveness', (v) => `(${v < 0.3 ? 'posé' : v > 0.65 ? 'expressif' : 'naturel'})`],
   ['qVoiceVolume', 'voiceVolume', (v) => `(${Math.round(v * 100)} %)`],
   ['qDuck', 'duckVolume', (v) => `(${Math.round(v * 100)} %)`],
   ['qGap', 'gapMs', (v) => `(${(v / 1000).toFixed(2)} s)`]

@@ -57,6 +57,14 @@ Le test apparaît aussi dans la page **🩺 Diagnostics**. Si n8n ne répond pas
 un avertissement s'affiche, la voix du navigateur prend le relais tout de suite et n8n est
 réessayé une minute plus tard.
 
+## Style de la voix
+
+Le curseur **Style : posé ↔ expressif** de l'extension est envoyé au workflow. Pour ElevenLabs, il
+règle `stability` et `style` : une voix posée est régulière et calme, une voix expressive est vivante
+et animée. Pour OpenAI, il ajoute une consigne de ton. Ce curseur demande la version du workflow
+qui contient `elevenSettings` dans le nœud **Préparer** : réimportez-la si besoin (voir plus bas).
+La **hauteur** est traitée par l'extension elle-même, quel que soit le workflow.
+
 ## En cas d'erreur
 
 Si une étape échoue, le workflow renvoie la cause à l'extension, qui l'affiche en clair. Par

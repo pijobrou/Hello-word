@@ -56,6 +56,7 @@ async function dub(text, force) {
   if (!force && Date.now() < n8nPausedUntil) throw new Error('n8n en pause après une erreur : ' + n8nLastError);
   const { n8nUrl } = await chrome.storage.sync.get({ n8nUrl: '' });
   const { n8nKey } = await chrome.storage.local.get({ n8nKey: '' });
+  const { expressiveness } = await chrome.storage.sync.get({ expressiveness: 0.4 });
   if (!n8nUrl) throw new Error('URL n8n non configurée');
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 8000);
@@ -63,7 +64,7 @@ async function dub(text, force) {
     const res = await fetch(n8nUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Traducteur-Key': n8nKey },
-      body: JSON.stringify({ text, source: 'en', target: 'fr' }),
+      body: JSON.stringify({ text, source: 'en', target: 'fr', voiceSettings: { expressiveness } }),
       signal: controller.signal
     });
     if (!res.ok) {
