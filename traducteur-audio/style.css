@@ -11,7 +11,7 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 syste
 h1 { font-size: 16px; margin: 0 0 12px; }
 h2 { font-size: 14px; margin: 18px 0 8px; }
 .wrap { padding: 16px; }
-.popup { width: 360px; }
+.popup { width: 360px; overflow-x: hidden; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0; }
 .row label { flex: 1; }
 .hint { color: var(--muted); font-size: 12px; margin: 4px 0 0; }

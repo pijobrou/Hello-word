@@ -74,6 +74,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type !== 'dub') return false;
   dub(msg.text)
     .then((out) => sendResponse({ ok: true, ...out }))
-    .catch((err) => sendResponse({ ok: false, error: err.name === 'AbortError' ? 'n8n : délai dépassé (20 s)' : String(err.message || err) }));
+    .catch((err) => sendResponse({ ok: false, error: err.name === 'AbortError' ? 'n8n : délai dépassé (20 s)'
+      : err instanceof TypeError ? 'n8n injoignable : vérifiez l\'URL du webhook et que le workflow est actif'
+      : String(err.message || err) }));
   return true;
 });
