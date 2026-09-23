@@ -46,12 +46,14 @@ let settings = null;
 let fallbackShown = false;
 
 // Appelé par common.js quand n8n échoue : on le dit une fois, la traduction continue en voix locale.
-function onN8nFallback(message) {
+function onN8nFallback(message, silent) {
+  $('notice').hidden = false;
+  $('notice').textContent = (silent
+    ? '⚠️ La voix IA a échoué pour une phrase : elle est affichée sans être lue (pour garder une seule voix). '
+    : '⚠️ La voix IA a échoué pour une phrase : voix du navigateur utilisée. ')
+    + message.replace(/^n8n en pause après une erreur : /, '');
   if (fallbackShown) return;
   fallbackShown = true;
-  $('notice').hidden = false;
-  $('notice').textContent = '⚠️ Voix IA indisponible, voix du navigateur utilisée à la place. '
-    + message.replace(/^n8n en pause après une erreur : /, '');
 }
 getSettings().then((s) => { settings = s; });
 chrome.storage.onChanged.addListener((changes) => getSettings().then((s) => {
@@ -88,7 +90,7 @@ async function processQueue() {
       setStatus('Erreur de traduction : ' + dub.error.message, 'status-err');
       continue;
     }
-    addEntry(dub.en, dub.fr + (dub.via === 'n8n' ? '  🎙️' : ''));
+    addEntry(dub.en, dub.fr + ({ n8n: '  🎙️', silent: '  🔇', local: '' }[dub.via] || ''));
     if (SOURCE === 'mic' && !$('headphones').checked) pauseRecognition();
     duck(true, settings);
     await playDub(dub, { ...settings, rate: settings.rate * boost });
@@ -318,6 +320,7 @@ function fillQuick(s) {
   $('qProfile').value = PROFILES[s.profile] ? s.profile : 'custom';
   $('qChunking').value = s.chunking;
   $('qQuality').value = s.aiQuality;
+  $('qFallback').value = s.aiFallback;
   for (const [id, key, fmt] of QUICK) {
     $(id).value = s[key];
     $(id + 'Val').textContent = fmt(s[key]);
@@ -336,6 +339,7 @@ $('qProfile').onchange = async (e) => {
 };
 $('qChunking').onchange = (e) => chrome.storage.sync.set({ chunking: e.target.value, profile: 'custom' });
 $('qQuality').onchange = (e) => chrome.storage.sync.set({ aiQuality: e.target.value });
+$('qFallback').onchange = (e) => chrome.storage.sync.set({ aiFallback: e.target.value });
 for (const [id, key, fmt] of QUICK) {
   $(id).oninput = (e) => {
     $(id + 'Val').textContent = fmt(e.target.value);

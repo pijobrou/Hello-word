@@ -13,7 +13,7 @@ français s'affiche en bas de l'écran.
 
 ## Installation (2 minutes)
 
-1. Téléchargez **`dist/traducteur-audio-v1.5.0.zip`** (sur GitHub : ouvrez le fichier, puis le
+1. Téléchargez **`dist/traducteur-audio-v1.5.1.zip`** (sur GitHub : ouvrez le fichier, puis le
    bouton de téléchargement ↓) et **décompressez-le** dans un dossier que vous garderez
    (par ex. `Documents/traducteur-audio`). Chrome n'installe pas un ZIP directement.
 2. Ouvrez `chrome://extensions` (ou `edge://extensions`).
@@ -48,6 +48,15 @@ française installée (« Natural », puis « Google »). Pour une voix vraiment
 OpenAI) et une traduction DeepL, branchez le workflow n8n fourni dans [`n8n/`](n8n/README.md) :
 popup → **⚙️ Configurer la voix IA** → URL du webhook + clé secrète → **Enregistrer et tester**.
 Les clés API restent dans n8n. Si n8n ne répond pas, l'extension revient à la voix locale.
+
+## 🎙️ Une seule voix, du début à la fin
+
+Avec la voix IA, jamais plus de 2 phrases sont demandées en même temps (au-delà, OpenAI et ElevenLabs
+refusent souvent). Un refus passager (« trop de requêtes », réseau, 5xx) est réessayé deux fois. n8n
+n'est mis en pause qu'après 3 échecs d'affilée. Si une phrase échoue quand même, le réglage **Si la voix
+IA échoue** décide : **Texte seulement** (par défaut : la phrase s'affiche sans être lue, pour ne jamais
+entendre deux voix) ou **Voix du navigateur**. La voix du navigateur, elle, reste la même pour toute la
+session. Dans le journal de la fenêtre d'écoute : 🎙️ = voix IA, 🔇 = texte seul.
 
 ## 🌍 Langues
 

@@ -84,6 +84,12 @@
         <span class="hint">Décoché : voix du navigateur. Vitesse et volume s'appliquent aussi à la voix IA.</span></label>
       <input type="checkbox" id="engineN8n">
     </div>
+    <div class="row"><label for="aiFallback">Si la voix IA échoue pour une phrase
+      <br><span class="hint">« Texte seulement » évite d'entendre deux voix différentes</span></label>
+      <select id="aiFallback" data-setting="aiFallback">
+        <option value="silent">Afficher le texte sans le lire (une seule voix)</option>
+        <option value="local">Lire avec la voix du navigateur</option>
+      </select></div>
     <button id="useLocal" class="secondary">🏠 Utiliser mon n8n local (localhost:5678)</button>
     <label class="field">URL du webhook (« Production URL » du nœud Webhook)
       <input type="url" id="n8nUrl" placeholder="https://…/webhook/traducteur-audio"></label>

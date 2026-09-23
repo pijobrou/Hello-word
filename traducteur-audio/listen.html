@@ -39,6 +39,11 @@
         <option value="fast">Rapide</option>
         <option value="fluid">Fluide et naturelle</option>
       </select></div>
+    <div class="row"><label for="qFallback">Si la voix IA échoue</label>
+      <select id="qFallback">
+        <option value="silent">Texte seulement (une seule voix)</option>
+        <option value="local">Voix du navigateur</option>
+      </select></div>
     <div class="row"><label for="qVoiceVolume">Volume de la voix <span class="val" id="qVoiceVolumeVal"></span></label>
       <input type="range" id="qVoiceVolume" data-setting="voiceVolume" min="0" max="1" step="0.05"></div>
     <div class="row"><label for="qDuck">Volume vidéo pendant la voix <span class="val" id="qDuckVal"></span></label>

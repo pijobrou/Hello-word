@@ -60,6 +60,31 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
 // au lieu d'attendre chacune la fin du délai.
 let n8nPausedUntil = 0;
 let n8nLastError = '';
+let n8nFailures = 0;          // échecs d'affilée : n8n n'est mis en pause qu'après 3
+const MAX_PARALLEL = 2;       // au-delà, OpenAI/ElevenLabs refusent souvent (limite de requêtes)
+let running = 0;
+const waiting = [];
+
+// Limite le nombre d'appels simultanés au workflow (les phrases préchargées attendent leur tour).
+async function withSlot(fn) {
+  if (running >= MAX_PARALLEL) await new Promise((r) => waiting.push(r));
+  running++;
+  try { return await fn(); } finally { running--; const next = waiting.shift(); if (next) next(); }
+}
+
+// Un échec passager (réseau, 429 « trop de requêtes », 5xx) est réessayé deux fois avant d'abandonner.
+async function dubWithRetry(text, force) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await withSlot(() => dub(text, force));
+    } catch (err) {
+      const retryable = err.name === 'AbortError' || err instanceof TypeError
+        || /\b(429|500|502|503|504)\b|too many|rate limit|trop de requêtes|timeout/i.test(String(err.message));
+      if (!retryable || attempt >= 2 || /^n8n en pause/.test(err.message)) throw err;
+      await new Promise((r) => setTimeout(r, 900 * (attempt + 1)));   // 0,9 s puis 1,8 s
+    }
+  }
+}
 
 // Voix IA : envoie la phrase au webhook n8n, qui renvoie { translation, audio (MP3 base64), mime }.
 async function dub(text, force) {
@@ -72,7 +97,7 @@ async function dub(text, force) {
   const speed = Math.max(0.7, Math.min(1.2, rate));
   if (!n8nUrl) throw new Error('URL n8n non configurée');
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 8000);
+  const timer = setTimeout(() => controller.abort(), 15000);
   try {
     const res = await fetch(n8nUrl, {
       method: 'POST',
@@ -123,12 +148,12 @@ async function diagnose(n8nUrl) {
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type !== 'dub') return false;
-  dub(msg.text, msg.force)
-    .then((out) => { n8nPausedUntil = 0; sendResponse({ ok: true, ...out }); })
+  dubWithRetry(msg.text, msg.force)
+    .then((out) => { n8nPausedUntil = 0; n8nFailures = 0; sendResponse({ ok: true, ...out }); })
     .catch(async (err) => {
       let error = String(err.message || err);
       if (/^n8n en pause/.test(error)) return sendResponse({ ok: false, error });
-      if (err.name === 'AbortError') error = 'n8n : pas de réponse en 8 s.';
+      if (err.name === 'AbortError') error = 'n8n : pas de réponse en 15 s.';
       else if (err instanceof TypeError) {
         const { n8nUrl } = await chrome.storage.sync.get({ n8nUrl: '' });
         error = await diagnose(n8nUrl);
@@ -142,7 +167,8 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         error = 'n8n 403 : clé secrète incorrecte. Elle doit être identique à la credential '
           + '« Traducteur - clé extension » (attention aux espaces).';
       }
-      n8nPausedUntil = Date.now() + 60000;
+      // Un échec isolé ne change pas de voix pour la suite : pause seulement après 3 échecs d'affilée.
+      if (++n8nFailures >= 3) { n8nPausedUntil = Date.now() + 30000; n8nFailures = 0; }
       n8nLastError = error;
       sendResponse({ ok: false, error });
     });

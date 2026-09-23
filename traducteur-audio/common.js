@@ -19,6 +19,7 @@ const DEFAULTS = {
   targetLang: 'fr-FR', // langue de la voix traduite
   chunking: 'balanced', // découpage des phrases : 'fast', 'balanced' ou 'full'
   engine: 'local',     // 'local' (voix du navigateur) ou 'n8n' (voix IA via votre workflow)
+  aiFallback: 'silent', // si la voix IA échoue pour une phrase : 'silent' (texte seul, une seule voix) ou 'local'
   n8nUrl: ''           // URL du webhook n8n
 };
 // Le secret du webhook reste sur cet appareil (storage.local, jamais synchronisé).
@@ -132,14 +133,37 @@ const PROFILES = {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-function speakFrench(text, { rate = 1, pitch = 1, voiceVolume = 1, voiceName = '', targetLang = 'fr-FR' } = {}) {
+// La liste des voix arrive en retard au démarrage : sans l'attendre, la 1re phrase prend la voix par
+// défaut du système et les suivantes une autre voix. On l'attend donc, puis on garde le même choix.
+let voicesReady = null;
+function waitVoices() {
+  if (speechSynthesis.getVoices().length) return Promise.resolve();
+  voicesReady = voicesReady || new Promise((r) => {
+    speechSynthesis.addEventListener('voiceschanged', r, { once: true });
+    setTimeout(r, 1500);
+  });
+  return voicesReady;
+}
+const chosenVoice = new Map();   // « langue|nom demandé » → voix retenue pour toute la session
+
+async function speakFrench(text, opts = {}) {
+  await waitVoices();
+  const { voiceName = '', targetLang = 'fr-FR' } = opts;
+  const key = targetLang + '|' + voiceName;
+  if (!chosenVoice.has(key) || !speechSynthesis.getVoices().includes(chosenVoice.get(key))) {
+    chosenVoice.set(key, pickVoice(voiceName, targetLang));
+  }
+  return speakWith(text, opts, chosenVoice.get(key));
+}
+
+function speakWith(text, { rate = 1, pitch = 1, voiceVolume = 1, targetLang = 'fr-FR' } = {}, voice) {
   return new Promise((resolve) => {
     const u = new SpeechSynthesisUtterance(text);
     u.lang = targetLang;
     u.rate = Math.max(0.5, Math.min(2, rate));
     u.pitch = Math.max(0.5, Math.min(2, pitch));
     u.volume = Math.max(0, Math.min(1, voiceVolume));
-    u.voice = pickVoice(voiceName, targetLang);
+    u.voice = voice;
     u.onend = u.onerror = () => resolve();
     speechSynthesis.speak(u);
   });
@@ -154,8 +178,12 @@ async function prepareDub(en, settings) {
       return { en, fr: res.translation, audio: `data:${res.mime || 'audio/mpeg'};base64,${res.audio}`, via: 'n8n',
         speed: Number(res.speed) || 1 };   // vitesse déjà appliquée par ElevenLabs/OpenAI
     } catch (e) {
-      console.warn('[Traducteur Audio] n8n indisponible, voix locale utilisée :', e.message);
-      if (typeof onN8nFallback === 'function') onN8nFallback(e.message);
+      const silent = (settings.aiFallback || 'silent') === 'silent';
+      console.warn('[Traducteur Audio] voix IA indisponible pour cette phrase :', e.message);
+      if (typeof onN8nFallback === 'function') onN8nFallback(e.message, silent);
+      const fr = await translateText(en, trCode(settings.sourceLang || 'en-US'), trCode(settings.targetLang || 'fr-FR'));
+      // « Texte seul » : on n'introduit pas une 2e voix ; la phrase est affichée sans être lue.
+      return { en, fr, audio: null, via: silent ? 'silent' : 'local' };
     }
   }
   return { en, fr: await translateText(en, trCode(settings.sourceLang || 'en-US'), trCode(settings.targetLang || 'fr-FR')),
@@ -222,6 +250,11 @@ function stopDub() {
 
 // Lit une phrase préparée : l'audio IA si disponible, sinon la voix locale.
 async function playDub(dub, settings) {
+  if (dub.via === 'silent') {
+    // Le temps de lire la phrase à l'écran (sans voix), pour rester à peu près synchro.
+    await sleep(Math.min(6000, 400 + dub.fr.length * 45));
+    return;
+  }
   if (dub.audio) {
     try {
       const p = Math.max(0.5, Math.min(2, settings.pitch ?? 1));
