@@ -36,7 +36,7 @@ $('duckVolume').oninput = (e) => { labels(); chrome.storage.sync.set({ duckVolum
 function openListener(params) {
   chrome.windows.create({
     url: chrome.runtime.getURL('listen.html?' + new URLSearchParams(params)),
-    type: 'popup', width: 440, height: 640
+    type: 'popup', width: 460, height: 820
   });
   window.close();
 }

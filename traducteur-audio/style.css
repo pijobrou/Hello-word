@@ -58,3 +58,5 @@ summary { cursor: pointer; }
 .overlay-preview:not([data-en=""])::after { content: attr(data-en); display: block; font-size: .7em;
   color: #ddd; font-weight: 400; margin-top: 4px; }
 button.wide { width: 100%; margin-top: 8px; }
+.quick { margin: 12px 0; }
+.quick .row input[type=range] { width: 170px; }

@@ -283,3 +283,47 @@ if (SOURCE === 'tab') {
   $('intro').textContent = 'Le micro écoute l\'anglais (une personne, un haut-parleur, une réunion…), '
     + 'puis chaque phrase est traduite et lue en français.';
 }
+
+// ---------- Réglages rapides (modifiables pendant l'écoute) ----------
+const QUICK = [
+  ['qRate', 'rate', (v) => `(${Number(v).toFixed(2)}×)`],
+  ['qVoiceVolume', 'voiceVolume', (v) => `(${Math.round(v * 100)} %)`],
+  ['qDuck', 'duckVolume', (v) => `(${Math.round(v * 100)} %)`],
+  ['qGap', 'gapMs', (v) => `(${(v / 1000).toFixed(2)} s)`]
+];
+
+function fillQuick(s) {
+  $('qProfile').value = PROFILES[s.profile] ? s.profile : 'custom';
+  $('qChunking').value = s.chunking;
+  for (const [id, key, fmt] of QUICK) {
+    $(id).value = s[key];
+    $(id + 'Val').textContent = fmt(s[key]);
+  }
+}
+
+$('qProfile').replaceChildren(
+  ...Object.entries(PROFILES).map(([key, p]) => new Option(p.label, key)),
+  new Option('Personnalisé', 'custom'));
+
+$('qProfile').onchange = async (e) => {
+  const p = PROFILES[e.target.value];
+  if (!p) return;
+  const { label, ...values } = p;
+  await chrome.storage.sync.set({ ...values, profile: e.target.value });
+};
+$('qChunking').onchange = (e) => chrome.storage.sync.set({ chunking: e.target.value, profile: 'custom' });
+for (const [id, key, fmt] of QUICK) {
+  $(id).oninput = (e) => {
+    $(id + 'Val').textContent = fmt(e.target.value);
+    chrome.storage.sync.set({ [key]: Number(e.target.value), profile: 'custom' });
+  };
+}
+$('allSettings').onclick = () => chrome.runtime.openOptionsPage();
+
+// On se souvient si l'utilisateur a replié les réglages rapides (préférence locale, facultative).
+try { if (localStorage.getItem('quickOpen') === '0') $('quick').open = false; } catch (_) { /* stockage indisponible */ }
+$('quick').ontoggle = () => { try { localStorage.setItem('quickOpen', $('quick').open ? '1' : '0'); } catch (_) { /* ignoré */ } };
+
+getSettings().then(fillQuick);
+// Réglages changés ailleurs (popup, page de réglages) : on met la fenêtre à jour.
+chrome.storage.onChanged.addListener(() => getSettings().then(fillQuick));

@@ -15,6 +15,27 @@
     <input type="range" id="tabVolume" min="0" max="1" step="0.05" value="1">
   </div>
 
+  <details class="card quick" id="quick" open>
+    <summary><strong>🎚️ Réglages rapides</strong> <span class="hint">(appliqués à la phrase suivante)</span></summary>
+    <div class="row"><label for="qProfile">Profil</label>
+      <select id="qProfile"></select></div>
+    <div class="row"><label for="qRate">Vitesse de la voix <span class="val" id="qRateVal"></span></label>
+      <input type="range" id="qRate" data-setting="rate" min="0.5" max="2" step="0.05"></div>
+    <div class="row"><label for="qVoiceVolume">Volume de la voix <span class="val" id="qVoiceVolumeVal"></span></label>
+      <input type="range" id="qVoiceVolume" data-setting="voiceVolume" min="0" max="1" step="0.05"></div>
+    <div class="row"><label for="qDuck">Volume vidéo pendant la voix <span class="val" id="qDuckVal"></span></label>
+      <input type="range" id="qDuck" data-setting="duckVolume" min="0" max="1" step="0.05"></div>
+    <div class="row"><label for="qGap">Pause entre les phrases <span class="val" id="qGapVal"></span></label>
+      <input type="range" id="qGap" data-setting="gapMs" min="0" max="1500" step="50"></div>
+    <div class="row"><label for="qChunking">Découpage</label>
+      <select id="qChunking" data-setting="chunking">
+        <option value="fast">Rapide</option>
+        <option value="balanced">Équilibré</option>
+        <option value="full">Phrases complètes</option>
+      </select></div>
+    <button id="allSettings" class="secondary wide">⚙️ Tous les réglages</button>
+  </details>
+
   <div class="buttons">
     <button id="toggle">▶️ Démarrer l'écoute</button>
     <button id="clear" class="secondary">Effacer</button>
