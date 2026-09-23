@@ -13,7 +13,7 @@ français s'affiche en bas de l'écran.
 
 ## Installation (2 minutes)
 
-1. Téléchargez **`dist/traducteur-audio-v1.3.2.zip`** (sur GitHub : ouvrez le fichier, puis le
+1. Téléchargez **`dist/traducteur-audio-v1.3.3.zip`** (sur GitHub : ouvrez le fichier, puis le
    bouton de téléchargement ↓) et **décompressez-le** dans un dossier que vous garderez
    (par ex. `Documents/traducteur-audio`). Chrome n'installe pas un ZIP directement.
 2. Ouvrez `chrome://extensions` (ou `edge://extensions`).
@@ -46,7 +46,7 @@ françaises, la reconnaissance vocale, le micro et les deux services de traducti
 Par défaut, l'extension utilise la voix du navigateur et choisit automatiquement la meilleure voix
 française installée (« Natural », puis « Google »). Pour une voix vraiment humaine (ElevenLabs ou
 OpenAI) et une traduction DeepL, branchez le workflow n8n fourni dans [`n8n/`](n8n/README.md) :
-popup → **🎙️ Voix humaine IA (n8n)** → URL du webhook + clé secrète → **Enregistrer et tester**.
+popup → **⚙️ Configurer la voix IA** → URL du webhook + clé secrète → **Enregistrer et tester**.
 Les clés API restent dans n8n. Si n8n ne répond pas, l'extension revient à la voix locale.
 
 ## Bon à savoir
@@ -65,6 +65,7 @@ manifest.json            configuration de l'extension (Manifest V3)
 background.js            appels de traduction + cache
 content.js               mode vidéo : lit les sous-titres, traduit, parle, baisse le volume
 popup.html / popup.js    réglages
+options.html / options.js  réglages de la voix IA (n8n), dans un onglet
 listen.html / listen.js  fenêtre d'écoute (son de l'onglet ou micro)
 diagnostics/             page de diagnostics
 common.js, style.css     code et style partagés (voix locale ou n8n, préchargement des phrases)

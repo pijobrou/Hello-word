@@ -41,6 +41,16 @@ function duck(on, settings) {
 }
 
 let settings = null;
+let fallbackShown = false;
+
+// Appelé par common.js quand n8n échoue : on le dit une fois, la traduction continue en voix locale.
+function onN8nFallback(message) {
+  if (fallbackShown) return;
+  fallbackShown = true;
+  $('notice').hidden = false;
+  $('notice').textContent = '⚠️ Voix IA indisponible, voix du navigateur utilisée à la place. '
+    + message.replace(/^n8n en pause après une erreur : /, '');
+}
 getSettings().then((s) => { settings = s; });
 chrome.storage.onChanged.addListener(() => getSettings().then((s) => { settings = s; }));
 

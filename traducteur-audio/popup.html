@@ -24,21 +24,14 @@
   <div class="row"><label for="showOverlay">Afficher le texte FR à l'écran</label>
     <input type="checkbox" id="showOverlay"></div>
 
-  <details id="n8nBox">
-    <summary><strong>🎙️ Voix humaine IA (n8n)</strong> <span id="n8nBadge" class="hint"></span></summary>
+  <div class="card n8n-card">
     <div class="row">
-      <label for="engineN8n">Utiliser mon workflow n8n (ElevenLabs / OpenAI)</label>
+      <label for="engineN8n"><strong>🎙️ Voix humaine IA (n8n)</strong><br>
+        <span id="n8nBadge" class="hint">Non configurée</span></label>
       <input type="checkbox" id="engineN8n">
     </div>
-    <label class="field">URL du webhook
-      <input type="url" id="n8nUrl" placeholder="https://…/webhook/traducteur-audio"></label>
-    <label class="field">Clé secrète (X-Traducteur-Key)
-      <input type="password" id="n8nKey" autocomplete="off"></label>
-    <div class="buttons">
-      <button id="n8nSave">Enregistrer et tester</button>
-    </div>
-    <p id="n8nStatus" class="hint"></p>
-  </details>
+    <button id="n8nConfig" class="secondary">⚙️ Configurer la voix IA</button>
+  </div>
 
   <p class="hint">Sur YouTube, activez les sous-titres (touche <b>C</b>), en anglais ou auto-générés.</p>
 

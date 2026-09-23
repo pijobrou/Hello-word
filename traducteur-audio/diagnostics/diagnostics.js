@@ -93,7 +93,7 @@ async function run() {
   if (settings.engine !== 'n8n') n8n('warn', 'Désactivée : voix locale du navigateur (popup → « Voix humaine IA »).');
   else {
     try {
-      const { value, ms } = await timed(() => sendMessage({ type: 'dub', text: 'Good morning, how are you?' }));
+      const { value, ms } = await timed(() => sendMessage({ type: 'dub', force: true, text: 'Good morning, how are you?' }));
       n8n('ok', `« ${value.translation} » + audio ${Math.round(value.audio.length * 0.75 / 1024)} Ko (${ms} ms)`);
     } catch (e) {
       n8n('err', e.message + ' — la voix locale est utilisée en secours.');

@@ -46,13 +46,19 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   return true; // réponse asynchrone
 });
 
+// Après un échec, n8n est mis en pause 60 s : les phrases passent tout de suite en voix locale
+// au lieu d'attendre chacune la fin du délai.
+let n8nPausedUntil = 0;
+let n8nLastError = '';
+
 // Voix IA : envoie la phrase au webhook n8n, qui renvoie { translation, audio (MP3 base64), mime }.
-async function dub(text) {
+async function dub(text, force) {
+  if (!force && Date.now() < n8nPausedUntil) throw new Error('n8n en pause après une erreur : ' + n8nLastError);
   const { n8nUrl } = await chrome.storage.sync.get({ n8nUrl: '' });
   const { n8nKey } = await chrome.storage.local.get({ n8nKey: '' });
   if (!n8nUrl) throw new Error('URL n8n non configurée');
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 20000);
+  const timer = setTimeout(() => controller.abort(), 8000);
   try {
     const res = await fetch(n8nUrl, {
       method: 'POST',
@@ -95,21 +101,27 @@ async function diagnose(n8nUrl) {
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type !== 'dub') return false;
-  dub(msg.text)
-    .then((out) => sendResponse({ ok: true, ...out }))
+  dub(msg.text, msg.force)
+    .then((out) => { n8nPausedUntil = 0; sendResponse({ ok: true, ...out }); })
     .catch(async (err) => {
       let error = String(err.message || err);
-      if (err.name === 'AbortError') error = 'n8n : délai dépassé (20 s).';
+      if (/^n8n en pause/.test(error)) return sendResponse({ ok: false, error });
+      if (err.name === 'AbortError') error = 'n8n : pas de réponse en 8 s.';
       else if (err instanceof TypeError) {
         const { n8nUrl } = await chrome.storage.sync.get({ n8nUrl: '' });
         error = await diagnose(n8nUrl);
       } else if (/^n8n 404/.test(error)) {
         error = 'n8n 404 : le webhook n\'existe pas. Activez (publiez) le workflow dans n8n et utilisez la '
           + '« Production URL » du nœud Webhook.';
+      } else if (/^n8n 500/.test(error)) {
+        error = 'n8n 500 : le workflow a planté. Dans n8n, ouvrez « Executions » : le nœud en rouge donne la '
+          + 'cause (souvent la clé ElevenLabs, l\'ID de voix ou le crédit épuisé).';
       } else if (/^n8n 403/.test(error)) {
         error = 'n8n 403 : clé secrète incorrecte. Elle doit être identique à la credential '
           + '« Traducteur - clé extension » (attention aux espaces).';
       }
+      n8nPausedUntil = Date.now() + 60000;
+      n8nLastError = error;
       sendResponse({ ok: false, error });
     });
   return true;

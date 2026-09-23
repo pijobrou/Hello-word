@@ -48,12 +48,14 @@ Pour un test sur votre ordinateur avec n8n en local (`npx n8n`), l'adresse du we
 ## 3. Brancher l'extension
 
 1. Dans le nœud **Webhook**, copiez la **Production URL**.
-2. Popup de l'extension → **🎙️ Voix humaine IA (n8n)** → collez l'URL et la clé secrète
-   (la même que la credential `Traducteur - clé extension`) → **Enregistrer et tester**.
-3. Chrome vous demande d'autoriser l'accès à votre serveur n8n : acceptez.
+2. Popup de l'extension → **⚙️ Configurer la voix IA** (un onglet s'ouvre) → collez l'URL et la clé
+   secrète (la même que la credential `Traducteur - clé extension`) → **Enregistrer et tester**.
+3. Chrome vous demande d'autoriser l'accès à votre serveur n8n : cliquez **Autoriser**.
 4. Vous devez entendre : « Bonjour ! La voix humaine fonctionne maintenant. »
 
-Le test apparaît aussi dans la page **🩺 Diagnostics**.
+Le test apparaît aussi dans la page **🩺 Diagnostics**. Si n8n ne répond pas pendant une traduction,
+un avertissement s'affiche, la voix du navigateur prend le relais tout de suite et n8n est
+réessayé une minute plus tard.
 
 ## Ce que l'extension envoie et reçoit
 

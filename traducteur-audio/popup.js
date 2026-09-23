@@ -14,9 +14,8 @@ function labels() {
 
 getSettings().then((s) => {
   $('engineN8n').checked = s.engine === 'n8n';
-  $('n8nUrl').value = s.n8nUrl;
-  $('n8nKey').value = s.n8nKey;
-  $('n8nBadge').textContent = s.engine === 'n8n' ? '— activée' : '';
+  $('engineN8n').disabled = !s.n8nUrl;
+  $('n8nBadge').textContent = !s.n8nUrl ? 'Non configurée' : s.engine === 'n8n' ? 'Activée' : 'Désactivée (voix locale)';
   $('enabled').checked = s.enabled;
   $('rate').value = s.rate;
   $('duckVolume').value = s.duckVolume;
@@ -57,36 +56,10 @@ $('test').onclick = async () => {
   }
 };
 
-function n8nStatus(text, cls = '') {
-  $('n8nStatus').textContent = text;
-  $('n8nStatus').className = 'hint ' + cls;
-}
-
 $('engineN8n').onchange = (e) => {
   chrome.storage.sync.set({ engine: e.target.checked ? 'n8n' : 'local' });
-  $('n8nBadge').textContent = e.target.checked ? '— activée' : '';
+  $('n8nBadge').textContent = e.target.checked ? 'Activée' : 'Désactivée (voix locale)';
 };
 
-$('n8nSave').onclick = async () => {
-  const url = $('n8nUrl').value.trim();
-  let origin;
-  try { origin = new URL(url).origin + '/*'; } catch (_) { return n8nStatus('URL invalide.', 'status-err'); }
-  // L'extension ne peut appeler que les adresses autorisées : on demande l'accès à ce serveur n8n.
-  const granted = await chrome.permissions.request({ origins: [origin] });
-  if (!granted) return n8nStatus('Accès au serveur n8n refusé.', 'status-err');
-  await chrome.storage.sync.set({ n8nUrl: url, engine: 'n8n' });
-  await chrome.storage.local.set({ n8nKey: $('n8nKey').value.trim() });
-  $('engineN8n').checked = true;
-  $('n8nBadge').textContent = '— activée';
-  n8nStatus('Test en cours…');
-  const t = performance.now();
-  try {
-    const s = await getSettings();
-    const res = await sendMessage({ type: 'dub', text: 'Hello! The human voice is now working.' });
-    const dub = { fr: res.translation, audio: `data:${res.mime || 'audio/mpeg'};base64,${res.audio}`, via: 'n8n' };
-    n8nStatus(`✅ OK en ${Math.round(performance.now() - t)} ms : « ${dub.fr} »`, 'status-ok');
-    playDub(dub, s);
-  } catch (e) {
-    n8nStatus('❌ ' + e.message, 'status-err');
-  }
-};
+// Réglages dans un onglet : la popup se ferme dès que Chrome affiche une demande d'autorisation.
+$('n8nConfig').onclick = () => { chrome.runtime.openOptionsPage(); window.close(); };

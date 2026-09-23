@@ -64,6 +64,7 @@ async function prepareDub(en, settings) {
       return { en, fr: res.translation, audio: `data:${res.mime || 'audio/mpeg'};base64,${res.audio}`, via: 'n8n' };
     } catch (e) {
       console.warn('[Traducteur Audio] n8n indisponible, voix locale utilisée :', e.message);
+      if (typeof onN8nFallback === 'function') onN8nFallback(e.message);
     }
   }
   return { en, fr: await translateText(en), audio: null, via: 'local' };
