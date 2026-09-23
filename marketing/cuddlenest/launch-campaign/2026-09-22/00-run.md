@@ -13,4 +13,4 @@ Mode : **plan uniquement** : rien n'a été publié, envoyé ni dépensé.
 | Validation client (budget, objectif, bloquants restants) | — | ⏸ **en attente de toi** |
 | Analyse concurrentielle | — | ⬜ pas lancée (recommandée) |
 | Connexion des comptes | — | 🟡 Shopify ✅ · Meta ✅ · Google ✅ · TikTok exclu |
-| Mise en ligne | — | ⬜ nécessite ton « go » écrit |
+| Campagnes Meta + Google prêtes à coller | 02-campagnes-pas-a-pas.md | ✅ faites le 2026-09-23 (« go campagnes ») ; création et activation par le client, départ prévu le 1er oct. |
