@@ -55,9 +55,11 @@ async function processQueue() {
   if (speaking) return;
   speaking = true;
   while (queue.length) {
-    // Trop de retard : on abandonne les phrases les plus anciennes pour rester synchro.
-    while (queue.length > 3) queue.shift();
+    // On ne jette plus rien : en cas de retard, la voix accélère un peu pour rattraper.
+    // (Seul un retard énorme fait sauter les plus anciennes, pour ne pas décrocher de la vidéo.)
+    while (queue.length > 8) queue.shift();
     const dub = await queue.shift();
+    const boost = Math.min(1.35, 1 + 0.12 * queue.length);
     if (dub.error) {
       setStatus('Erreur de traduction : ' + dub.error.message, 'status-err');
       continue;
@@ -65,7 +67,7 @@ async function processQueue() {
     addEntry(dub.en, dub.fr + (dub.via === 'n8n' ? '  🎙️' : ''));
     if (SOURCE === 'mic' && !$('headphones').checked) pauseRecognition();
     duck(true, settings);
-    await playDub(dub, settings);
+    await playDub(dub, { ...settings, rate: settings.rate * boost });
     duck(false, settings);
   }
   speaking = false;
@@ -125,24 +127,53 @@ async function openTabStream() {
   };
 }
 
+// Découpage en morceaux : Chrome ne « finalise » une phrase qu'à la fin d'une vraie pause,
+// ce qui peut prendre 5 à 10 s dans une vidéo. On envoie donc le texte dès qu'il est stable.
+const CHUNK_WORDS = 8;    // envoie dès 8 nouveaux mots
+const KEEP_TAIL = 2;      // garde les 2 derniers mots provisoires (encore susceptibles de changer)
+const STABLE_MS = 800;    // ou après 0,8 s sans nouveau mot
+const sentWords = new Map(); // index du résultat → nombre de mots déjà envoyés
+let stableTimer = null;
+
+function splitWords(text) {
+  return text.trim().split(/\s+/).filter(Boolean);
+}
+
+function emitWords(index, words, upto) {
+  const done = sentWords.get(index) || 0;
+  if (upto <= done) return;
+  sentWords.set(index, upto);
+  enqueue(words.slice(done, upto).join(' '));
+}
+
 function buildRecognition() {
   const r = new Recognition();
   r.lang = 'en-US';
   r.continuous = true;
   r.interimResults = true;
-  r.onstart = () => setStatus('🔴 Écoute en cours…', 'status-ok');
+  r.onstart = () => { sentWords.clear(); setStatus('🔴 Écoute en cours…', 'status-ok'); };
   r.onresult = (event) => {
-    let interim = '';
+    clearTimeout(stableTimer);
+    let pending = null;
     for (let i = event.resultIndex; i < event.results.length; i++) {
       const res = event.results[i];
+      const w = splitWords(res[0].transcript);
       if (res.isFinal) {
-        const text = res[0].transcript.trim();
-        if (text) enqueue(text);
+        emitWords(i, w, w.length);
       } else {
-        interim += res[0].transcript;
+        pending = { i, w };
+        // Longue phrase sans pause : on envoie déjà le début (les derniers mots peuvent encore changer).
+        if (w.length - (sentWords.get(i) || 0) >= CHUNK_WORDS + KEEP_TAIL) emitWords(i, w, w.length - KEEP_TAIL);
       }
     }
-    $('interim').textContent = interim ? '… ' + interim : '';
+    if (pending) {
+      // Petite pause dans la parole : on envoie ce qui reste sans attendre que Chrome « finalise ».
+      stableTimer = setTimeout(() => emitWords(pending.i, pending.w, pending.w.length), STABLE_MS);
+      const rest = pending.w.slice(sentWords.get(pending.i) || 0).join(' ');
+      $('interim').textContent = rest ? '… ' + rest : '';
+    } else {
+      $('interim').textContent = '';
+    }
   };
   r.onerror = (e) => {
     if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {

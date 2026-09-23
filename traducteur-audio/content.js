@@ -51,13 +51,14 @@
     if (speaking) return;
     speaking = true;
     while (queue.length && settings.enabled) {
-      // Si on prend du retard, on saute aux phrases les plus récentes.
-      while (queue.length > 2) queue.shift();
+      // En cas de retard, la voix accélère un peu au lieu de sauter des phrases.
+      while (queue.length > 6) queue.shift();
       const dub = await queue.shift();
+      const boost = Math.min(1.35, 1 + 0.12 * queue.length);
       if (dub.error) { console.warn('[Traducteur Audio]', dub.error); continue; }
       showText(dub.fr);
       duck(true);
-      await playDub(dub, settings);
+      await playDub(dub, { ...settings, rate: settings.rate * boost });
     }
     duck(false);
     hideText();
