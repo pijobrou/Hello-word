@@ -51,3 +51,32 @@ statistiques), installez le plugin d'origine :
 
 Distillé de Digital Marketing Pro v3.31.1 (MIT, © Indranil Banerjee —
 <https://github.com/indranilbanerjee/digital-marketing-pro>).
+
+## Compétences installées : Firecrawl (recherche web)
+
+Deux compétences Firecrawl ([firecrawl/skills](https://github.com/firecrawl/skills)) sont dans
+`.claude/skills/` :
+
+| Compétence | Commande | Pour |
+|---|---|---|
+| `firecrawl-search` | `/firecrawl-search <recherche>` | chercher sur le web (articles, sources, actualités), avec le contenu des pages si besoin |
+| `firecrawl-build-search` | automatique | intégrer l'API `/search` de Firecrawl dans une application |
+
+Le serveur MCP Firecrawl est déclaré dans `.mcp.json`. **La clé n'est pas dans le dépôt** : Claude
+Code la lit dans la variable d'environnement `FIRECRAWL_API_KEY`.
+
+```bash
+# macOS / Linux (à mettre dans ~/.bashrc ou ~/.zshrc pour la garder)
+export FIRECRAWL_API_KEY="fc-votre-cle"
+# Windows (PowerShell)
+setx FIRECRAWL_API_KEY "fc-votre-cle"
+```
+
+Puis relancez Claude Code dans ce dossier et acceptez le serveur `firecrawl-mcp` quand il le
+demande. Pour la ligne de commande : `npm install -g firecrawl-cli`. Les résultats de recherche
+sont enregistrés dans `.firecrawl/`, que Git ignore.
+
+## Extension Chrome : Traducteur Audio EN → FR
+
+Dans `traducteur-audio/` : traduit en voix française l'anglais d'un onglet (vidéo, live, appel),
+des sous-titres ou du micro. Installation et mode d'emploi : `traducteur-audio/README.md`.
