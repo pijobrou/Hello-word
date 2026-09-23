@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><title>Traducteur Audio — Micro</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="wrap page">
+  <h1>🎙️ Mode micro : anglais parlé → voix française</h1>
+  <p class="hint">Le micro écoute l'anglais (une personne, un haut-parleur, une réunion…), puis
+    chaque phrase est traduite et lue en français.</p>
+
+  <div class="row">
+    <label for="headphones">J'utilise un casque (continuer d'écouter pendant la voix française)</label>
+    <input type="checkbox" id="headphones">
+  </div>
+
+  <div class="buttons">
+    <button id="toggle">▶️ Démarrer l'écoute</button>
+    <button id="clear" class="secondary">Effacer</button>
+  </div>
+  <p id="status" class="hint">À l'arrêt.</p>
+  <p id="interim" class="hint"></p>
+
+  <div id="log" class="log"></div>
+</div>
+<script src="common.js"></script>
+<script src="listen.js"></script>
+</body>
+</html>

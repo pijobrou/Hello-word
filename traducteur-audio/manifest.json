@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Traducteur Audio EN → FR",
+  "version": "1.0.0",
+  "description": "Traduit l'audio anglais (sous-titres de vidéos ou micro) et le lit à voix haute en français.",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": [
+    "https://translate.googleapis.com/*",
+    "https://api.mymemory.translated.net/*"
+  ],
+  "background": { "service_worker": "background.js" },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Traducteur Audio EN → FR",
+    "default_icon": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
+  },
+  "icons": { "16": "icons/icon16.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+# 🎧 Traducteur Audio EN → FR (extension Chrome / Edge)
+
+Écoute de l'anglais et le **prononce en français**, avec deux modes :
+
+| Mode | Source anglaise | Idéal pour |
+|---|---|---|
+| **Vidéos : doublage FR** | les sous-titres anglais de la vidéo (YouTube, vidéos HTML5 avec piste `<track>`) | YouTube, cours en ligne, séries avec sous-titres |
+| **Mode micro** | ce que le micro entend (reconnaissance vocale de Chrome) | une personne qui parle, un podcast sur haut-parleur, une réunion |
+
+Pendant que la voix française parle, le son de la vidéo est baissé (réglable), et le texte
+français s'affiche en bas de l'écran.
+
+## Installation (2 minutes)
+
+1. Téléchargez ce dossier `traducteur-audio` (bouton **Code → Download ZIP** sur GitHub, puis dézippez).
+2. Ouvrez `chrome://extensions` (ou `edge://extensions`).
+3. Activez le **Mode développeur** (en haut à droite).
+4. Cliquez **Charger l'extension non empaquetée** et choisissez le dossier `traducteur-audio`.
+5. Épinglez l'icône 🔊 dans la barre d'outils.
+
+## Utilisation
+
+**Sur YouTube :** activez le bouton *Vidéos : doublage FR* dans la popup, lancez la vidéo et
+activez les sous-titres anglais (touche **C**, les sous-titres auto-générés marchent aussi).
+
+**Mode micro :** popup → *🎙️ Mode micro* → *Démarrer l'écoute* → autorisez le micro.
+Sans casque, l'écoute se met en pause pendant la voix française pour ne pas se réécouter ;
+avec un casque, cochez la case pour écouter en continu.
+
+**Diagnostics :** popup → *🩺 Diagnostics* (ou
+`chrome-extension://<ID-de-l-extension>/diagnostics/diagnostics.html`). La page vérifie les voix
+françaises, la reconnaissance vocale, le micro et les deux services de traduction, et le bouton
+*Copier le rapport* permet de copier le résultat.
+
+## Bon à savoir
+
+- Traduction : Google Translate (gratuit, sans clé), avec MyMemory en secours.
+- Voix : celles du système. S'il n'y a aucune voix française, installez-en une (Windows :
+  Paramètres → Heure et langue → Voix ; macOS : Accessibilité → Contenu énoncé).
+- Le mode vidéo a besoin de sous-titres. Pour une vidéo sans sous-titres, utilisez le mode micro
+  avec le son sur les haut-parleurs.
+- La reconnaissance vocale du mode micro passe par les serveurs de Google (Chrome/Edge uniquement).
+
+## Fichiers
+
+```
+manifest.json            configuration de l'extension (Manifest V3)
+background.js            appels de traduction + cache
+content.js               mode vidéo : lit les sous-titres, traduit, parle, baisse le volume
+popup.html / popup.js    réglages
+listen.html / listen.js  mode micro
+diagnostics/             page de diagnostics
+common.js, style.css     code et style partagés
+```
