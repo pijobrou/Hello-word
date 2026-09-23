@@ -55,7 +55,10 @@ getSettings().then((s) => { settings = s; });
 chrome.storage.onChanged.addListener(() => getSettings().then((s) => { settings = s; }));
 
 // Chaque phrase anglaise est préparée (traduction + audio) dès son arrivée.
-function enqueue(en) {
+function enqueue(raw) {
+  // On retire tics et exclamations ; un morceau qui n'en contient que ça n'est pas lu.
+  const en = cleanEnglish(raw);
+  if (!en) return;
   const job = prepareDub(en, settings || DEFAULTS).catch((e) => ({ en, error: e }));
   queue.push(job);
   processQueue();
@@ -139,9 +142,9 @@ async function openTabStream() {
 
 // Découpage en morceaux : Chrome ne « finalise » une phrase qu'à la fin d'une vraie pause,
 // ce qui peut prendre 5 à 10 s dans une vidéo. On envoie donc le texte dès qu'il est stable.
-const CHUNK_WORDS = 8;    // envoie dès 8 nouveaux mots
 const KEEP_TAIL = 2;      // garde les 2 derniers mots provisoires (encore susceptibles de changer)
-const STABLE_MS = 800;    // ou après 0,8 s sans nouveau mot
+const MIN_CHUNK = 5;      // jamais de morceau de moins de 5 mots quand on coupe une phrase en cours
+function chunkCfg() { return CHUNKING[(settings && settings.chunking) || 'balanced'] || CHUNKING.balanced; }
 const sentWords = new Map(); // index du résultat → nombre de mots déjà envoyés
 let stableTimer = null;
 
@@ -172,13 +175,21 @@ function buildRecognition() {
         emitWords(i, w, w.length);
       } else {
         pending = { i, w };
-        // Longue phrase sans pause : on envoie déjà le début (les derniers mots peuvent encore changer).
-        if (w.length - (sentWords.get(i) || 0) >= CHUNK_WORDS + KEEP_TAIL) emitWords(i, w, w.length - KEEP_TAIL);
+        // Longue phrase sans pause : on envoie déjà le début, coupé de préférence avant
+        // « and / but / because… » pour ne pas casser une idée en deux.
+        const done = sentWords.get(i) || 0;
+        if (w.length - done >= chunkCfg().words + KEEP_TAIL) {
+          let cut = w.length - KEEP_TAIL;
+          for (let k = cut - 1; k >= done + MIN_CHUNK; k--) {
+            if (BREAK_BEFORE.has(w[k].toLowerCase())) { cut = k; break; }
+          }
+          emitWords(i, w, cut);
+        }
       }
     }
     if (pending) {
       // Petite pause dans la parole : on envoie ce qui reste sans attendre que Chrome « finalise ».
-      stableTimer = setTimeout(() => emitWords(pending.i, pending.w, pending.w.length), STABLE_MS);
+      stableTimer = setTimeout(() => emitWords(pending.i, pending.w, pending.w.length), chunkCfg().stableMs);
       const rest = pending.w.slice(sentWords.get(pending.i) || 0).join(' ');
       $('interim').textContent = rest ? '… ' + rest : '';
     } else {

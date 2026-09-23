@@ -6,6 +6,7 @@ const DEFAULTS = {
   duckVolume: 0.2,     // volume de la vidéo pendant la lecture FR (0 = muet, 1 = inchangé)
   showOverlay: true,   // affiche le texte français sur la page
   voiceName: '',       // voix française locale choisie ('' = automatique)
+  chunking: 'balanced', // découpage des phrases : 'fast', 'balanced' ou 'full'
   engine: 'local',     // 'local' (voix du navigateur) ou 'n8n' (voix IA via votre workflow)
   n8nUrl: ''           // URL du webhook n8n
 };
@@ -99,3 +100,37 @@ async function playDub(dub, settings) {
   }
   await speakFrench(dub.fr, settings);
 }
+
+// ---------- Nettoyage de l'anglais reconnu ----------
+// Tics et hésitations : toujours retirés.
+const FILLERS = new Set(['um', 'umm', 'uh', 'uhh', 'uhm', 'erm', 'er', 'hmm', 'hm', 'mm', 'mmm', 'ah', 'ahh', 'eh', 'huh', 'uh-huh']);
+// Exclamations retirées en début de morceau (sans risque de changer le sens).
+const LEADING = new Set(['oh', 'wow', 'whoa', 'yeah', 'yep', 'yup', 'okay', 'ok', 'alright', 'so', 'well', 'hey',
+  'oops', 'gosh', 'haha', 'ha', 'lol', 'oh-my-god']);
+// Un morceau composé uniquement de ces mots n'est pas lu (« wow », « yeah right », « oh my god », « cool »…).
+const ONLY_EXCLAMATION = new Set([...LEADING, 'right', 'yes', 'no', 'cool', 'nice', 'awesome', 'great', 'damn',
+  'boom', 'guys', 'man', 'dude', 'wait', 'god', 'amazing', 'perfect', 'exactly', 'sure', 'thanks', 'bye']);
+
+function cleanEnglish(text) {
+  let t = String(text)
+    .replace(/\[[^\]]*\]|\([^)]*\)|♪/g, ' ')       // [Music], [Applause], (laughs), ♪
+    .replace(/\boh my (god|gosh)\b/gi, 'oh-my-god');
+  let words = t.split(/\s+/).filter(Boolean);
+  const bare = (w) => w.toLowerCase().replace(/[^a-z'-]/g, '');
+  words = words.filter((w) => !FILLERS.has(bare(w)));
+  words = words.filter((w, i) => i === 0 || bare(w) !== bare(words[i - 1]) || !bare(w));   // « the the » → « the »
+  if (words.every((w) => ONLY_EXCLAMATION.has(bare(w)))) return '';
+  while (words.length > 1 && LEADING.has(bare(words[0]))) words.shift();
+  return words.join(' ').replace(/oh-my-god/gi, 'oh my god');
+}
+
+// Réglage « découpage » : réactivité ↔ clarté.
+const CHUNKING = {
+  fast: { words: 8, stableMs: 700 },       // Rapide : démarre vite, phrases parfois coupées
+  balanced: { words: 12, stableMs: 900 },  // Équilibré (par défaut)
+  full: { words: 20, stableMs: 1200 }      // Phrases complètes : plus clair, ~2 s de plus
+};
+// Mots avant lesquels on coupe de préférence (début d'une nouvelle idée).
+const BREAK_BEFORE = new Set(['and', 'but', 'so', 'because', 'which', 'that', 'then', 'when', 'if', 'or', 'where',
+  'while', 'now', 'after', 'before', 'since', 'although', 'though', 'unless', 'until', 'whereas',
+  'what', 'how', 'why', 'who']);

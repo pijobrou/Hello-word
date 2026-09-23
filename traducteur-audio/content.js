@@ -71,9 +71,10 @@
     // Sous-titres « roulants » (YouTube) : on n'envoie que la partie nouvelle.
     const fresh = lastText && text.startsWith(lastText) ? text.slice(lastText.length).trim() : text;
     lastText = text;
-    if (!fresh) return;
+    const cleaned = cleanEnglish(fresh);   // retire [Music], tics, exclamations seules
+    if (!cleaned) return;
     // Préparée tout de suite (traduction + audio) pendant que la phrase précédente est lue.
-    queue.push(prepareDub(fresh, settings).catch((error) => ({ error })));
+    queue.push(prepareDub(cleaned, settings).catch((error) => ({ error })));
     processQueue();
   }
 

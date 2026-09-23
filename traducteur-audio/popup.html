@@ -19,6 +19,12 @@
     <input type="range" id="rate" min="0.6" max="2" step="0.1"></div>
   <div class="row"><label for="duckVolume">Volume vidéo pendant la voix <span id="duckVal"></span></label>
     <input type="range" id="duckVolume" min="0" max="1" step="0.05"></div>
+  <div class="row"><label for="chunking">Découpage des phrases</label>
+    <select id="chunking">
+      <option value="fast">Rapide</option>
+      <option value="balanced">Équilibré</option>
+      <option value="full">Phrases complètes (plus clair)</option>
+    </select></div>
   <div class="row"><label for="voiceName">Voix française</label>
     <select id="voiceName"></select></div>
   <div class="row"><label for="showOverlay">Afficher le texte FR à l'écran</label>

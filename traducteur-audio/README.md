@@ -13,7 +13,7 @@ français s'affiche en bas de l'écran.
 
 ## Installation (2 minutes)
 
-1. Téléchargez **`dist/traducteur-audio-v1.3.5.zip`** (sur GitHub : ouvrez le fichier, puis le
+1. Téléchargez **`dist/traducteur-audio-v1.3.6.zip`** (sur GitHub : ouvrez le fichier, puis le
    bouton de téléchargement ↓) et **décompressez-le** dans un dossier que vous garderez
    (par ex. `Documents/traducteur-audio`). Chrome n'installe pas un ZIP directement.
 2. Ouvrez `chrome://extensions` (ou `edge://extensions`).
@@ -48,6 +48,16 @@ française installée (« Natural », puis « Google »). Pour une voix vraiment
 OpenAI) et une traduction DeepL, branchez le workflow n8n fourni dans [`n8n/`](n8n/README.md) :
 popup → **⚙️ Configurer la voix IA** → URL du webhook + clé secrète → **Enregistrer et tester**.
 Les clés API restent dans n8n. Si n8n ne répond pas, l'extension revient à la voix locale.
+
+## Clarté de la traduction
+
+- Les tics et hésitations (« um », « uh »), les exclamations seules (« wow », « oh my god »,
+  « yeah »), les mots répétés et les étiquettes de sous-titres (`[Music]`, `[Applause]`) ne sont
+  ni traduits ni lus.
+- **Découpage des phrases** (popup) : *Rapide* démarre vite, avec des phrases parfois coupées.
+  *Équilibré* est le réglage par défaut. *Phrases complètes* est plus clair, mais ajoute environ
+  2 s de délai. Les coupes se font de préférence avant « and / but / because / what… », pour ne
+  pas casser une idée.
 
 ## Bon à savoir
 

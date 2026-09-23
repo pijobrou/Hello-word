@@ -20,12 +20,14 @@ getSettings().then((s) => {
   $('rate').value = s.rate;
   $('duckVolume').value = s.duckVolume;
   $('showOverlay').checked = s.showOverlay;
+  $('chunking').value = s.chunking;
   fillVoices(s.voiceName);
   speechSynthesis.onvoiceschanged = () => fillVoices($('voiceName').value || s.voiceName);
   labels();
 });
 
 $('enabled').onchange = (e) => chrome.storage.sync.set({ enabled: e.target.checked });
+$('chunking').onchange = (e) => chrome.storage.sync.set({ chunking: e.target.value });
 $('showOverlay').onchange = (e) => chrome.storage.sync.set({ showOverlay: e.target.checked });
 $('voiceName').onchange = (e) => chrome.storage.sync.set({ voiceName: e.target.value });
 $('rate').oninput = (e) => { labels(); chrome.storage.sync.set({ rate: Number(e.target.value) }); };
