@@ -36,7 +36,8 @@
       "position": [
         220,
         300
-      ]
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -94,7 +95,8 @@
           "id": "deepl",
           "name": "DeepL"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -140,7 +142,8 @@
       "position": [
         660,
         400
-      ]
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -153,7 +156,8 @@
       "position": [
         880,
         300
-      ]
+      ],
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -218,7 +222,8 @@
           "id": "openai",
           "name": "OpenAI"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -251,7 +256,8 @@
           "id": "elevenlabs",
           "name": "ElevenLabs"
         }
-      }
+      },
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
@@ -264,6 +270,37 @@
       "position": [
         1540,
         300
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Une étape a échoué : on renvoie la cause lisible à l'extension (au lieu d'un « 500 » muet).\nconst node = $prevNode.name;\nconst e = $input.first().json.error ?? $input.first().json;\nlet detail = typeof e === 'string' ? e : [e.message, e.description].filter(Boolean).join(' — ') || JSON.stringify(e);\nconst d = detail.toLowerCase();\nlet hint = '';\n// Causes précises d'abord (ElevenLabs renvoie aussi 401 pour un quota épuisé).\nif (/quota|credits|insufficient/.test(d))\n  hint = 'crédits épuisés chez ce fournisseur (voir votre compte ElevenLabs/OpenAI).';\nelse if (/paid_plan|library voice|payment|402/.test(d))\n  hint = 'voix non disponible avec l\\'offre gratuite ElevenLabs : utilisez une voix « Default/Premade » ou l\\'ID par défaut EXAVITQu4vr4xnSDxMaL.';\nelse if (/voice_not_found|voice not found/.test(d))\n  hint = 'ID de voix introuvable : recopiez-le dans le nœud Préparer (entre guillemets).';\nelse if (/credential/.test(d))\n  hint = 'aucune credential sélectionnée : ouvrez ce nœud et choisissez-la dans la liste.';\nelse if (/401|unauthorized|invalid_api_key|invalid api key|authorization failed|forbidden|403/.test(d))\n  hint = 'clé API refusée : vérifiez la credential de ce nœud (valeur collée sans espace, bon « Name »).';\nelse if (/429|too many/.test(d))\n  hint = 'trop de requêtes, réessayez dans une minute (ou passez à DeepL).';\nelse if (/404/.test(d))\n  hint = 'adresse introuvable chez le fournisseur (ID de voix ou modèle incorrect ?).';\nreturn [{ json: { error: `${node} : ${hint ? hint + ' ' : ''}(${detail.slice(0, 300)})` } }];\n"
+      },
+      "id": "6f8b06e5-bf96-5098-b005-74032fc30d15",
+      "name": "Erreur",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 502
+        }
+      },
+      "id": "b82b9b42-f333-5b52-96b7-6fb1a1321d04",
+      "name": "Répondre (erreur)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1760,
+        560
       ]
     },
     {
@@ -302,6 +339,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Erreur",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -331,6 +375,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Erreur",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -342,6 +393,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Erreur",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -350,6 +408,13 @@
         [
           {
             "node": "Voix ?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Erreur",
             "type": "main",
             "index": 0
           }
@@ -382,6 +447,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Erreur",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -393,6 +465,13 @@
             "type": "main",
             "index": 0
           }
+        ],
+        [
+          {
+            "node": "Erreur",
+            "type": "main",
+            "index": 0
+          }
         ]
       ]
     },
@@ -401,6 +480,24 @@
         [
           {
             "node": "Répondre à l'extension",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Erreur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Erreur": {
+      "main": [
+        [
+          {
+            "node": "Répondre (erreur)",
             "type": "main",
             "index": 0
           }

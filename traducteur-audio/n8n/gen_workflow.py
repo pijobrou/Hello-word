@@ -57,6 +57,30 @@ return [{ json: {
 } }];
 """
 
+ERROR = r"""// Une étape a échoué : on renvoie la cause lisible à l'extension (au lieu d'un « 500 » muet).
+const node = $prevNode.name;
+const e = $input.first().json.error ?? $input.first().json;
+let detail = typeof e === 'string' ? e : [e.message, e.description].filter(Boolean).join(' — ') || JSON.stringify(e);
+const d = detail.toLowerCase();
+let hint = '';
+// Causes précises d'abord (ElevenLabs renvoie aussi 401 pour un quota épuisé).
+if (/quota|credits|insufficient/.test(d))
+  hint = 'crédits épuisés chez ce fournisseur (voir votre compte ElevenLabs/OpenAI).';
+else if (/paid_plan|library voice|payment|402/.test(d))
+  hint = 'voix non disponible avec l\'offre gratuite ElevenLabs : utilisez une voix « Default/Premade » ou l\'ID par défaut EXAVITQu4vr4xnSDxMaL.';
+else if (/voice_not_found|voice not found/.test(d))
+  hint = 'ID de voix introuvable : recopiez-le dans le nœud Préparer (entre guillemets).';
+else if (/credential/.test(d))
+  hint = 'aucune credential sélectionnée : ouvrez ce nœud et choisissez-la dans la liste.';
+else if (/401|unauthorized|invalid_api_key|invalid api key|authorization failed|forbidden|403/.test(d))
+  hint = 'clé API refusée : vérifiez la credential de ce nœud (valeur collée sans espace, bon « Name »).';
+else if (/429|too many/.test(d))
+  hint = 'trop de requêtes, réessayez dans une minute (ou passez à DeepL).';
+else if (/404/.test(d))
+  hint = 'adresse introuvable chez le fournisseur (ID de voix ou modèle incorrect ?).';
+return [{ json: { error: `${node} : ${hint ? hint + ' ' : ''}(${detail.slice(0, 300)})` } }];
+"""
+
 nodes = [
   node("Webhook", "n8n-nodes-base.webhook", 2, [0, 300], {
       "httpMethod": "POST", "path": "traducteur-audio", "authentication": "headerAuth",
@@ -103,6 +127,9 @@ nodes = [
       "options": {"response": {"response": {"responseFormat": "file", "outputPropertyName": "data"}}}},
       credentials=header_cred("elevenlabs", "ElevenLabs")),
   node("Réponse", "n8n-nodes-base.code", 2, [1540, 300], {"jsCode": RESPONSE}),
+  node("Erreur", "n8n-nodes-base.code", 2, [1540, 560], {"jsCode": ERROR}),
+  node("Répondre (erreur)", "n8n-nodes-base.respondToWebhook", 1.1, [1760, 560], {
+      "respondWith": "json", "responseBody": "={{ $json }}", "options": {"responseCode": 502}}),
   node("Répondre à l'extension", "n8n-nodes-base.respondToWebhook", 1.1, [1760, 300], {
       "respondWith": "json", "responseBody": "={{ $json }}", "options": {}}),
 ]
@@ -123,7 +150,26 @@ connections = {
   "Réponse": {"main": link("Répondre à l'extension")},
 }
 
+# Les nœuds qui peuvent échouer envoient leur erreur vers « Erreur » (2e sortie) au lieu de planter.
+CAN_FAIL = ["Préparer", "DeepL", "Google Translate", "Texte traduit", "OpenAI voix", "ElevenLabs voix", "Réponse"]
+for n in nodes:
+    if n["name"] in CAN_FAIL:
+        n["onError"] = "continueErrorOutput"
+        connections[n["name"]]["main"].append([{"node": "Erreur", "type": "main", "index": 0}])
+connections["Erreur"] = {"main": link("Répondre (erreur)")}
+
 wf = {"name": "Traducteur Audio EN → FR (voix humaine)", "nodes": nodes, "connections": connections,
       "active": False, "settings": {"executionOrder": "v1"}, "pinData": {}}
 json.dump(wf, open("traducteur-audio.workflow.json", "w"), ensure_ascii=False, indent=2)
+
+# Vérifie la syntaxe JavaScript de chaque nœud Code (nécessite Node.js ; ignoré s'il est absent).
+import shutil, subprocess, tempfile
+if shutil.which("node"):
+    for n in nodes:
+        if n["type"] == "n8n-nodes-base.code":
+            with tempfile.NamedTemporaryFile("w", suffix=".js", delete=False) as f:
+                f.write("async function check($input, $prevNode, $) {\n" + n["parameters"]["jsCode"] + "\n}")
+            r = subprocess.run(["node", "--check", f.name], capture_output=True, text=True)
+            if r.returncode:
+                raise SystemExit(f"Erreur de syntaxe dans le nœud « {n['name']} » :\n{r.stderr}")
 print("ok", len(nodes), "nœuds")

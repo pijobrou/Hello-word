@@ -57,6 +57,23 @@ Le test apparaît aussi dans la page **🩺 Diagnostics**. Si n8n ne répond pas
 un avertissement s'affiche, la voix du navigateur prend le relais tout de suite et n8n est
 réessayé une minute plus tard.
 
+## En cas d'erreur
+
+Si une étape échoue, le workflow renvoie la cause à l'extension, qui l'affiche en clair. Par
+exemple : « ElevenLabs voix : aucune credential sélectionnée », « clé API refusée », « voix non
+disponible avec l'offre gratuite », « ID de voix introuvable » ou « crédits épuisés ».
+Sur l'offre gratuite d'ElevenLabs, seules les voix **Default / Premade** sont utilisables par API.
+Les voix de la *Voice Library* demandent un forfait payant.
+
+### Mettre à jour le workflow (nouvelle version)
+
+1. Dans n8n, ouvrez l'ancien workflow → menu **⋯** → **Archive** ou **Delete**. Deux workflows ne
+   peuvent pas écouter la même adresse.
+2. **Import from File** → le nouveau `traducteur-audio.workflow.json`.
+3. Rouvrez **Webhook** et **ElevenLabs voix**, puis resélectionnez vos credentials dans la liste.
+4. Dans **Préparer**, remettez votre `elevenVoiceId` si vous l'aviez changé.
+5. **Save**, puis **Publish / Active**.
+
 ## Ce que l'extension envoie et reçoit
 
 ```http

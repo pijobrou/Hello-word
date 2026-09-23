@@ -66,7 +66,14 @@ async function dub(text, force) {
       body: JSON.stringify({ text, source: 'en', target: 'fr' }),
       signal: controller.signal
     });
-    if (!res.ok) throw new Error(`n8n ${res.status} ${(await res.text()).slice(0, 200)}`);
+    if (!res.ok) {
+      const body = await res.text();
+      let reason = '';
+      try { reason = JSON.parse(body).error || ''; } catch (_) { /* pas du JSON */ }
+      // Le workflow renvoie { error: "Nœud : cause" } quand une étape échoue.
+      if (reason) throw new Error('Erreur dans n8n → ' + reason);
+      throw new Error(`n8n ${res.status} ${body.slice(0, 200)}`);
+    }
     const data = await res.json();
     const out = Array.isArray(data) ? data[0] : data;
     if (!out || !out.translation) throw new Error('réponse n8n inattendue');
