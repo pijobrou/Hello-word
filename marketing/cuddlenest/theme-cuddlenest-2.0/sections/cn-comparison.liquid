@@ -1,0 +1,50 @@
+{%- comment -%} y = yes, n = no, p = partial. Columns: CuddleNest, disposable pull-up / diaper, regular underwear. {%- endcomment -%}
+{%- assign rows = 'y-n-y,y-y-n,y-n-y,y-n-y,y-n-y,n-y-n' | split: ',' -%}
+<section class="cn-section cn-comparison cn-section--warm" style="--cn-pad-top: {{ section.settings.padding_top }}px; --cn-pad-bottom: {{ section.settings.padding_bottom }}px;">
+  <div class="cn-container">
+    <div class="cn-center">
+      <p class="cn-eyebrow">{{ 'cuddlenest.compare.eyebrow' | t }}</p>
+      <h2 class="cn-heading">{{ 'cuddlenest.compare.heading' | t }}</h2>
+      <p class="cn-subheading">{{ 'cuddlenest.compare.subheading' | t }}</p>
+    </div>
+    <div class="cn-compare-wrap">
+      <table class="cn-compare">
+        <thead>
+          <tr>
+            <th scope="col"><span class="visually-hidden">{{ 'cuddlenest.compare.feature' | t }}</span></th>
+            <th scope="col" class="cn-compare__us">CuddleNest</th>
+            <th scope="col">{{ 'cuddlenest.compare.col_diaper' | t }}</th>
+            <th scope="col">{{ 'cuddlenest.compare.col_underwear' | t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {%- for row in rows -%}
+            {%- assign cells = row | split: '-' -%}
+            {%- capture label_key -%}cuddlenest.compare.row_{{ forloop.index }}{%- endcapture -%}
+            <tr>
+              <th scope="row">{{ label_key | t }}</th>
+              {%- for cell in cells -%}
+                <td{% if forloop.first %} class="cn-compare__us"{% endif %}>
+                  {%- if cell == 'y' -%}<span class="cn-yes" aria-label="{{ 'cuddlenest.compare.yes' | t }}">✓</span>{%- else -%}<span class="cn-no" aria-label="{{ 'cuddlenest.compare.no' | t }}">—</span>{%- endif -%}
+                </td>
+              {%- endfor -%}
+            </tr>
+          {%- endfor -%}
+        </tbody>
+      </table>
+    </div>
+    <p class="cn-note cn-center">{{ 'cuddlenest.compare.note' | t }}</p>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "CN · Comparison",
+  "tag": "div",
+  "settings": [
+    { "type": "range", "id": "padding_top", "label": "Top padding", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 64 },
+    { "type": "range", "id": "padding_bottom", "label": "Bottom padding", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 64 }
+  ],
+  "presets": [{ "name": "CN · Comparison" }]
+}
+{% endschema %}

@@ -1,0 +1,116 @@
+{%- liquid
+  assign cn_product = section.settings.product
+  if cn_product == blank and product
+    assign cn_product = product
+  endif
+
+  assign premium_min = settings.cn_premium_min_price | default: 10 | times: 100
+  assign premium_price = 0
+  assign basic_price = 0
+  assign premium_names = ''
+  assign basic_names = ''
+
+  if cn_product != blank
+    assign color_index = 0
+    for option in cn_product.options_with_values
+      assign option_name = option.name | downcase
+      unless option_name contains 'size' or option_name contains 'taille'
+        assign color_index = forloop.index0
+        break
+      endunless
+    endfor
+
+    for variant in cn_product.variants
+      assign color_name = variant.options[color_index]
+      if variant.price >= premium_min
+        if variant.price > premium_price
+          assign premium_price = variant.price
+        endif
+        unless premium_names contains color_name
+          assign premium_names = premium_names | append: color_name | append: ', '
+        endunless
+      else
+        if basic_price == 0 or variant.price < basic_price
+          assign basic_price = variant.price
+        endif
+        unless basic_names contains color_name
+          assign basic_names = basic_names | append: color_name | append: ', '
+        endunless
+      endif
+    endfor
+  endif
+
+  assign premium_names = premium_names | remove_last: ', '
+  assign basic_names = basic_names | remove_last: ', '
+
+  assign a_buy = settings.cn_offer_a_buy | default: 6
+  assign a_get = settings.cn_offer_a_get | default: 2
+  assign b_buy = settings.cn_offer_b_buy | default: 8
+  assign b_get = settings.cn_offer_b_get | default: 2
+  assign c_buy = settings.cn_offer_c_buy | default: 6
+  assign c_get = settings.cn_offer_c_get | default: 1
+
+  assign a_total = a_buy | plus: a_get
+  assign b_total = b_buy | plus: b_get
+  assign c_total = c_buy | plus: c_get
+
+  assign a_pay = premium_price | times: a_buy
+  assign a_value = basic_price | times: a_get | plus: a_pay
+  assign b_pay = basic_price | times: b_buy
+  assign b_value = basic_price | times: b_total
+  assign c_pay = basic_price | times: c_buy
+  assign c_value = basic_price | times: c_total
+-%}
+
+{%- if settings.cn_offers_enabled and cn_product != blank and premium_price > 0 and basic_price > 0 -%}
+<section id="cn-offers" class="cn-section cn-offers" style="--cn-pad-top: {{ section.settings.padding_top }}px; --cn-pad-bottom: {{ section.settings.padding_bottom }}px;">
+  <div class="cn-container">
+    <div class="cn-center">
+      <p class="cn-eyebrow">{{ 'cuddlenest.offers.eyebrow' | t }}</p>
+      <h2 class="cn-heading">{{ 'cuddlenest.offers.heading' | t }}</h2>
+      <p class="cn-subheading">{{ 'cuddlenest.offers.subheading' | t }}</p>
+    </div>
+
+    <div class="cn-grid cn-grid--3 cn-offers__grid">
+      <article class="cn-card cn-offer cn-offer--featured">
+        <span class="cn-offer__badge">{{ 'cuddlenest.offers.badge_popular' | t }}</span>
+        <h3 class="cn-offer__title">{{ 'cuddlenest.offers.title' | t: total: a_total, paid: a_buy }}</h3>
+        <p class="cn-offer__price">{{ a_pay | money }}<span class="cn-offer__compare">{{ a_value | money }}</span></p>
+        <p class="cn-offer__how">{{ 'cuddlenest.offers.how_a' | t: buy: a_buy, get: a_get, premium: premium_names, basic: basic_names }}</p>
+        <a class="cn-btn cn-offer__cta" href="#cn-pack">{{ 'cuddlenest.offers.cta' | t }}</a>
+      </article>
+
+      <article class="cn-card cn-offer">
+        <span class="cn-offer__badge">{{ 'cuddlenest.offers.badge_value' | t }}</span>
+        <h3 class="cn-offer__title">{{ 'cuddlenest.offers.title' | t: total: b_total, paid: b_buy }}</h3>
+        <p class="cn-offer__price">{{ b_pay | money }}<span class="cn-offer__compare">{{ b_value | money }}</span></p>
+        <p class="cn-offer__how">{{ 'cuddlenest.offers.how_b' | t: total: b_total, get: b_get, basic: basic_names }}</p>
+        <a class="cn-btn cn-btn--ghost cn-offer__cta" href="#cn-pack">{{ 'cuddlenest.offers.cta' | t }}</a>
+      </article>
+
+      <article class="cn-card cn-offer">
+        <span class="cn-offer__badge">{{ 'cuddlenest.offers.badge_start' | t }}</span>
+        <h3 class="cn-offer__title">{{ 'cuddlenest.offers.title' | t: total: c_total, paid: c_buy }}</h3>
+        <p class="cn-offer__price">{{ c_pay | money }}<span class="cn-offer__compare">{{ c_value | money }}</span></p>
+        <p class="cn-offer__how">{{ 'cuddlenest.offers.how_c' | t: total: c_total, get: c_get, basic: basic_names }}</p>
+        <a class="cn-btn cn-btn--ghost cn-offer__cta" href="#cn-pack">{{ 'cuddlenest.offers.cta' | t }}</a>
+      </article>
+    </div>
+
+    <p class="cn-note cn-center">{{ 'cuddlenest.offers.fine_print' | t }}</p>
+  </div>
+</section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "CN · Bundle offers",
+  "tag": "div",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product", "info": "Leave empty on the product page: the current product is used." },
+    { "type": "range", "id": "padding_top", "label": "Top padding", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 64 },
+    { "type": "range", "id": "padding_bottom", "label": "Bottom padding", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 64 }
+  ],
+  "presets": [{ "name": "CN · Bundle offers" }]
+}
+{% endschema %}

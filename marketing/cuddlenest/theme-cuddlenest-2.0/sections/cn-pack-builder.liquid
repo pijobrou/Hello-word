@@ -1,0 +1,410 @@
+{%- liquid
+  assign cn_product = section.settings.product
+  if cn_product == blank and product
+    assign cn_product = product
+  endif
+
+  assign premium_min = settings.cn_premium_min_price | default: 10 | times: 100
+  assign free_threshold = settings.cn_free_shipping_threshold | default: 39 | times: 100
+
+  assign color_index = 0
+  assign size_index = -1
+  if cn_product != blank
+    for option in cn_product.options_with_values
+      assign option_name = option.name | downcase
+      if option_name contains 'size' or option_name contains 'taille'
+        assign size_index = forloop.index0
+      else
+        assign color_index = forloop.index0
+      endif
+    endfor
+  endif
+-%}
+
+{%- if cn_product != blank -%}
+<section id="cn-pack" class="cn-section cn-pack{% if section.settings.warm_background %} cn-section--warm{% endif %}" style="--cn-pad-top: {{ section.settings.padding_top }}px; --cn-pad-bottom: {{ section.settings.padding_bottom }}px;">
+  <div class="cn-container">
+    <div class="cn-pack__head">
+      <div>
+        <p class="cn-eyebrow">{{ 'cuddlenest.pack.eyebrow' | t }}</p>
+        <h2 class="cn-heading">
+          {%- if section.settings.heading != blank -%}{{ section.settings.heading }}{%- else -%}{{ 'cuddlenest.pack.heading' | t }}{%- endif -%}
+        </h2>
+        <p class="cn-subheading">{{ 'cuddlenest.pack.subheading' | t }}</p>
+      </div>
+    </div>
+
+    <cn-pack-builder class="cn-pack__app" data-section-id="{{ section.id }}">
+      {%- if size_index >= 0 -%}
+        <div class="cn-pack__sizes" role="group" aria-label="{{ 'cuddlenest.pack.size_label' | t | escape }}">
+          <span class="cn-pack__sizes-label">{{ 'cuddlenest.pack.size_label' | t }}</span>
+          {%- for size in cn_product.options_with_values[size_index].values -%}
+            <button type="button" class="cn-pill" data-size="{{ size | escape }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">{{ size }}</button>
+          {%- endfor -%}
+          <a class="cn-note" href="#cn-size-guide" style="margin: 0 0 0 8px;">{{ 'cuddlenest.pack.size_help' | t }}</a>
+        </div>
+      {%- endif -%}
+
+      <div class="cn-pack__layout">
+        <div class="cn-pack__prints">
+          {%- for tier in (1..2) -%}
+            {%- if tier == 1 -%}
+              <h3 class="cn-pack__group-title">{{ 'cuddlenest.pack.group_premium' | t }} <small>· {{ 'cuddlenest.pack.group_premium_note' | t }}</small></h3>
+            {%- else -%}
+              <h3 class="cn-pack__group-title">{{ 'cuddlenest.pack.group_basic' | t }} <small>· {{ 'cuddlenest.pack.group_basic_note' | t }}</small></h3>
+            {%- endif -%}
+            <div class="cn-pack__grid">
+              {%- for color in cn_product.options_with_values[color_index].values -%}
+                {%- liquid
+                  assign first_variant = nil
+                  assign color_image = nil
+                  for variant in cn_product.variants
+                    if variant.options[color_index] == color
+                      if first_variant == nil
+                        assign first_variant = variant
+                      endif
+                      if color_image == nil and variant.featured_image
+                        assign color_image = variant.featured_image
+                      endif
+                    endif
+                  endfor
+                  if color_image == nil
+                    for image in cn_product.images
+                      assign alt = image.alt | downcase
+                      assign color_down = color | downcase
+                      if alt contains color_down
+                        assign color_image = image
+                        break
+                      endif
+                    endfor
+                  endif
+                  if color_image == nil
+                    assign color_image = cn_product.featured_image
+                  endif
+                  assign is_premium = false
+                  if first_variant.price >= premium_min
+                    assign is_premium = true
+                  endif
+                  assign show = false
+                  if tier == 1 and is_premium
+                    assign show = true
+                  elsif tier == 2 and is_premium == false
+                    assign show = true
+                  endif
+                -%}
+                {%- if show -%}
+                  <div class="cn-print" data-color="{{ color | escape }}">
+                    {%- if color_image -%}
+                      {{ color_image | image_url: width: 400 | image_tag: class: 'cn-print__img', loading: 'lazy', sizes: '160px', alt: color }}
+                    {%- endif -%}
+                    <p class="cn-print__name">{{ color }}</p>
+                    <p class="cn-print__price">{{ first_variant.price | money }}</p>
+                    <p class="cn-print__na" hidden>{{ 'cuddlenest.pack.not_in_size' | t }}</p>
+                    <div class="cn-stepper">
+                      <button type="button" data-step="-1" aria-label="{{ 'cuddlenest.pack.remove_one' | t: print: color | escape }}">−</button>
+                      <output aria-live="polite">0</output>
+                      <button type="button" data-step="1" aria-label="{{ 'cuddlenest.pack.add_one' | t: print: color | escape }}">+</button>
+                    </div>
+                  </div>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          {%- endfor -%}
+        </div>
+
+        <aside class="cn-card cn-pack__summary" aria-live="polite">
+          <div class="cn-sum__row"><span>{{ 'cuddlenest.pack.sum_pairs' | t }}</span><strong data-sum-count>0</strong></div>
+          <div class="cn-sum__row"><span>{{ 'cuddlenest.pack.sum_subtotal' | t }}</span><strong data-sum-subtotal>{{ 0 | money }}</strong></div>
+          <div class="cn-sum__offer" data-sum-offer></div>
+          <div class="cn-sum__row cn-sum__row--saving" data-sum-saving-row hidden><span>{{ 'cuddlenest.pack.sum_saving' | t }}</span><strong data-sum-saving></strong></div>
+          <div class="cn-sum__row cn-sum__row--total"><span>{{ 'cuddlenest.pack.sum_total' | t }}</span><strong data-sum-total>{{ 0 | money }}</strong></div>
+          <div class="cn-sum__nudge" data-sum-nudge></div>
+          <button type="button" class="cn-btn cn-btn--block" data-add disabled>{{ 'cuddlenest.pack.add_button' | t }}</button>
+          <div class="cn-sum__status" data-status role="status"></div>
+          <p class="cn-sum__fine">{{ 'cuddlenest.pack.fine_print' | t }}</p>
+        </aside>
+      </div>
+
+      <script type="application/json" data-pack-config>
+        {
+          "variants": [
+            {%- for variant in cn_product.variants -%}
+              {
+                "id": {{ variant.id }},
+                "color": {{ variant.options[color_index] | json }},
+                "size": {% if size_index >= 0 %}{{ variant.options[size_index] | json }}{% else %}""{% endif %},
+                "price": {{ variant.price }},
+                "available": {{ variant.available | json }},
+                "premium": {% if variant.price >= premium_min %}true{% else %}false{% endif %}
+              }{% unless forloop.last %},{% endunless %}
+            {%- endfor -%}
+          ],
+          "offers": {
+            "enabled": {{ settings.cn_offers_enabled | json }},
+            "a": { "buy": {{ settings.cn_offer_a_buy | default: 6 }}, "get": {{ settings.cn_offer_a_get | default: 2 }} },
+            "b": { "buy": {{ settings.cn_offer_b_buy | default: 8 }}, "get": {{ settings.cn_offer_b_get | default: 2 }} },
+            "c": { "buy": {{ settings.cn_offer_c_buy | default: 6 }}, "get": {{ settings.cn_offer_c_get | default: 1 }} }
+          },
+          "freeShipping": {{ free_threshold }},
+          "currency": {{ cart.currency.iso_code | json }},
+          "locale": {{ request.locale.iso_code | json }},
+          "root": {{ routes.root_url | json }},
+          "i18n": {
+            "offerA": {{ 'cuddlenest.pack.offer_a' | t | json }},
+            "offerB": {{ 'cuddlenest.pack.offer_b' | t | json }},
+            "offerC": {{ 'cuddlenest.pack.offer_c' | t | json }},
+            "nudgeGetA": {{ 'cuddlenest.pack.nudge_get_a' | t | json }},
+            "nudgeBuyA": {{ 'cuddlenest.pack.nudge_buy_a' | t | json }},
+            "nudgeB": {{ 'cuddlenest.pack.nudge_b' | t | json }},
+            "nudgeC": {{ 'cuddlenest.pack.nudge_c' | t | json }},
+            "nudgeShipping": {{ 'cuddlenest.pack.nudge_shipping' | t | json }},
+            "shippingFree": {{ 'cuddlenest.pack.shipping_free' | t | json }},
+            "addButton": {{ 'cuddlenest.pack.add_button' | t | json }},
+            "addButtonCount": {{ 'cuddlenest.pack.add_button_count' | t | json }},
+            "adding": {{ 'cuddlenest.pack.adding' | t | json }},
+            "added": {{ 'cuddlenest.pack.added' | t | json }},
+            "viewCart": {{ 'cuddlenest.pack.view_cart' | t | json }},
+            "checkout": {{ 'cuddlenest.pack.checkout' | t | json }},
+            "error": {{ 'cuddlenest.pack.error' | t | json }}
+          }
+        }
+      </script>
+    </cn-pack-builder>
+  </div>
+</section>
+
+<script>
+  (function () {
+    if (customElements.get('cn-pack-builder')) return;
+
+    class CnPackBuilder extends HTMLElement {
+      connectedCallback() {
+        if (this._ready) return;
+        this._ready = true;
+        const configEl = this.querySelector('[data-pack-config]');
+        this.config = JSON.parse(configEl.textContent);
+        this.qty = new Map();
+        this.size = (this.querySelector('.cn-pill[aria-pressed="true"]') || {}).dataset?.size || '';
+        this.money = new Intl.NumberFormat(this.config.locale || 'en', { style: 'currency', currency: this.config.currency || 'CAD' });
+
+        this.querySelectorAll('.cn-pill').forEach((pill) => {
+          pill.addEventListener('click', () => {
+            this.size = pill.dataset.size;
+            this.querySelectorAll('.cn-pill').forEach((p) => p.setAttribute('aria-pressed', String(p === pill)));
+            this.render();
+          });
+        });
+
+        this.querySelectorAll('.cn-print').forEach((card) => {
+          card.querySelectorAll('[data-step]').forEach((btn) => {
+            btn.addEventListener('click', () => this.step(card.dataset.color, Number(btn.dataset.step)));
+          });
+        });
+
+        this.addButton = this.querySelector('[data-add]');
+        this.addButton.addEventListener('click', () => this.addToCart());
+        this.render();
+      }
+
+      variantFor(color, size) {
+        return this.config.variants.find((v) => v.color === color && (v.size === size || !v.size));
+      }
+
+      step(color, delta) {
+        const variant = this.variantFor(color, this.size);
+        if (!variant || !variant.available) return;
+        const next = Math.max(0, (this.qty.get(variant.id) || 0) + delta);
+        if (next === 0) this.qty.delete(variant.id); else this.qty.set(variant.id, next);
+        this.render();
+      }
+
+      lines() {
+        const out = [];
+        this.qty.forEach((quantity, id) => {
+          const variant = this.config.variants.find((v) => v.id === id);
+          if (variant && quantity > 0) out.push({ variant, quantity });
+        });
+        return out;
+      }
+
+      fmt(cents) {
+        return this.money.format(cents / 100);
+      }
+
+      t(key, vars) {
+        let text = this.config.i18n[key] || '';
+        Object.keys(vars || {}).forEach((k) => {
+          text = text.split('[' + k + ']').join(vars[k]);
+        });
+        return text;
+      }
+
+      /* Mirrors the Shopify automatic discounts: one offer per order, the best one wins,
+         free items are the cheapest eligible items. */
+      bestOffer(lines) {
+        const o = this.config.offers;
+        if (!o.enabled) return null;
+        const premiumCount = lines.filter((l) => l.variant.premium).reduce((n, l) => n + l.quantity, 0);
+        const basicUnits = [];
+        lines.filter((l) => !l.variant.premium).forEach((l) => {
+          for (let i = 0; i < l.quantity; i++) basicUnits.push(l.variant.price);
+        });
+        basicUnits.sort((a, b) => a - b);
+        const basicCount = basicUnits.length;
+        const cheapest = (n) => basicUnits.slice(0, n).reduce((s, p) => s + p, 0);
+        const candidates = [];
+        if (premiumCount >= o.a.buy && basicCount >= o.a.get) {
+          candidates.push({ key: 'offerA', saving: cheapest(o.a.get), get: o.a.get });
+        }
+        if (basicCount >= o.b.buy + o.b.get) {
+          candidates.push({ key: 'offerB', saving: cheapest(o.b.get), get: o.b.get });
+        }
+        if (basicCount >= o.c.buy + o.c.get) {
+          candidates.push({ key: 'offerC', saving: cheapest(o.c.get), get: o.c.get });
+        }
+        candidates.sort((a, b) => b.saving - a.saving);
+        return { best: candidates[0] || null, premiumCount, basicCount };
+      }
+
+      nudge(info) {
+        const o = this.config.offers;
+        if (!o.enabled || !info) return '';
+        const { best, premiumCount, basicCount } = info;
+        if (best && !(best.key === 'offerC' && basicCount >= o.b.buy)) return '';
+        if (premiumCount >= o.a.buy && basicCount < o.a.get) {
+          return this.t('nudgeGetA', { count: o.a.get - basicCount, get: o.a.get });
+        }
+        if (premiumCount > 0 && premiumCount < o.a.buy) {
+          return this.t('nudgeBuyA', { count: o.a.buy - premiumCount, get: o.a.get });
+        }
+        if (basicCount >= o.b.buy && basicCount < o.b.buy + o.b.get) {
+          return this.t('nudgeB', { count: o.b.buy + o.b.get - basicCount, get: o.b.get });
+        }
+        if (basicCount > 0 && basicCount < o.c.buy + o.c.get) {
+          return this.t('nudgeC', { count: o.c.buy + o.c.get - basicCount, get: o.c.get });
+        }
+        return '';
+      }
+
+      render() {
+        this.querySelectorAll('.cn-print').forEach((card) => {
+          const variant = this.variantFor(card.dataset.color, this.size);
+          const available = Boolean(variant && variant.available);
+          const count = variant ? this.qty.get(variant.id) || 0 : 0;
+          card.classList.toggle('is-unavailable', !available);
+          card.classList.toggle('is-selected', count > 0);
+          card.querySelector('.cn-print__na').hidden = available;
+          card.querySelector('output').textContent = String(count);
+          card.querySelector('[data-step="-1"]').disabled = !available || count === 0;
+          card.querySelector('[data-step="1"]').disabled = !available;
+        });
+
+        const lines = this.lines();
+        const count = lines.reduce((n, l) => n + l.quantity, 0);
+        const subtotal = lines.reduce((s, l) => s + l.variant.price * l.quantity, 0);
+        const info = this.bestOffer(lines);
+        const saving = info && info.best ? info.best.saving : 0;
+        const total = subtotal - saving;
+
+        this.querySelector('[data-sum-count]').textContent = String(count);
+        this.querySelector('[data-sum-subtotal]').textContent = this.fmt(subtotal);
+        this.querySelector('[data-sum-offer]').textContent = info && info.best ? this.t(info.best.key, { get: info.best.get }) : '';
+        this.querySelector('[data-sum-saving-row]').hidden = saving === 0;
+        this.querySelector('[data-sum-saving]').textContent = '−' + this.fmt(saving);
+        this.querySelector('[data-sum-total]').textContent = this.fmt(total);
+
+        let nudge = this.nudge(info);
+        if (count > 0) {
+          const missing = this.config.freeShipping - total;
+          const shippingText = missing > 0
+            ? this.t('nudgeShipping', { amount: this.fmt(missing) })
+            : this.t('shippingFree');
+          nudge = nudge ? nudge + ' ' + shippingText : shippingText;
+        }
+        this.querySelector('[data-sum-nudge]').textContent = nudge;
+
+        this.addButton.disabled = count === 0;
+        this.addButton.textContent = count > 0 ? this.t('addButtonCount', { count }) : this.t('addButton');
+      }
+
+      async addToCart() {
+        const lines = this.lines();
+        if (!lines.length) return;
+        const status = this.querySelector('[data-status]');
+        this.addButton.disabled = true;
+        this.addButton.textContent = this.t('adding');
+        status.textContent = '';
+
+        const sectionIds = Array.from(document.querySelectorAll('cart-items-component'))
+          .map((el) => el.dataset.sectionId)
+          .filter(Boolean);
+        const items = lines.map((l) => ({ id: l.variant.id, quantity: l.quantity }));
+        const totalQty = items.reduce((n, i) => n + i.quantity, 0);
+
+        let CartEvent = null;
+        try {
+          CartEvent = (await import('@shopify/events')).CartLinesUpdateEvent;
+        } catch (e) {
+          CartEvent = null;
+        }
+        const deferred = CartEvent && CartEvent.createPromise ? CartEvent.createPromise() : null;
+        if (deferred) {
+          this.dispatchEvent(new CartEvent({
+            action: 'add',
+            context: 'product',
+            lines: items.map((i) => ({ merchandiseId: String(i.id), quantity: i.quantity })),
+            promise: deferred.promise
+          }));
+        }
+
+        try {
+          const body = { items };
+          if (sectionIds.length) body.sections = sectionIds.join(',');
+          const res = await fetch(this.config.root.replace(/\/$/, '') + '/cart/add.js', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify(body)
+          });
+          const data = await res.json();
+          if (!res.ok || data.status) throw new Error(data.description || data.message || this.t('error'));
+          const cart = await (await fetch(this.config.root.replace(/\/$/, '') + '/cart.js', { headers: { Accept: 'application/json' } })).json();
+          if (deferred) {
+            deferred.resolve({
+              cart: CartEvent.createCartFromAjaxResponse ? CartEvent.createCartFromAjaxResponse(cart) : cart,
+              detail: { items: cart.items, sections: data.sections, source: 'cn-pack-builder', itemCount: totalQty, didError: false }
+            });
+          }
+          const cartUrl = this.config.root.replace(/\/$/, '') + '/cart';
+          status.innerHTML = '✓ ' + this.t('added', { count: totalQty }) +
+            ' · <a href="' + cartUrl + '">' + this.t('viewCart') + '</a>' +
+            ' · <a href="' + this.config.root.replace(/\/$/, '') + '/checkout">' + this.t('checkout') + '</a>';
+          this.qty.clear();
+        } catch (error) {
+          if (deferred) deferred.reject(error);
+          status.textContent = (error && error.message) || this.t('error');
+        } finally {
+          this.render();
+        }
+      }
+    }
+
+    customElements.define('cn-pack-builder', CnPackBuilder);
+  })();
+</script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "CN · Pack builder",
+  "tag": "div",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product", "info": "Leave empty on the product page: the current product is used." },
+    { "type": "text", "id": "heading", "label": "Heading", "info": "Leave empty to use the built-in bilingual text." },
+    { "type": "checkbox", "id": "warm_background", "label": "Warm background", "default": false },
+    { "type": "range", "id": "padding_top", "label": "Top padding", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 64 },
+    { "type": "range", "id": "padding_bottom", "label": "Bottom padding", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 64 }
+  ],
+  "presets": [{ "name": "CN · Pack builder" }]
+}
+{% endschema %}
