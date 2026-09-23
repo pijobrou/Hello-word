@@ -13,7 +13,7 @@ français s'affiche en bas de l'écran.
 
 ## Installation (2 minutes)
 
-1. Téléchargez **`dist/traducteur-audio-v1.3.6.zip`** (sur GitHub : ouvrez le fichier, puis le
+1. Téléchargez **`dist/traducteur-audio-v1.4.0.zip`** (sur GitHub : ouvrez le fichier, puis le
    bouton de téléchargement ↓) et **décompressez-le** dans un dossier que vous garderez
    (par ex. `Documents/traducteur-audio`). Chrome n'installe pas un ZIP directement.
 2. Ouvrez `chrome://extensions` (ou `edge://extensions`).
@@ -48,6 +48,18 @@ française installée (« Natural », puis « Google »). Pour une voix vraiment
 OpenAI) et une traduction DeepL, branchez le workflow n8n fourni dans [`n8n/`](n8n/README.md) :
 popup → **⚙️ Configurer la voix IA** → URL du webhook + clé secrète → **Enregistrer et tester**.
 Les clés API restent dans n8n. Si n8n ne répond pas, l'extension revient à la voix locale.
+
+## ⚙️ Réglages (adapter la voix à la personne qui écoute)
+
+Popup → **⚙️ Réglages de la voix**. Tout est enregistré immédiatement, même pendant une traduction.
+
+- **Profils en un clic** : Standard, Apprentissage (lent et clair, avec l'anglais affiché), Rapide,
+  Confort d'écoute (gros texte, vidéo presque muette), Enfant.
+- **Voix** : vitesse (0,5 à 2×), hauteur (grave ↔ aiguë, voix du navigateur), volume, pause entre
+  les phrases, choix de la voix, avec un bouton pour écouter le résultat.
+- **Vidéo** : volume de la vidéo pendant la voix, découpage des phrases.
+- **Affichage** : texte français sur la vidéo, anglais en plus, taille du texte (avec aperçu).
+- **Voix IA (n8n)** : adresse, clé, test. La vitesse et le volume s'appliquent aussi à la voix IA.
 
 ## Clarté de la traduction
 

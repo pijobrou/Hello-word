@@ -1,5 +1,96 @@
 const $ = (id) => document.getElementById(id);
 
+// ---------- Réglages de la voix, de la vidéo et de l'affichage ----------
+const FORMAT = {
+  rate: (v) => `(${Number(v).toFixed(2)}×)`,
+  pitch: (v) => `(${Number(v).toFixed(2)})`,
+  voiceVolume: (v) => `(${Math.round(v * 100)} %)`,
+  duckVolume: (v) => `(${Math.round(v * 100)} %)`,
+  gapMs: (v) => `(${(v / 1000).toFixed(2)} s)`,
+  overlaySize: (v) => `(${v} px)`
+};
+
+function showValues() {
+  document.querySelectorAll('.val').forEach((el) => {
+    const input = $(el.dataset.for);
+    el.textContent = FORMAT[el.dataset.for] ? FORMAT[el.dataset.for](input.value) : '';
+  });
+  $('preview').style.fontSize = $('overlaySize').value + 'px';
+  $('preview').dataset.en = $('showEnglish').checked ? 'Hello everyone, welcome to this video.' : '';
+}
+
+function fillVoices(selected) {
+  const voices = frenchVoices();
+  $('voiceName').replaceChildren(new Option('Automatique (la plus naturelle)', ''),
+    ...voices.map((v) => new Option(v.name, v.name)));
+  $('voiceName').value = selected;
+}
+
+function fillForm(s) {
+  document.querySelectorAll('[data-setting]').forEach((el) => {
+    const v = s[el.dataset.setting];
+    if (el.type === 'checkbox') el.checked = !!v; else el.value = v;
+  });
+  fillVoices(s.voiceName);
+  document.querySelectorAll('.profiles button').forEach((b) => b.classList.toggle('active', b.dataset.profile === s.profile));
+  showValues();
+}
+
+let savedTimer = null;
+function saved(text = '✔ Enregistré') {
+  $('saved').textContent = text;
+  clearTimeout(savedTimer);
+  savedTimer = setTimeout(() => { $('saved').textContent = ''; }, 1500);
+}
+
+document.querySelectorAll('[data-setting]').forEach((el) => {
+  el.addEventListener(el.type === 'range' ? 'input' : 'change', () => {
+    const value = el.type === 'checkbox' ? el.checked : el.type === 'range' ? Number(el.value) : el.value;
+    // Un réglage modifié à la main : on n'est plus exactement sur le profil choisi.
+    chrome.storage.sync.set({ [el.dataset.setting]: value, profile: 'custom' });
+    document.querySelectorAll('.profiles button').forEach((b) => b.classList.remove('active'));
+    showValues();
+    saved();
+  });
+});
+
+$('profiles').replaceChildren(...Object.entries(PROFILES).map(([key, p]) => {
+  const b = document.createElement('button');
+  b.className = 'secondary';
+  b.dataset.profile = key;
+  b.textContent = p.label;
+  b.onclick = async () => {
+    const { label, ...values } = p;
+    await chrome.storage.sync.set({ ...values, profile: key });
+    fillForm(await getSettings());
+    saved(`✔ Profil « ${label} » appliqué`);
+  };
+  return b;
+}));
+
+$('listen').onclick = async () => {
+  stopDub();
+  const s = await getSettings();
+  const dub = await prepareDub('Hello everyone, welcome to this video. Today we will learn something new.', s)
+    .catch(() => ({ fr: 'Bonjour à tous, bienvenue dans cette vidéo. Aujourd\'hui, nous allons apprendre quelque chose de nouveau.', audio: null }));
+  playDub(dub, s);
+};
+$('stop').onclick = () => stopDub();
+
+$('reset').onclick = async () => {
+  const { n8nUrl, engine } = await getSettings();
+  await chrome.storage.sync.set({ ...DEFAULTS, n8nUrl, engine });   // on garde la configuration n8n
+  fillForm(await getSettings());
+  saved('✔ Réglages par défaut rétablis');
+};
+
+getSettings().then((s) => {
+  fillForm(s);
+  speechSynthesis.onvoiceschanged = () => fillVoices($('voiceName').value || s.voiceName);
+});
+
+// ---------- Voix IA (n8n) ----------
+
 function status(text, cls = '') {
   $('n8nStatus').textContent = text;
   $('n8nStatus').className = 'hint ' + cls;

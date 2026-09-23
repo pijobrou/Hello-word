@@ -8,6 +8,7 @@
   <button id="tab" class="big">🔊 Traduire le son de cet onglet</button>
   <p class="hint">Écoute directement l'audio de l'onglet (vidéo, live, appel…), même sans sous-titres.
     Chrome/Edge 135+.</p>
+  <button id="settingsBtn" class="secondary wide">⚙️ Réglages de la voix : vitesse, hauteur, profils…</button>
 
   <div class="row">
     <label for="enabled"><strong>Vidéos : doublage FR</strong><br>
@@ -16,7 +17,7 @@
   </div>
 
   <div class="row"><label for="rate">Vitesse voix <span id="rateVal"></span></label>
-    <input type="range" id="rate" min="0.6" max="2" step="0.1"></div>
+    <input type="range" id="rate" min="0.5" max="2" step="0.05"></div>
   <div class="row"><label for="duckVolume">Volume vidéo pendant la voix <span id="duckVal"></span></label>
     <input type="range" id="duckVolume" min="0" max="1" step="0.05"></div>
   <div class="row"><label for="chunking">Découpage des phrases</label>

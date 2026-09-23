@@ -2,7 +2,13 @@
 
 const DEFAULTS = {
   enabled: false,      // mode sous-titres actif sur les pages
-  rate: 1.1,           // vitesse de la voix française
+  rate: 1.1,           // vitesse de la voix française (0,5 à 2)
+  pitch: 1,            // hauteur de la voix du navigateur (0,5 grave … 2 aiguë) ; sans effet sur la voix IA
+  voiceVolume: 1,      // volume de la voix française (0 à 1)
+  gapMs: 150,          // pause entre deux phrases (ms)
+  overlaySize: 20,     // taille du texte à l'écran (px)
+  showEnglish: false,  // afficher aussi la phrase anglaise sous la traduction
+  profile: 'standard', // dernier profil appliqué
   duckVolume: 0.2,     // volume de la vidéo pendant la lecture FR (0 = muet, 1 = inchangé)
   showOverlay: true,   // affiche le texte français sur la page
   voiceName: '',       // voix française locale choisie ('' = automatique)
@@ -45,11 +51,29 @@ function pickVoice(voiceName) {
     || voices.slice().sort((a, b) => score(b) - score(a))[0] || null;
 }
 
-function speakFrench(text, { rate = 1, voiceName = '' } = {}) {
+// Profils prêts à l'emploi : on les applique d'un clic, puis chaque réglage reste ajustable.
+const PROFILES = {
+  standard: { label: 'Standard', rate: 1.1, pitch: 1, voiceVolume: 1, duckVolume: 0.2, gapMs: 150,
+    chunking: 'balanced', overlaySize: 20, showEnglish: false },
+  learning: { label: 'Apprentissage (lent et clair)', rate: 0.85, pitch: 1, voiceVolume: 1, duckVolume: 0.15,
+    gapMs: 500, chunking: 'full', overlaySize: 22, showEnglish: true },
+  fast: { label: 'Rapide', rate: 1.35, pitch: 1, voiceVolume: 1, duckVolume: 0.3, gapMs: 0,
+    chunking: 'fast', overlaySize: 20, showEnglish: false },
+  comfort: { label: 'Confort d\'écoute (malentendant)', rate: 0.95, pitch: 0.95, voiceVolume: 1, duckVolume: 0.05,
+    gapMs: 300, chunking: 'balanced', overlaySize: 30, showEnglish: false },
+  kids: { label: 'Enfant', rate: 0.9, pitch: 1.15, voiceVolume: 1, duckVolume: 0.15, gapMs: 400,
+    chunking: 'full', overlaySize: 26, showEnglish: false }
+};
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+function speakFrench(text, { rate = 1, pitch = 1, voiceVolume = 1, voiceName = '' } = {}) {
   return new Promise((resolve) => {
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'fr-FR';
-    u.rate = rate;
+    u.rate = Math.max(0.5, Math.min(2, rate));
+    u.pitch = Math.max(0.5, Math.min(2, pitch));
+    u.volume = Math.max(0, Math.min(1, voiceVolume));
     u.voice = pickVoice(voiceName);
     u.onend = u.onerror = () => resolve();
     speechSynthesis.speak(u);
@@ -85,7 +109,8 @@ async function playDub(dub, settings) {
     try {
       const player = new Audio(dub.audio);
       currentPlayer = player;
-      player.playbackRate = Math.max(0.8, Math.min(1.5, settings.rate));
+      player.playbackRate = Math.max(0.5, Math.min(2, settings.rate));
+      player.volume = Math.max(0, Math.min(1, settings.voiceVolume ?? 1));
       await new Promise((resolve, reject) => {
         player.onended = player.onpause = resolve;
         player.onerror = () => reject(new Error('lecture audio impossible'));

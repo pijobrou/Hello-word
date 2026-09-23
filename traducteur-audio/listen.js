@@ -24,6 +24,7 @@ function addEntry(en, fr) {
   card.className = 'card';
   const enEl = document.createElement('div'); enEl.className = 'en'; enEl.textContent = '🇬🇧 ' + en;
   const frEl = document.createElement('div'); frEl.className = 'fr'; frEl.textContent = '🇫🇷 ' + fr;
+  if (settings) frEl.style.fontSize = Math.max(16, settings.overlaySize - 2) + 'px';
   card.append(enEl, frEl);
   $('log').prepend(card);
 }
@@ -82,6 +83,7 @@ async function processQueue() {
     duck(true, settings);
     await playDub(dub, { ...settings, rate: settings.rate * boost });
     duck(false, settings);
+    if (settings.gapMs && !queue.length) await sleep(settings.gapMs);   // pas de pause si on a du retard
   }
   speaking = false;
   resumeRecognition();
@@ -105,7 +107,6 @@ function resumeRecognition() {
   if (listening) startRecognition();
 }
 
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function captureTab() {
   const streamId = await chrome.tabCapture.getMediaStreamId({ targetTabId: Number(params.get('tab')) });

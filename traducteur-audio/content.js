@@ -27,7 +27,7 @@
     });
   }
 
-  function showText(fr) {
+  function showText(fr, en) {
     if (!settings.showOverlay) return;
     if (!overlay) {
       overlay = document.createElement('div');
@@ -39,7 +39,14 @@
       });
       document.documentElement.appendChild(overlay);
     }
+    overlay.style.fontSize = settings.overlaySize + 'px';
     overlay.textContent = '🇫🇷 ' + fr;
+    if (settings.showEnglish && en) {
+      const small = document.createElement('div');
+      Object.assign(small.style, { fontSize: '0.7em', color: '#ddd', fontWeight: 400, marginTop: '4px' });
+      small.textContent = en;
+      overlay.appendChild(small);
+    }
     overlay.style.display = 'block';
   }
 
@@ -56,9 +63,10 @@
       const dub = await queue.shift();
       const boost = Math.min(1.35, 1 + 0.12 * queue.length);
       if (dub.error) { console.warn('[Traducteur Audio]', dub.error); continue; }
-      showText(dub.fr);
+      showText(dub.fr, dub.en);
       duck(true);
       await playDub(dub, { ...settings, rate: settings.rate * boost });
+      if (settings.gapMs && !queue.length) await sleep(settings.gapMs);
     }
     duck(false);
     hideText();

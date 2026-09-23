@@ -8,7 +8,7 @@ function fillVoices(selected) {
 }
 
 function labels() {
-  $('rateVal').textContent = `(${Number($('rate').value).toFixed(1)}×)`;
+  $('rateVal').textContent = `(${Number($('rate').value).toFixed(2)}×)`;
   $('duckVal').textContent = `(${Math.round($('duckVolume').value * 100)} %)`;
 }
 
@@ -30,7 +30,7 @@ $('enabled').onchange = (e) => chrome.storage.sync.set({ enabled: e.target.check
 $('chunking').onchange = (e) => chrome.storage.sync.set({ chunking: e.target.value });
 $('showOverlay').onchange = (e) => chrome.storage.sync.set({ showOverlay: e.target.checked });
 $('voiceName').onchange = (e) => chrome.storage.sync.set({ voiceName: e.target.value });
-$('rate').oninput = (e) => { labels(); chrome.storage.sync.set({ rate: Number(e.target.value) }); };
+$('rate').oninput = (e) => { labels(); chrome.storage.sync.set({ rate: Number(e.target.value), profile: 'custom' }); };
 $('duckVolume').oninput = (e) => { labels(); chrome.storage.sync.set({ duckVolume: Number(e.target.value) }); };
 
 function openListener(params) {
@@ -65,3 +65,4 @@ $('engineN8n').onchange = (e) => {
 
 // Réglages dans un onglet : la popup se ferme dès que Chrome affiche une demande d'autorisation.
 $('n8nConfig').onclick = () => { chrome.runtime.openOptionsPage(); window.close(); };
+$('settingsBtn').onclick = () => { chrome.runtime.openOptionsPage(); window.close(); };

@@ -1,16 +1,66 @@
 <!doctype html>
 <html lang="fr">
-<head><meta charset="utf-8"><title>Traducteur Audio — Voix IA (n8n)</title><link rel="stylesheet" href="style.css"></head>
+<head><meta charset="utf-8"><title>Traducteur Audio — Réglages</title><link rel="stylesheet" href="style.css"></head>
 <body>
-<div class="wrap page">
-  <h1>🎙️ Voix humaine IA via n8n</h1>
-  <p class="hint">L'extension envoie chaque phrase anglaise à votre workflow n8n, qui renvoie la traduction
-    et une voix IA (ElevenLabs ou OpenAI). Guide : dossier <code>n8n/README.md</code> de l'extension.</p>
+<div class="wrap page settings">
+  <h1>⚙️ Réglages — Traducteur Audio EN → FR</h1>
+  <p class="hint">Chaque changement est enregistré tout de suite et s'applique à la phrase suivante,
+    même pendant une traduction en cours.</p>
 
+  <h2>👤 Profil de la personne qui écoute</h2>
+  <div class="card">
+    <div class="profiles" id="profiles"></div>
+    <p class="hint">Un profil règle tout d'un coup. Vous pouvez ensuite ajuster chaque réglage ci-dessous.</p>
+  </div>
+
+  <h2>🎚️ Voix française</h2>
+  <div class="card">
+    <div class="row"><label for="rate">Vitesse <span class="val" data-for="rate"></span></label>
+      <input type="range" id="rate" data-setting="rate" min="0.5" max="2" step="0.05"></div>
+    <div class="row"><label for="pitch">Hauteur (grave ↔ aiguë) <span class="val" data-for="pitch"></span>
+      <br><span class="hint">Voix du navigateur uniquement</span></label>
+      <input type="range" id="pitch" data-setting="pitch" min="0.5" max="2" step="0.05"></div>
+    <div class="row"><label for="voiceVolume">Volume de la voix <span class="val" data-for="voiceVolume"></span></label>
+      <input type="range" id="voiceVolume" data-setting="voiceVolume" min="0" max="1" step="0.05"></div>
+    <div class="row"><label for="gapMs">Pause entre les phrases <span class="val" data-for="gapMs"></span></label>
+      <input type="range" id="gapMs" data-setting="gapMs" min="0" max="1500" step="50"></div>
+    <div class="row"><label for="voiceName">Voix du navigateur</label>
+      <select id="voiceName" data-setting="voiceName"></select></div>
+    <p class="hint">Les voix « Natural » / « Online » (Microsoft Edge) et « Google » sont les plus fluides.</p>
+    <div class="buttons">
+      <button id="listen">🔊 Écouter avec ces réglages</button>
+      <button id="stop" class="secondary">⏹️ Stop</button>
+    </div>
+  </div>
+
+  <h2>🎬 Vidéo et découpage</h2>
+  <div class="card">
+    <div class="row"><label for="duckVolume">Volume de la vidéo pendant la voix <span class="val" data-for="duckVolume"></span></label>
+      <input type="range" id="duckVolume" data-setting="duckVolume" min="0" max="1" step="0.05"></div>
+    <div class="row"><label for="chunking">Découpage des phrases</label>
+      <select id="chunking" data-setting="chunking">
+        <option value="fast">Rapide (démarre vite)</option>
+        <option value="balanced">Équilibré</option>
+        <option value="full">Phrases complètes (plus clair)</option>
+      </select></div>
+  </div>
+
+  <h2>🖥️ Affichage</h2>
+  <div class="card">
+    <div class="row"><label for="showOverlay">Afficher le texte français sur la vidéo</label>
+      <input type="checkbox" id="showOverlay" data-setting="showOverlay"></div>
+    <div class="row"><label for="showEnglish">Afficher aussi la phrase anglaise (pour apprendre)</label>
+      <input type="checkbox" id="showEnglish" data-setting="showEnglish"></div>
+    <div class="row"><label for="overlaySize">Taille du texte <span class="val" data-for="overlaySize"></span></label>
+      <input type="range" id="overlaySize" data-setting="overlaySize" min="14" max="44" step="1"></div>
+    <p id="preview" class="overlay-preview">🇫🇷 Bonjour à tous, bienvenue dans cette vidéo.</p>
+  </div>
+
+  <h2>🎙️ Voix humaine IA (n8n)</h2>
   <div class="card">
     <div class="row">
       <label for="engineN8n"><strong>Utiliser mon workflow n8n</strong><br>
-        <span class="hint">Décoché : voix du navigateur.</span></label>
+        <span class="hint">Décoché : voix du navigateur. Vitesse et volume s'appliquent aussi à la voix IA.</span></label>
       <input type="checkbox" id="engineN8n">
     </div>
     <button id="useLocal" class="secondary">🏠 Utiliser mon n8n local (localhost:5678)</button>
@@ -24,6 +74,11 @@
     </div>
     <p id="n8nStatus" class="hint"></p>
   </div>
+
+  <div class="buttons">
+    <button id="reset" class="secondary">♻️ Revenir aux réglages par défaut</button>
+  </div>
+  <p id="saved" class="hint"></p>
 </div>
 <script src="common.js"></script>
 <script src="options.js"></script>
