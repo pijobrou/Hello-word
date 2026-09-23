@@ -26,15 +26,22 @@ Pour un test sur votre ordinateur avec n8n en local (`npx n8n`), l'adresse du we
 
 ## 2. Importer le workflow
 
-1. n8n → **Workflows → Import from File** → choisissez `traducteur-audio.workflow.json`.
-2. Créez les **Credentials** de type **Header Auth** (Credentials → Add → « Header Auth ») :
+Deux fichiers sont fournis :
 
-| Nom de la credential (exactement) | Name | Value |
+| Fichier | Contenu |
+|---|---|
+| **`traducteur-audio.workflow.json`** (référence) | Version corrigée et validée dans n8n : DeepL + voix OpenAI, avec les credentials intégrées de n8n et une consigne de lecture neutre (le ton ou les exclamations du narrateur ne sont pas imités). |
+| `traducteur-audio.workflow.options-voix.json` (facultatif) | Variante générée par `gen_workflow.py`, qui prend en compte les réglages **Style** et **Qualité** de l'extension, ainsi que la vitesse appliquée par le fournisseur. |
+
+1. n8n → **Workflows → Import from File** → `traducteur-audio.workflow.json`.
+2. Créez les **Credentials** :
+
+| Credential | Type n8n | Contenu |
 |---|---|---|
-| `Traducteur - clé extension` | `X-Traducteur-Key` | un mot de passe long que vous inventez |
-| `ElevenLabs` | `xi-api-key` | votre clé ElevenLabs |
-| `OpenAI` (facultatif) | `Authorization` | `Bearer sk-…` |
-| `DeepL` (facultatif) | `Authorization` | `DeepL-Auth-Key votre-clé` |
+| `Traducteur - clé extension` | **Header Auth** | Name `X-Traducteur-Key`, Value : un mot de passe long que vous inventez |
+| OpenAI | **OpenAI API** (intégrée) | votre clé `sk-…` |
+| DeepL | **DeepL API** (intégrée) | votre clé DeepL (offre Free) |
+| `ElevenLabs` (si `voice: 'elevenlabs'`) | **Header Auth** | Name `xi-api-key`, Value : votre clé ElevenLabs |
 
 3. Ouvrez chaque nœud qui a une credential (Webhook, ElevenLabs voix, OpenAI voix, DeepL) et
    sélectionnez la credential correspondante si n8n ne l'a pas reliée tout seul.
@@ -59,11 +66,14 @@ réessayé une minute plus tard.
 
 ## Style de la voix
 
-Le curseur **Style : posé ↔ expressif** de l'extension est envoyé au workflow. Pour ElevenLabs, il
+Les réglages **Hauteur**, **Timbre**, **Vitesse**, **Volume** et **Pause** sont traités par
+l'extension : ils marchent avec les deux workflows.
+
+Le curseur **Style : posé ↔ expressif** et le choix **Qualité** ne sont pris en compte que par la
+variante `options-voix`. Le workflow de référence garde sa consigne de ton fixe et les ignore.
+Le curseur **Style** de l'extension est envoyé au workflow. Pour ElevenLabs, il
 règle `stability` et `style` : une voix posée est régulière et calme, une voix expressive est vivante
-et animée. Pour OpenAI, il ajoute une consigne de ton. Ce curseur demande la version du workflow
-qui contient `elevenSettings` dans le nœud **Préparer** : réimportez-la si besoin (voir plus bas).
-La **hauteur** est traitée par l'extension elle-même, quel que soit le workflow.
+et animée. Pour OpenAI, il ajoute une consigne de ton. 
 
 ## En cas d'erreur
 
@@ -77,7 +87,7 @@ Les voix de la *Voice Library* demandent un forfait payant.
 
 1. Dans n8n, ouvrez l'ancien workflow → menu **⋯** → **Archive** ou **Delete**. Deux workflows ne
    peuvent pas écouter la même adresse.
-2. **Import from File** → le nouveau `traducteur-audio.workflow.json`.
+2. **Import from File** → le fichier voulu (référence ou variante `options-voix`).
 3. Rouvrez **Webhook** et **ElevenLabs voix**, puis resélectionnez vos credentials dans la liste.
 4. Dans **Préparer**, remettez votre `elevenVoiceId` si vous l'aviez changé.
 5. **Save**, puis **Publish / Active**.
@@ -105,5 +115,6 @@ Content-Type: application/json
 
 ## Modifier le workflow
 
-`gen_workflow.py` régénère `traducteur-audio.workflow.json` (`python3 gen_workflow.py`). Vous
-pouvez aussi modifier directement le workflow dans n8n.
+`gen_workflow.py` régénère uniquement la variante `traducteur-audio.workflow.options-voix.json`
+(`python3 gen_workflow.py`). Il ne touche jamais au workflow de référence. Le plus simple reste de
+modifier le workflow directement dans n8n.

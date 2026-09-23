@@ -21,8 +21,17 @@
       <br><span class="hint">Voix du navigateur et voix IA</span></label>
       <input type="range" id="pitch" data-setting="pitch" min="0.5" max="2" step="0.05"></div>
     <div class="row"><label for="expressiveness">Style : posé ↔ expressif <span class="val" data-for="expressiveness"></span>
-      <br><span class="hint">Voix IA (n8n) : régulière et calme, ou vivante et animée</span></label>
+      <br><span class="hint">Voix IA : calme ou animée. Nécessite la variante « options-voix » du workflow n8n</span></label>
       <input type="range" id="expressiveness" data-setting="expressiveness" min="0" max="1" step="0.05"></div>
+    <div class="row"><label for="timbre">Timbre : aigu/brillant ↔ doux/chaud <span class="val" data-for="timbre"></span>
+      <br><span class="hint">Voix IA : vers « doux », la voix est moins perçante et plus claire. Marche avec tout workflow</span></label>
+      <input type="range" id="timbre" data-setting="timbre" min="0" max="1" step="0.05"></div>
+    <div class="row"><label for="aiQuality">Qualité de la voix IA
+      <br><span class="hint">ElevenLabs. « Fluide » : plus naturelle, un peu plus lente, ~2× plus de crédits. Nécessite la variante « options-voix »</span></label>
+      <select id="aiQuality" data-setting="aiQuality">
+        <option value="fast">Rapide (Flash)</option>
+        <option value="fluid">Fluide et naturelle (Multilingual v2)</option>
+      </select></div>
     <div class="row"><label for="voiceVolume">Volume de la voix <span class="val" data-for="voiceVolume"></span></label>
       <input type="range" id="voiceVolume" data-setting="voiceVolume" min="0" max="1" step="0.05"></div>
     <div class="row"><label for="gapMs">Pause entre les phrases <span class="val" data-for="gapMs"></span></label>

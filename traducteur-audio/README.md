@@ -13,7 +13,7 @@ français s'affiche en bas de l'écran.
 
 ## Installation (2 minutes)
 
-1. Téléchargez **`dist/traducteur-audio-v1.4.2.zip`** (sur GitHub : ouvrez le fichier, puis le
+1. Téléchargez **`dist/traducteur-audio-v1.4.3.zip`** (sur GitHub : ouvrez le fichier, puis le
    bouton de téléchargement ↓) et **décompressez-le** dans un dossier que vous garderez
    (par ex. `Documents/traducteur-audio`). Chrome n'installe pas un ZIP directement.
 2. Ouvrez `chrome://extensions` (ou `edge://extensions`).
@@ -55,8 +55,8 @@ Popup → **⚙️ Réglages de la voix**. Tout est enregistré immédiatement, 
 
 - **Profils en un clic** : Standard, Apprentissage (lent et clair, avec l'anglais affiché), Rapide,
   Confort d'écoute (gros texte, vidéo presque muette), Enfant.
-- **Voix** : vitesse (0,5 à 2×), hauteur (grave ↔ aiguë, aussi pour la voix IA), style posé ↔ expressif
-  (voix IA), volume, pause entre
+- **Voix** : vitesse (0,5 à 2×), hauteur (grave ↔ aiguë, aussi pour la voix IA), timbre aigu ↔ doux (voix IA),
+  style posé ↔ expressif et qualité Rapide/Fluide (voix IA, variante « options-voix » du workflow), volume, pause entre
   les phrases, choix de la voix, avec un bouton pour écouter le résultat.
 - **Vidéo** : volume de la vidéo pendant la voix, découpage des phrases.
 - **Affichage** : texte français sur la vidéo, anglais en plus, taille du texte (avec aperçu).

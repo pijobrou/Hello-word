@@ -1,4 +1,6 @@
-# Génère traducteur-audio.workflow.json (à importer dans n8n). Relancer après modification.
+# Génère la variante « options de voix » du workflow (traducteur-audio.workflow.options-voix.json).
+# Le workflow de référence est traducteur-audio.workflow.json, corrigé et validé par l'utilisateur
+# dans son n8n : ce script ne l'écrase jamais.
 import json, uuid
 
 def node(name, type_, version, pos, params, **extra):
@@ -33,12 +35,19 @@ const elevenSettings = {
   style: Number((0.45 * expr).toFixed(2)),             // exagération du style
   use_speaker_boost: true,
 };
+// Vitesse demandée par l'extension, appliquée par le fournisseur lui-même (plus fluide).
+const speed = Math.max(0.7, Math.min(1.2, Number(body.voiceSettings?.speed ?? 1)));
+elevenSettings.speed = speed;
+// Qualité : 'fluid' = modèle plus naturel (plus lent, plus de crédits), sinon le modèle de CONFIG.
+const elevenModel = body.voiceSettings?.model === 'fluid' ? 'eleven_multilingual_v2' : CONFIG.elevenModel;
 const tone = expr < 0.3 ? ' Ton posé, calme et régulier.' : expr > 0.65 ? ' Ton vivant, expressif et enthousiaste.' : '';
 
 return [{ json: {
   ...CONFIG,
   openaiInstructions: CONFIG.openaiInstructions + tone,
   elevenSettings,
+  elevenModel,
+  speed,
   text,
   source: String(body.source || 'en').toLowerCase(),
   target: String(body.target || 'fr').toLowerCase(),
@@ -66,6 +75,7 @@ return [{ json: {
   audio: buffer.toString('base64'),
   mime: 'audio/mpeg',
   voice: cfg.voice,
+  speed: cfg.speed,
 } }];
 """
 
@@ -127,7 +137,7 @@ nodes = [
       "method": "POST", "url": "https://api.openai.com/v1/audio/speech",
       "authentication": "genericCredentialType", "genericAuthType": "httpHeaderAuth",
       "sendBody": True, "specifyBody": "json",
-      "jsonBody": "={{ JSON.stringify({ model: $json.openaiModel, voice: $json.openaiVoice, input: $json.translation, instructions: $json.openaiInstructions, response_format: 'mp3' }) }}",
+      "jsonBody": "={{ JSON.stringify({ model: $json.openaiModel, voice: $json.openaiVoice, input: $json.translation, instructions: $json.openaiInstructions, speed: $json.speed, response_format: 'mp3' }) }}",
       "options": {"response": {"response": {"responseFormat": "file", "outputPropertyName": "data"}}}},
       credentials=header_cred("openai", "OpenAI")),
   node("ElevenLabs voix", "n8n-nodes-base.httpRequest", 4.2, [1320, 400], {
@@ -172,7 +182,7 @@ connections["Erreur"] = {"main": link("Répondre (erreur)")}
 
 wf = {"name": "Traducteur Audio EN → FR (voix humaine)", "nodes": nodes, "connections": connections,
       "active": False, "settings": {"executionOrder": "v1"}, "pinData": {}}
-json.dump(wf, open("traducteur-audio.workflow.json", "w"), ensure_ascii=False, indent=2)
+json.dump(wf, open("traducteur-audio.workflow.options-voix.json", "w"), ensure_ascii=False, indent=2)
 
 # Vérifie la syntaxe JavaScript de chaque nœud Code (nécessite Node.js ; ignoré s'il est absent).
 import shutil, subprocess, tempfile

@@ -5,6 +5,7 @@ const FORMAT = {
   rate: (v) => `(${Number(v).toFixed(2)}×)`,
   pitch: (v) => `(${v < 0.97 ? 'plus grave' : v > 1.03 ? 'plus aiguë' : 'normale'}, ${Number(v).toFixed(2)})`,
   expressiveness: (v) => `(${v < 0.3 ? 'posée' : v > 0.65 ? 'expressive' : 'naturelle'}, ${Math.round(v * 100)} %)`,
+  timbre: (v) => `(${v < 0.45 ? 'brillante' : v > 0.55 ? 'douce' : 'neutre'})`,
   voiceVolume: (v) => `(${Math.round(v * 100)} %)`,
   duckVolume: (v) => `(${Math.round(v * 100)} %)`,
   gapMs: (v) => `(${(v / 1000).toFixed(2)} s)`,

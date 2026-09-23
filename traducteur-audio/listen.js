@@ -289,6 +289,7 @@ const QUICK = [
   ['qRate', 'rate', (v) => `(${Number(v).toFixed(2)}×)`],
   ['qPitch', 'pitch', (v) => `(${v < 0.97 ? 'grave' : v > 1.03 ? 'aiguë' : 'normale'} ${Number(v).toFixed(2)})`],
   ['qExpr', 'expressiveness', (v) => `(${v < 0.3 ? 'posé' : v > 0.65 ? 'expressif' : 'naturel'})`],
+  ['qTimbre', 'timbre', (v) => `(${v < 0.45 ? 'brillant' : v > 0.55 ? 'doux' : 'neutre'})`],
   ['qVoiceVolume', 'voiceVolume', (v) => `(${Math.round(v * 100)} %)`],
   ['qDuck', 'duckVolume', (v) => `(${Math.round(v * 100)} %)`],
   ['qGap', 'gapMs', (v) => `(${(v / 1000).toFixed(2)} s)`]
@@ -297,6 +298,7 @@ const QUICK = [
 function fillQuick(s) {
   $('qProfile').value = PROFILES[s.profile] ? s.profile : 'custom';
   $('qChunking').value = s.chunking;
+  $('qQuality').value = s.aiQuality;
   for (const [id, key, fmt] of QUICK) {
     $(id).value = s[key];
     $(id + 'Val').textContent = fmt(s[key]);
@@ -314,6 +316,7 @@ $('qProfile').onchange = async (e) => {
   await chrome.storage.sync.set({ ...values, profile: e.target.value });
 };
 $('qChunking').onchange = (e) => chrome.storage.sync.set({ chunking: e.target.value, profile: 'custom' });
+$('qQuality').onchange = (e) => chrome.storage.sync.set({ aiQuality: e.target.value });
 for (const [id, key, fmt] of QUICK) {
   $(id).oninput = (e) => {
     $(id + 'Val').textContent = fmt(e.target.value);

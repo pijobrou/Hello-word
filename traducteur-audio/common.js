@@ -5,6 +5,8 @@ const DEFAULTS = {
   rate: 1.1,           // vitesse de la voix française (0,5 à 2)
   pitch: 1,            // hauteur de la voix (0,5 grave … 2 aiguë), voix du navigateur et voix IA
   expressiveness: 0.4, // voix IA : 0 = posée et régulière … 1 = vivante et expressive
+  timbre: 0.5,         // voix IA : 0 = brillante/aiguë … 0,5 = neutre … 1 = douce/chaude (égaliseur)
+  aiQuality: 'fast',   // voix IA : 'fast' (ElevenLabs Flash, rapide) ou 'fluid' (Multilingual v2, plus naturelle)
   voiceVolume: 1,      // volume de la voix française (0 à 1)
   gapMs: 150,          // pause entre deux phrases (ms)
   overlaySize: 20,     // taille du texte à l'écran (px)
@@ -55,15 +57,15 @@ function pickVoice(voiceName) {
 // Profils prêts à l'emploi : on les applique d'un clic, puis chaque réglage reste ajustable.
 const PROFILES = {
   standard: { label: 'Standard', rate: 1.1, pitch: 1, voiceVolume: 1, duckVolume: 0.2, gapMs: 150,
-    chunking: 'balanced', overlaySize: 20, showEnglish: false, expressiveness: 0.4 },
+    chunking: 'balanced', overlaySize: 20, showEnglish: false, expressiveness: 0.4, timbre: 0.5 },
   learning: { label: 'Apprentissage (lent et clair)', rate: 0.85, pitch: 1, voiceVolume: 1, duckVolume: 0.15,
-    gapMs: 500, chunking: 'full', overlaySize: 22, showEnglish: true, expressiveness: 0.2 },
+    gapMs: 500, chunking: 'full', overlaySize: 22, showEnglish: true, expressiveness: 0.2, timbre: 0.55 },
   fast: { label: 'Rapide', rate: 1.35, pitch: 1, voiceVolume: 1, duckVolume: 0.3, gapMs: 0,
-    chunking: 'fast', overlaySize: 20, showEnglish: false, expressiveness: 0.5 },
+    chunking: 'fast', overlaySize: 20, showEnglish: false, expressiveness: 0.5, timbre: 0.5 },
   comfort: { label: 'Confort d\'écoute (malentendant)', rate: 0.95, pitch: 0.95, voiceVolume: 1, duckVolume: 0.05,
-    gapMs: 300, chunking: 'balanced', overlaySize: 30, showEnglish: false, expressiveness: 0.2 },
+    gapMs: 300, chunking: 'balanced', overlaySize: 30, showEnglish: false, expressiveness: 0.2, timbre: 0.7 },
   kids: { label: 'Enfant', rate: 0.9, pitch: 1.15, voiceVolume: 1, duckVolume: 0.15, gapMs: 400,
-    chunking: 'full', overlaySize: 26, showEnglish: false, expressiveness: 0.8 }
+    chunking: 'full', overlaySize: 26, showEnglish: false, expressiveness: 0.8, timbre: 0.5 }
 };
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -87,7 +89,8 @@ async function prepareDub(en, settings) {
   if (settings.engine === 'n8n' && settings.n8nUrl) {
     try {
       const res = await sendMessage({ type: 'dub', text: en });
-      return { en, fr: res.translation, audio: `data:${res.mime || 'audio/mpeg'};base64,${res.audio}`, via: 'n8n' };
+      return { en, fr: res.translation, audio: `data:${res.mime || 'audio/mpeg'};base64,${res.audio}`, via: 'n8n',
+        speed: Number(res.speed) || 1 };   // vitesse déjà appliquée par ElevenLabs/OpenAI
     } catch (e) {
       console.warn('[Traducteur Audio] n8n indisponible, voix locale utilisée :', e.message);
       if (typeof onN8nFallback === 'function') onN8nFallback(e.message);
@@ -97,6 +100,26 @@ async function prepareDub(en, settings) {
 }
 
 let currentPlayer = null;
+let eqContext = null;
+
+// Timbre : égaliseur sur la voix IA. Vers « doux » on atténue les aigus perçants et on ajoute
+// un peu de chaleur ; vers « brillant » l'inverse. Renvoie false si l'audio ne peut pas passer
+// par Web Audio (page sans interaction) : la voix est alors jouée sans égaliseur.
+async function applyTimbre(player, timbre) {
+  if (Math.abs(timbre - 0.5) < 0.02) return false;
+  eqContext = eqContext || new AudioContext();
+  if (eqContext.state !== 'running') {
+    await Promise.race([eqContext.resume(), sleep(300)]);
+    if (eqContext.state !== 'running') return false;
+  }
+  const source = eqContext.createMediaElementSource(player);
+  const treble = eqContext.createBiquadFilter();
+  treble.type = 'highshelf'; treble.frequency.value = 3200; treble.gain.value = (0.5 - timbre) * 18;
+  const warmth = eqContext.createBiquadFilter();
+  warmth.type = 'lowshelf'; warmth.frequency.value = 250; warmth.gain.value = (timbre - 0.5) * 8;
+  source.connect(warmth).connect(treble).connect(eqContext.destination);
+  return true;
+}
 
 // Change la hauteur d'un audio sans changer sa durée finale : on le rééchantillonne (hauteur et
 // vitesse × p), puis la lecture à la vitesse ÷ p, qui conserve la hauteur, rétablit le tempo.
@@ -147,8 +170,10 @@ async function playDub(dub, settings) {
       player.preservesPitch = true;
       currentPlayer = player;
       player.onemptied = () => blobUrl && URL.revokeObjectURL(blobUrl);
-      player.playbackRate = Math.max(0.5, Math.min(2, settings.rate / (blobUrl ? p : 1)));
+      // La vitesse de base est déjà appliquée à la source (plus fluide) : on ne corrige que le reste.
+      player.playbackRate = Math.max(0.5, Math.min(2, settings.rate / (dub.speed || 1) / (blobUrl ? p : 1)));
       player.volume = Math.max(0, Math.min(1, settings.voiceVolume ?? 1));
+      await applyTimbre(player, settings.timbre ?? 0.5);
       await new Promise((resolve, reject) => {
         player.onended = player.onpause = resolve;
         player.onerror = () => reject(new Error('lecture audio impossible'));
