@@ -13,7 +13,7 @@ français s'affiche en bas de l'écran.
 
 ## Installation (2 minutes)
 
-1. Téléchargez **`dist/traducteur-audio-v1.5.2.zip`** (sur GitHub : ouvrez le fichier, puis le
+1. Téléchargez **`dist/traducteur-audio-v1.6.0.zip`** (sur GitHub : ouvrez le fichier, puis le
    bouton de téléchargement ↓) et **décompressez-le** dans un dossier que vous garderez
    (par ex. `Documents/traducteur-audio`). Chrome n'installe pas un ZIP directement.
 2. Ouvrez `chrome://extensions` (ou `edge://extensions`).
@@ -55,6 +55,17 @@ française installée (« Natural », puis « Google »). Pour une voix vraiment
 OpenAI) et une traduction DeepL, branchez le workflow n8n fourni dans [`n8n/`](n8n/README.md) :
 popup → **⚙️ Configurer la voix IA** → URL du webhook + clé secrète → **Enregistrer et tester**.
 Les clés API restent dans n8n. Si n8n ne répond pas, l'extension revient à la voix locale.
+
+## 🔒 Voix verrouillée (activée par défaut)
+
+- **Voix du navigateur** : la voix est choisie une fois par langue (celle des Réglages, sinon la plus
+  naturelle), puis **mémorisée**. Toutes les pages et toutes les sessions utilisent exactement la même. Si
+  elle devient indisponible, elle n'est **jamais remplacée** : la phrase est affichée sans être lue et un
+  avertissement s'affiche.
+- **Voix IA** : en cas d'échec, jamais de voix de secours, seulement le texte.
+- **Un seul lecteur à la fois** : ouvrir une nouvelle fenêtre d'écoute arrête l'ancienne, et le mode
+  « Doublage par les sous-titres » se tait dans tous les onglets tant qu'une fenêtre d'écoute tourne.
+- La case **🔒 Voix verrouillée** (réglages rapides et page Réglages) permet de désactiver ce mode.
 
 ## 🎙️ Une seule voix, du début à la fin
 

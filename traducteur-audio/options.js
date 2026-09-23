@@ -54,9 +54,14 @@ document.querySelectorAll('[data-setting]').forEach((el) => {
     // Un réglage modifié à la main : on n'est plus exactement sur le profil choisi.
     const extra = el.dataset.setting === 'targetLang' ? { voiceName: '' } : {};
     // Les langues ne font pas partie des profils : les changer ne « casse » pas le profil choisi.
-    const profile = ['sourceLang', 'targetLang', 'voiceName', 'aiFallback'].includes(el.dataset.setting) ? {} : { profile: 'custom' };
+    const profile = ['sourceLang', 'targetLang', 'voiceName', 'aiFallback', 'lockVoice'].includes(el.dataset.setting) ? {} : { profile: 'custom' };
     chrome.storage.sync.set({ [el.dataset.setting]: value, ...extra, ...profile });
     if (el.dataset.setting === 'targetLang') fillVoices('');
+    // Choisir une voix précise remplace la voix mémorisée pour cette langue.
+    if (el.dataset.setting === 'voiceName') chrome.storage.sync.get({ lockedVoices: {} }, ({ lockedVoices }) => {
+      if (value) lockedVoices[$('targetLang').value] = value; else delete lockedVoices[$('targetLang').value];
+      chrome.storage.sync.set({ lockedVoices });
+    });
     document.querySelectorAll('.profiles button').forEach((b) => b.classList.remove('active'));
     showValues();
     saved();

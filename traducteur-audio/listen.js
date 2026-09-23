@@ -95,7 +95,12 @@ async function processQueue() {
     const voiceEl = addEntry(dub.en, dub.fr + ({ n8n: '  🎙️', silent: '  🔇', local: '' }[dub.via] || ''));
     if (SOURCE === 'mic' && !$('headphones').checked) pauseRecognition();
     duck(true, settings);
-    const used = await playDub(dub, { ...settings, rate: settings.rate * boost });
+    let used;
+    try {
+      used = await playDub(dub, { ...settings, rate: settings.rate * boost });
+    } catch (e) {
+      used = 'erreur de lecture : ' + e.message;   // une phrase ratée ne doit jamais bloquer la file
+    }
     voiceEl.textContent = '🔈 ' + used;
     duck(false, settings);
     if (settings.gapMs && !queue.length) await sleep(settings.gapMs);   // pas de pause si on a du retard
@@ -385,3 +390,36 @@ if (SOURCE === 'tab') {
   notify();
   setInterval(notify, 3000);
 }
+
+// ---------- Un seul lecteur à la fois ----------
+// Une nouvelle fenêtre d'écoute arrête les précédentes (sinon deux voix se chevauchent).
+const readers = new BroadcastChannel('traducteur-audio-lecteur');
+const myId = Math.random().toString(36).slice(2);
+readers.postMessage({ type: 'takeover', id: myId });
+readers.onmessage = (e) => {
+  if (e.data && e.data.type === 'takeover' && e.data.id !== myId && listening) {
+    stop();
+    setStatus('⏸️ Arrêtée : une autre fenêtre de traduction a pris le relais (une seule voix à la fois).', 'status-warn');
+  }
+};
+// Le mode « sous-titres » de tous les onglets se tait tant qu'une fenêtre d'écoute tourne.
+setInterval(() => { if (listening) chrome.storage.local.set({ listenHeartbeat: Date.now() }); }, 3000);
+
+function onLockedVoiceMissing(name) {
+  $('notice').hidden = false;
+  $('notice').textContent = name
+    ? `🔒 La voix verrouillée « ${name} » est indisponible sur cet appareil : les phrases sont affichées sans être lues. `
+      + 'Choisissez une autre voix dans ⚙️ Réglages → Voix.'
+    : '🔒 Aucune voix installée pour cette langue : installez-en une, ou utilisez la voix IA (n8n).';
+}
+
+async function showLockedVoice() {
+  const s = await getSettings();
+  const { lockedVoices = {} } = await chrome.storage.sync.get({ lockedVoices: {} });
+  $('qLock').checked = s.lockVoice !== false;
+  const name = s.engine === 'n8n' && s.n8nUrl ? 'voix IA (n8n)' : (s.voiceName || lockedVoices[s.targetLang] || 'choisie à la première phrase');
+  $('qLockName').textContent = s.lockVoice !== false ? `🔒 ${name}` : '(la voix peut changer en cas de problème)';
+}
+$('qLock').onchange = (e) => chrome.storage.sync.set({ lockVoice: e.target.checked });
+showLockedVoice();
+chrome.storage.onChanged.addListener(() => showLockedVoice());

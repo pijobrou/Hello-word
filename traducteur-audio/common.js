@@ -20,6 +20,7 @@ const DEFAULTS = {
   chunking: 'balanced', // découpage des phrases : 'fast', 'balanced' ou 'full'
   engine: 'local',     // 'local' (voix du navigateur) ou 'n8n' (voix IA via votre workflow)
   aiFallback: 'silent', // si la voix IA échoue pour une phrase : 'silent' (texte seul, une seule voix) ou 'local'
+  lockVoice: true,     // 🔒 une seule voix : jamais de voix de remplacement, la voix choisie est mémorisée
   n8nUrl: ''           // URL du webhook n8n
 };
 // Le secret du webhook reste sur cet appareil (storage.local, jamais synchronisé).
@@ -148,16 +149,44 @@ const chosenVoice = new Map();   // « langue|nom demandé » → voix retenue p
 
 async function speakFrench(text, opts = {}) {
   await waitVoices();
-  const { voiceName = '', targetLang = 'fr-FR' } = opts;
-  const key = targetLang + '|' + voiceName;
-  if (!chosenVoice.has(key) || !speechSynthesis.getVoices().includes(chosenVoice.get(key))) {
-    chosenVoice.set(key, pickVoice(voiceName, targetLang));
+  const { voiceName = '', targetLang = 'fr-FR', lockVoice = true } = opts;
+  const all = speechSynthesis.getVoices();
+  let voice;
+  if (lockVoice) {
+    // 🔒 La voix est choisie une fois pour cette langue puis mémorisée dans les réglages :
+    // toutes les pages et toutes les sessions utilisent exactement la même.
+    const locked = await lockedVoiceName(targetLang, voiceName);
+    voice = all.find((v) => v.name === locked);
+    if (!voice) return lockedVoiceMissing(text, locked);
+  } else {
+    const key = targetLang + '|' + voiceName;
+    if (!chosenVoice.has(key) || !all.includes(chosenVoice.get(key))) chosenVoice.set(key, pickVoice(voiceName, targetLang));
+    voice = chosenVoice.get(key);
   }
-  const voice = chosenVoice.get(key);
   let r = await speakWith(text, opts, voice);
   // Les voix « en ligne » (Google, Microsoft Online) échouent parfois à cause du réseau : même voix, 2e essai.
   if (!r.ok) r = await speakWith(text, opts, voice);
-  return (voice ? voice.name : 'voix par défaut du système') + (r.ok ? '' : ' (échec : ' + r.error + ')');
+  return (voice ? voice.name : 'voix par défaut du système') + (r.ok ? '' : ' (échec : ' + r.error + ', phrase non lue)');
+}
+
+// Nom de la voix verrouillée pour une langue : celle choisie dans les réglages, sinon la meilleure
+// disponible, enregistrée tout de suite pour ne plus jamais changer.
+async function lockedVoiceName(targetLang, voiceName) {
+  if (voiceName && voicesFor(targetLang).some((v) => v.name === voiceName)) return voiceName;
+  const { lockedVoices = {} } = await chrome.storage.sync.get({ lockedVoices: {} });
+  if (lockedVoices[targetLang]) return lockedVoices[targetLang];
+  const best = pickVoice('', targetLang);
+  if (!best) return '';
+  lockedVoices[targetLang] = best.name;
+  await chrome.storage.sync.set({ lockedVoices });
+  return best.name;
+}
+
+// La voix verrouillée n'existe pas sur cet appareil (ou pas encore) : on ne la remplace pas.
+async function lockedVoiceMissing(text, name) {
+  if (typeof onLockedVoiceMissing === 'function') onLockedVoiceMissing(name);
+  await sleep(Math.min(6000, 400 + text.length * 45));
+  return name ? `🔒 ${name} indisponible : texte seul` : '🔒 aucune voix pour cette langue : texte seul';
 }
 
 function speakWith(text, { rate = 1, pitch = 1, voiceVolume = 1, targetLang = 'fr-FR' } = {}, voice) {
@@ -183,7 +212,7 @@ async function prepareDub(en, settings) {
       return { en, fr: res.translation, audio: `data:${res.mime || 'audio/mpeg'};base64,${res.audio}`, via: 'n8n',
         speed: Number(res.speed) || 1 };   // vitesse déjà appliquée par ElevenLabs/OpenAI
     } catch (e) {
-      const silent = (settings.aiFallback || 'silent') === 'silent';
+      const silent = settings.lockVoice !== false || (settings.aiFallback || 'silent') === 'silent';
       console.warn('[Traducteur Audio] voix IA indisponible pour cette phrase :', e.message);
       if (typeof onN8nFallback === 'function') onN8nFallback(e.message, silent);
       const fr = await translateText(en, trCode(settings.sourceLang || 'en-US'), trCode(settings.targetLang || 'fr-FR'));

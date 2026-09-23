@@ -65,7 +65,11 @@
       if (dub.error) { console.warn('[Traducteur Audio]', dub.error); continue; }
       showText(dub.fr, dub.en);
       duck(true);
-      await playDub(dub, { ...settings, rate: settings.rate * boost });
+      try {
+        await playDub(dub, { ...settings, rate: settings.rate * boost });
+      } catch (e) {
+        console.warn('[Traducteur Audio] lecture :', e.message);   // ne jamais bloquer la file
+      }
       if (settings.gapMs && !queue.length) await sleep(settings.gapMs);
     }
     duck(false);
@@ -92,6 +96,13 @@
 
   function onEnglish(text) {
     if (Date.now() < listenWindowUntil) return;
+    // Une fenêtre d'écoute tourne quelque part : un seul lecteur à la fois, on se tait.
+    chrome.storage.local.get({ listenHeartbeat: 0 }, ({ listenHeartbeat }) => {
+      if (Date.now() - listenHeartbeat > 8000) handleEnglish(text);
+    });
+  }
+
+  function handleEnglish(text) {
     text = text.replace(/\s+/g, ' ').trim();
     if (!settings.enabled || !text || text === lastText) return;
     // Sous-titres « roulants » (YouTube) : on n'envoie que la partie nouvelle.
