@@ -70,12 +70,47 @@ async function dub(text) {
   }
 }
 
+// Quand l'appel échoue au niveau réseau, on cherche la cause exacte pour guider l'utilisateur.
+async function diagnose(n8nUrl) {
+  let url;
+  try { url = new URL(n8nUrl); } catch (_) { return 'URL du webhook invalide.'; }
+  const granted = await chrome.permissions.contains({ origins: [url.origin + '/*'] });
+  if (!granted) {
+    return `Chrome n'a pas l'autorisation d'appeler ${url.host}. Cliquez « Enregistrer et tester » `
+      + 'et acceptez la demande d\'autorisation.';
+  }
+  try {
+    const res = await fetch(url.origin + '/healthz', { cache: 'no-store' });
+    if (res.status === 502 || res.status === 530 || res.status >= 520) {
+      return `Le tunnel ${url.host} est ouvert, mais n8n ne répond pas derrière (erreur ${res.status}) : `
+        + 'démarrez n8n sur votre ordinateur.';
+    }
+    return `Le serveur ${url.host} répond (healthz ${res.status}), mais l'appel du webhook a été bloqué. `
+      + 'Vérifiez que l\'URL se termine par /webhook/traducteur-audio (pas /webhook-test/).';
+  } catch (_) {
+    return `Le serveur ${url.host} est injoignable. Si c'est un tunnel trycloudflare : il est fermé ou son `
+      + 'adresse a changé. Relancez « cloudflared tunnel --url http://localhost:5678 » et collez la nouvelle adresse.';
+  }
+}
+
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type !== 'dub') return false;
   dub(msg.text)
     .then((out) => sendResponse({ ok: true, ...out }))
-    .catch((err) => sendResponse({ ok: false, error: err.name === 'AbortError' ? 'n8n : délai dépassé (20 s)'
-      : err instanceof TypeError ? 'n8n injoignable : vérifiez l\'URL du webhook et que le workflow est actif'
-      : String(err.message || err) }));
+    .catch(async (err) => {
+      let error = String(err.message || err);
+      if (err.name === 'AbortError') error = 'n8n : délai dépassé (20 s).';
+      else if (err instanceof TypeError) {
+        const { n8nUrl } = await chrome.storage.sync.get({ n8nUrl: '' });
+        error = await diagnose(n8nUrl);
+      } else if (/^n8n 404/.test(error)) {
+        error = 'n8n 404 : le webhook n\'existe pas. Activez (publiez) le workflow dans n8n et utilisez la '
+          + '« Production URL » du nœud Webhook.';
+      } else if (/^n8n 403/.test(error)) {
+        error = 'n8n 403 : clé secrète incorrecte. Elle doit être identique à la credential '
+          + '« Traducteur - clé extension » (attention aux espaces).';
+      }
+      sendResponse({ ok: false, error });
+    });
   return true;
 });

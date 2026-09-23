@@ -75,7 +75,7 @@ $('n8nSave').onclick = async () => {
   const granted = await chrome.permissions.request({ origins: [origin] });
   if (!granted) return n8nStatus('Accès au serveur n8n refusé.', 'status-err');
   await chrome.storage.sync.set({ n8nUrl: url, engine: 'n8n' });
-  await chrome.storage.local.set({ n8nKey: $('n8nKey').value });
+  await chrome.storage.local.set({ n8nKey: $('n8nKey').value.trim() });
   $('engineN8n').checked = true;
   $('n8nBadge').textContent = '— activée';
   n8nStatus('Test en cours…');
