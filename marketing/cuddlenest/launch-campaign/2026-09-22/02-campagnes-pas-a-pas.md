@@ -86,10 +86,10 @@ Tout le reste identique (10 $/jour, mêmes dates).
 - **Texte principal :**
   > Il veut remonter sa culotte tout seul. Les petits accidents font encore partie du chemin. Les culottes d'apprentissage CuddleNest sont entre les deux : douces comme une vraie culotte, avec une protection légère pour les petites fuites de jour. Lavables, réutilisables, 17 motifs. Garantie 30 jours, remboursé.
   >
-  > 8 paires pour le prix de 6* · livraison gratuite
-  > *Motifs sélectionnés, détails sur la fiche.
+  > 10 paires pour le prix de 8* · livraison gratuite
+  > *Motifs sélectionnés, tailles 90 et 100 cm, détails sur la fiche.
 - **Titre :** Petits pas, grandes étapes
-- **Description :** 8 paires pour le prix de 6* · livraison gratuite
+- **Description :** 10 paires pour le prix de 8* · livraison gratuite
 - **Bouton :** Acheter
 
 ### Annonce FR-2 Problème / solution (photo : gros plan des couches de gaze / doublure)
@@ -110,10 +110,10 @@ Tout le reste identique (10 $/jour, mêmes dates).
 - **Primary text:**
   > They want to pull up their own underwear. Little accidents are still part of the journey. CuddleNest training pants sit right in between: soft like real underwear, with light protection for small daytime leaks. Washable, reusable, 17 fun prints. 30-day money-back guarantee.
   >
-  > 8 pairs for the price of 6* · free shipping
-  > *Selected prints, details on the product page.
+  > 10 pairs for the price of 8* · free shipping
+  > *Selected prints, sizes 90 and 100 cm, details on the product page.
 - **Headline:** Small steps. Big milestones.
-- **Description:** 8 pairs for the price of 6* · free shipping
+- **Description:** 10 pairs for the price of 8* · free shipping
 - **CTA:** Shop now
 
 ### Annonce EN-2 Problem / solution
@@ -325,3 +325,19 @@ passer à ce budget **dès le 1er octobre** plutôt qu'après 2 jours à 30 $/jo
 - **Premier bilan :** après ~100 $ dépensés sur Meta (≈ 3 oct.), pas avant.
 - Aucun résultat n'est garanti : au CPA cible de 12 $, 15 $/jour correspond à environ
   1 commande par jour **si** la cible est atteinte ; les premiers jours coûtent souvent plus.
+
+---
+
+## 5. Mise à jour du 2026-09-23 — offre B en avant
+
+Après la vérification des prix concurrents (`05-concurrence-prix.md`), les annonces FR-1 et
+EN-1 mettent en avant l'**offre B « 10 paires pour le prix de 8 »** (5,56 $ la paire, marge
+16,56 à 21,89 $) au lieu de l'offre A (9,04 $ la paire). L'astérisque précise les tailles
+90 et 100 cm, car les motifs de l'offre B n'existent pas en 110.
+
+**Entrepôt CJ États-Unis (vérifié le 2026-09-23 via l'API CJ) :** le produit
+CJWJYENB00043 n'y a **aucun stock** ; les 519 036 unités sont en stock usine en Chine, et
+aucun transport États-Unis → Canada n'est proposé pour ce produit. Depuis la Chine, CJ
+annonce « CJPacket Ordinary » en **4 à 7 jours** de transit vers le Canada (23,20 $ US pour
+10 paires, estimation CJ, hors délai de préparation). Aucune promesse de délai dans les pubs
+tant que les premières commandes n'ont pas confirmé le délai réel.
