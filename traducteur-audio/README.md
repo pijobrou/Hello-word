@@ -13,7 +13,7 @@ français s'affiche en bas de l'écran.
 
 ## Installation (2 minutes)
 
-1. Téléchargez **`dist/traducteur-audio-v1.3.4.zip`** (sur GitHub : ouvrez le fichier, puis le
+1. Téléchargez **`dist/traducteur-audio-v1.3.5.zip`** (sur GitHub : ouvrez le fichier, puis le
    bouton de téléchargement ↓) et **décompressez-le** dans un dossier que vous garderez
    (par ex. `Documents/traducteur-audio`). Chrome n'installe pas un ZIP directement.
 2. Ouvrez `chrome://extensions` (ou `edge://extensions`).

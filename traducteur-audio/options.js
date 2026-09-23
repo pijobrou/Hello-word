@@ -13,6 +13,12 @@ getSettings().then((s) => {
 
 $('engineN8n').onchange = (e) => chrome.storage.sync.set({ engine: e.target.checked ? 'n8n' : 'local' });
 
+// n8n sur ce PC (Docker ou npx) : adresse fixe, autorisée d'office dans le manifeste.
+$('useLocal').onclick = () => {
+  $('n8nUrl').value = 'http://localhost:5678/webhook/traducteur-audio';
+  status('Adresse locale remplie : vérifiez la clé secrète puis cliquez « Enregistrer et tester ».');
+};
+
 $('n8nOpen').onclick = () => {
   try { window.open(new URL($('n8nUrl').value.trim()).origin + '/healthz', '_blank'); }
   catch (_) { status('URL invalide.', 'status-err'); }
