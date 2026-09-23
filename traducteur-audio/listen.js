@@ -40,24 +40,32 @@ function duck(on, settings) {
   tabGain.gain.value = on ? base * settings.duckVolume : base;
 }
 
+let settings = null;
+getSettings().then((s) => { settings = s; });
+chrome.storage.onChanged.addListener(() => getSettings().then((s) => { settings = s; }));
+
+// Chaque phrase anglaise est préparée (traduction + audio) dès son arrivée.
+function enqueue(en) {
+  const job = prepareDub(en, settings || DEFAULTS).catch((e) => ({ en, error: e }));
+  queue.push(job);
+  processQueue();
+}
+
 async function processQueue() {
   if (speaking) return;
   speaking = true;
-  const settings = await getSettings();
   while (queue.length) {
-    // Si on prend du retard, on regroupe ce qui reste en une seule phrase.
-    const en = queue.length > 2 ? queue.splice(0).join(' ') : queue.shift();
-    let fr;
-    try {
-      fr = await translateText(en);
-    } catch (e) {
-      setStatus('Erreur de traduction : ' + e.message, 'status-err');
+    // Trop de retard : on abandonne les phrases les plus anciennes pour rester synchro.
+    while (queue.length > 3) queue.shift();
+    const dub = await queue.shift();
+    if (dub.error) {
+      setStatus('Erreur de traduction : ' + dub.error.message, 'status-err');
       continue;
     }
-    addEntry(en, fr);
+    addEntry(dub.en, dub.fr + (dub.via === 'n8n' ? '  🎙️' : ''));
     if (SOURCE === 'mic' && !$('headphones').checked) pauseRecognition();
     duck(true, settings);
-    await speakFrench(fr, settings);
+    await playDub(dub, settings);
     duck(false, settings);
   }
   speaking = false;
@@ -129,7 +137,7 @@ function buildRecognition() {
       const res = event.results[i];
       if (res.isFinal) {
         const text = res[0].transcript.trim();
-        if (text) { queue.push(text); processQueue(); }
+        if (text) enqueue(text);
       } else {
         interim += res[0].transcript;
       }
@@ -198,7 +206,7 @@ function stop() {
   $('toggle').textContent = '▶️ Démarrer l\'écoute';
   if (rec) rec.stop();
   queue = [];
-  speechSynthesis.cancel();
+  stopDub();
 }
 
 $('toggle').onclick = () => (listening ? stop() : start());

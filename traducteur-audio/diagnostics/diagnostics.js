@@ -86,13 +86,28 @@ async function run() {
     }
   }
 
-  // 6. Onglet actif / mode vidéo
   const settings = await getSettings();
+
+  // 5 bis. Voix IA via n8n
+  const n8n = row('Voix humaine IA (workflow n8n)');
+  if (settings.engine !== 'n8n') n8n('warn', 'Désactivée : voix locale du navigateur (popup → « Voix humaine IA »).');
+  else {
+    try {
+      const { value, ms } = await timed(() => sendMessage({ type: 'dub', text: 'Good morning, how are you?' }));
+      n8n('ok', `« ${value.translation} » + audio ${Math.round(value.audio.length * 0.75 / 1024)} Ko (${ms} ms)`);
+    } catch (e) {
+      n8n('err', e.message + ' — la voix locale est utilisée en secours.');
+    }
+  }
+
+  // 6. Onglet actif / mode vidéo
   const vid = row('Mode vidéo (doublage des sous-titres)');
   vid(settings.enabled ? 'ok' : 'warn',
     settings.enabled ? 'Activé sur toutes les pages.' : 'Désactivé : activez-le depuis la popup.');
 
-  $('settings').textContent = JSON.stringify(settings, null, 2);
+  // La clé n8n n'apparaît jamais dans le rapport (il peut être copié et partagé).
+  const shown = { ...settings, n8nKey: settings.n8nKey ? '•••• (définie)' : '(vide)' };
+  $('settings').textContent = JSON.stringify(shown, null, 2);
 }
 
 $('rerun').onclick = run;
@@ -103,8 +118,11 @@ $('mic').onclick = async () => {
   } catch (_) { /* résultat affiché par le test */ }
   run();
 };
-$('voice').onclick = async () => speakFrench('Bonjour ! La voix française fonctionne correctement.', await getSettings());
-$('reset').onclick = () => chrome.storage.sync.clear(run);
+$('voice').onclick = async () => {
+  const s = await getSettings();
+  playDub(await prepareDub('Hello! The French voice works correctly.', s), s);
+};
+$('reset').onclick = () => chrome.storage.sync.clear(() => chrome.storage.local.clear(run));
 $('copy').onclick = () => navigator.clipboard.writeText(
   `Diagnostics Traducteur Audio\n${$('meta').textContent}\n\n${report.join('\n')}\n\n${$('settings').textContent}`
 ).then(() => { $('copy').textContent = '📋 Copié !'; setTimeout(() => { $('copy').textContent = '📋 Copier le rapport'; }, 1500); });

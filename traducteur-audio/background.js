@@ -45,3 +45,35 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     .catch((err) => sendResponse({ ok: false, error: String(err) }));
   return true; // réponse asynchrone
 });
+
+// Voix IA : envoie la phrase au webhook n8n, qui renvoie { translation, audio (MP3 base64), mime }.
+async function dub(text) {
+  const { n8nUrl } = await chrome.storage.sync.get({ n8nUrl: '' });
+  const { n8nKey } = await chrome.storage.local.get({ n8nKey: '' });
+  if (!n8nUrl) throw new Error('URL n8n non configurée');
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 20000);
+  try {
+    const res = await fetch(n8nUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Traducteur-Key': n8nKey },
+      body: JSON.stringify({ text, source: 'en', target: 'fr' }),
+      signal: controller.signal
+    });
+    if (!res.ok) throw new Error(`n8n ${res.status} ${(await res.text()).slice(0, 200)}`);
+    const data = await res.json();
+    const out = Array.isArray(data) ? data[0] : data;
+    if (!out || !out.translation) throw new Error('réponse n8n inattendue');
+    return out;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (msg.type !== 'dub') return false;
+  dub(msg.text)
+    .then((out) => sendResponse({ ok: true, ...out }))
+    .catch((err) => sendResponse({ ok: false, error: err.name === 'AbortError' ? 'n8n : délai dépassé (20 s)' : String(err.message || err) }));
+  return true;
+});

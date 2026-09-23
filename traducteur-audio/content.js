@@ -4,8 +4,7 @@
   if (window.__traducteurAudio) return;
   window.__traducteurAudio = true;
 
-  const DEFAULTS = { enabled: false, rate: 1.1, duckVolume: 0.2, showOverlay: true, voiceName: '' };
-  let settings = { ...DEFAULTS };
+  let settings = { ...DEFAULTS, ...LOCAL_DEFAULTS };
   let lastText = '';
   let queue = [];
   let speaking = false;
@@ -14,27 +13,7 @@
   const savedVolumes = new Map();
   const hookedTracks = new WeakSet();
 
-  // ---------- Traduction & voix ----------
-  function translate(text) {
-    return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage({ type: 'translate', text, from: 'en', to: 'fr' }, (res) => {
-        if (chrome.runtime.lastError || !res || !res.ok) return reject(res && res.error);
-        resolve(res.translation);
-      });
-    });
-  }
-
-  function speak(text) {
-    return new Promise((resolve) => {
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'fr-FR';
-      u.rate = settings.rate;
-      const voices = speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith('fr'));
-      u.voice = voices.find((v) => v.name === settings.voiceName) || voices[0] || null;
-      u.onend = u.onerror = () => resolve();
-      speechSynthesis.speak(u);
-    });
-  }
+  // Traduction et voix : prepareDub / playDub / stopDub viennent de common.js.
 
   function duck(on) {
     document.querySelectorAll('video, audio').forEach((m) => {
@@ -72,17 +51,13 @@
     if (speaking) return;
     speaking = true;
     while (queue.length && settings.enabled) {
-      // Si on prend du retard, on saute directement à la phrase la plus récente.
-      if (queue.length > 2) queue = queue.slice(-1);
-      const en = queue.shift();
-      try {
-        const fr = await translate(en);
-        showText(fr);
-        duck(true);
-        await speak(fr);
-      } catch (e) {
-        console.warn('[Traducteur Audio]', e);
-      }
+      // Si on prend du retard, on saute aux phrases les plus récentes.
+      while (queue.length > 2) queue.shift();
+      const dub = await queue.shift();
+      if (dub.error) { console.warn('[Traducteur Audio]', dub.error); continue; }
+      showText(dub.fr);
+      duck(true);
+      await playDub(dub, settings);
     }
     duck(false);
     hideText();
@@ -96,7 +71,8 @@
     const fresh = lastText && text.startsWith(lastText) ? text.slice(lastText.length).trim() : text;
     lastText = text;
     if (!fresh) return;
-    queue.push(fresh);
+    // Préparée tout de suite (traduction + audio) pendant que la phrase précédente est lue.
+    queue.push(prepareDub(fresh, settings).catch((error) => ({ error })));
     processQueue();
   }
 
@@ -145,7 +121,7 @@
     observer.disconnect();
     queue = [];
     lastText = '';
-    speechSynthesis.cancel();
+    stopDub();
     duck(false);
     hideText();
   }
@@ -157,10 +133,6 @@
     if (!settings.enabled && wasEnabled) stop();
   }
 
-  chrome.storage.sync.get(DEFAULTS, (s) => apply(s));
-  chrome.storage.onChanged.addListener((changes) => {
-    const next = {};
-    for (const [k, { newValue }] of Object.entries(changes)) next[k] = newValue;
-    apply(next);
-  });
+  getSettings().then((s) => apply(s));
+  chrome.storage.onChanged.addListener(() => getSettings().then((s) => apply(s)));
 })();
