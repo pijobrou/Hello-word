@@ -1,7 +1,6 @@
 # Run — seo-audit-campagne · bvy · 2026-09-24
 
 Mode : **plan seulement** — rien publié, lancé ni modifié.
-Marque précédente dans cette session : `cuddlenest` (retour : « reprends cuddlenest »).
 
 | Partie | Artefact | Statut |
 |---|---|---|
