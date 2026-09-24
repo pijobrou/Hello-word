@@ -5,8 +5,10 @@ Tag : **[S]** = Stone (fait vérifié, source citée) · **[O]** = Opinion (affi
 
 ## Identity
 - ★ **Name / slug :** BVY Accounting & Tax Services Inc. / BVY Services de comptabilité et d'impôt Inc. · `bvy` [S — registre fédéral, constituée le 2021-08-12, canadacompanyregistry.com, lu 2026-09-24]
-- ★ **One-line description :** cabinet comptable qui offre tenue de livres, états financiers, impôts des particuliers (T1) et des sociétés (T2), TPS/TVQ, paie, incorporation et domiciliation d'entreprises étrangères au Québec. [S — site, lu 2026-09-24]
+- ★ **One-line description :** cabinet comptable **virtuel** qui offre tenue de livres, états financiers, impôts des particuliers (T1) et des sociétés (T2), TPS/TVQ, paie, incorporation et domiciliation d'entreprises étrangères au Québec. [S — site, lu 2026-09-24]
 - **Founded / stage :** société constituée en 2021 [S] · « 15+ années d'expérience » [O — à préciser : expérience du ou des associés ?]
+- **Forme d'exploitation :** **cabinet virtuel** — pas de bureau où l'on reçoit la clientèle [S — client, 2026-09-24]
+- **Adresse (fiche Google) :** 1001, route Saint-Martin, Sainte-Marie (Québec) G6E 0R8 [S — client]. D'après les annonces publiques, c'est l'immeuble locatif résidentiel « Sentiers 59 » (60 logements, livré début 2026) [S — Vistoo, MLB Beauce, lu 2026-09-24] → adresse à **masquer** sur Google (zone de service), voir PLAN § 5.
 - **Website / key properties :** https://bvyaccountingtax.ca (Next.js, une seule page) · portail client `portail.bvyaccountingtax.ca` et `/connexion/` · page Facebook `facebook.com/bvyacctax` (affiche Scarborough ON) [S]
 - **Logo :** https://bvyaccountingtax.ca/logo.png (le client l'a) [S]
 
@@ -20,8 +22,9 @@ Tag : **[S]** = Stone (fait vérifié, source citée) · **[O]** = Opinion (affi
 - ★ **Target markets :** Québec (Sainte-Marie, Nouvelle-Beauce, Chaudière-Appalaches, Lévis/Québec à distance) + investisseurs étrangers (France, Belgique, Maroc, Sénégal, Côte d'Ivoire — liste du formulaire) [S — site]. Aucun marché UE ciblé par la publicité payante dans ce plan → pas de C2PA requis tant que ça reste vrai.
 - **Industry :** services comptables et fiscaux
 - **Regulated aspects :**
-  - Titre **CPA** et « cabinet agréé CPA Québec » : réservés aux membres de l'Ordre des CPA du Québec (Code des professions). [O — statut à prouver : numéro de membre / inscription du cabinet]
-  - Publicité d'un professionnel : Code de déontologie des CPA (publicité non trompeuse, prix clairs, règles sur témoignages) — à relire avant toute annonce utilisant avis ou comparatifs.
+  - **Aucun CPA dans l'équipe** [S — client, 2026-09-24]. Les titres « CPA », « comptable professionnel agréé », « comptable agréé », « cabinet agréé » sont réservés aux membres de l'Ordre des CPA (Code des professions) → **interdits** dans tout contenu BVY, site compris.
+  - Activités **réservées aux CPA** (audit et mission d'examen — « certification ») : BVY ne peut pas les offrir. Tenue de livres, paie, TPS/TVQ, préparation d'états financiers pour la direction et déclarations T1/T2 ne sont pas réservées. Si une banque exige des états financiers signés par un CPA : sous-traiter à un cabinet CPA partenaire. Le cas de la mission de compilation (NCMC 4200) est à confirmer auprès de l'Ordre avant de l'offrir.
+  - Publicité : Loi sur la protection du consommateur (Québec) et Loi sur la concurrence (fédérale) — aucune indication fausse ou trompeuse.
   - **Loi 25** (Québec) : politique de confidentialité et coordonnées du responsable de la protection des renseignements personnels à publier sur le site ; consentement aux témoins. Le site affirme « 100 % conforme Loi 25 » mais n'affiche aucune politique [S — constaté 2026-09-24].
   - **LCAP / CASL** pour tout courriel commercial ; **Charte de la langue française** (version française prioritaire).
 
@@ -36,7 +39,7 @@ Tag : **[S]** = Stone (fait vérifié, source citée) · **[O]** = Opinion (affi
 - Formal ←→ Casual : **3** · Serious ←→ Playful : **2** · Reserved ←→ Bold : **4** · Technical ←→ Accessible : **7**
 - Tolérance : distance ≤ 0,15
 - **Banned :** « garanti », « le meilleur », « remboursement maximal assuré », tout chiffre non sourcé.
-- **Claims we may not make (jusqu'à preuve) :** « cabinet agréé CPA », « 200+ clients », « 15+ ans », « 100 % conforme Loi 25 », « partenaire QuickBooks » (badge ProAdvisor à fournir).
+- **Claims we may not make :** « CPA », « comptable professionnel agréé », « cabinet agréé », « agrément officiel » [interdit — S] ; « bureau à Sainte-Marie », « en personne » (cabinet virtuel) [S] ; jusqu'à preuve : « 200+ clients », « 15+ ans », « 100 % conforme Loi 25 », « partenaire QuickBooks » (badge ProAdvisor à fournir).
 - **Reference copy :** accroche du site « Votre partenaire comptable et fiscal au Canada » [S].
 
 ## Channels
@@ -56,4 +59,5 @@ Tag : **[S]** = Stone (fait vérifié, source citée) · **[O]** = Opinion (affi
 - AI assets : oui possible (visuels) · marchés UE en publicité payante : non → C2PA non requis pour l'instant.
 
 ## Provenance
-- **Created :** 2026-09-24 · **Last updated :** 2026-09-24 · **Version :** v1
+- **Created :** 2026-09-24 · **Last updated :** 2026-09-24 · **Version :** v2
+- **v2 (2026-09-24) :** réponses du client — pas de CPA, cabinet virtuel, adresse Google 1001 route Saint-Martin. Répercuté dans l'audit, les concurrents, les correctifs et le PLAN.

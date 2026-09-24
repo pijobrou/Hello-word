@@ -77,8 +77,8 @@ const org = {
   telephone: '⟨+1-418-XXX-XXXX⟩',
   address: {
     '@type': 'PostalAddress',
-    streetAddress: '⟨adresse civique⟩', addressLocality: 'Sainte-Marie',
-    addressRegion: 'QC', postalCode: '⟨G6E …⟩', addressCountry: 'CA',
+    // Cabinet virtuel : pas de numéro civique public (cohérent avec la fiche Google à adresse masquée)
+    addressLocality: 'Sainte-Marie', addressRegion: 'QC', addressCountry: 'CA',
   },
   areaServed: ['Sainte-Marie', 'Nouvelle-Beauce', 'Chaudière-Appalaches', 'Québec'],
   openingHours: 'Mo-Fr 08:00-17:00',

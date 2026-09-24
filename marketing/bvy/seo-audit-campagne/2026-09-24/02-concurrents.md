@@ -1,4 +1,7 @@
-# 02 — Analyse concurrentielle · 2026-09-24
+# 02 — Analyse concurrentielle · 2026-09-24 · v2
+
+> **v2** — BVY est un cabinet **virtuel sans CPA** : le vrai concurrent direct devient
+> Comptable en ligne Québec (virtuel lui aussi), et KLAC Gestion (non-CPA aussi) sur la tenue de livres.
 
 **Méthode.** Recherche web localisée Québec (Firecrawl) sur « comptable Sainte-Marie Beauce tenue
 de livres impôts », « cabinet comptable CPA Sainte-Marie », « domiciliation entreprise Québec » ;
@@ -30,18 +33,21 @@ Mallette (contenu éducatif fort, ex. article « Qu'est-ce que le numéro NEQ ? 
 2. **Le bas du marché local a peu de présence web** (A.D., MS 888) : la recherche
    « impôt particulier Sainte-Marie » est gagnable avec une bonne page + fiche Google + avis.
 3. **Le vrai rival SEO est KLAC Gestion** : il a déjà la page « tenue de livres Sainte-Marie ».
-   BVY doit faire mieux sur la même requête (contenu plus complet, signature CPA — si confirmée —,
-   états financiers inclus, prix, avis).
-4. **Les plateformes 100 % en ligne** captent les particuliers pressés. Réponse : l'hybride —
-   « en ligne via le portail **ou** en personne à Sainte-Marie ».
+   BVY doit faire mieux sur la même requête (contenu plus complet, états financiers et impôts
+   inclus, prix affichés, portail, avis). Aucun des deux n'est CPA : on se bat à armes égales.
+4. **Les plateformes 100 % en ligne** captent les particuliers pressés. BVY est lui aussi virtuel ;
+   sa différence : **une personne de la Beauce qui connaît votre dossier**, joignable par téléphone
+   ou en visio, prix annoncés, portail avec états financiers en temps réel. Comptable en ligne
+   Québec n'affiche ni prix ni présence locale réelle.
 5. **Domiciliation** : GFCMA a la même promesse et un meilleur SEO technique. BVY a un argument
    que GFCMA n'affiche pas : **le prix (295 $/mois)**. Il faut le mettre en avant en FR et en EN.
 
 ## Positionnement proposé pour BVY (à valider — Partie 5)
 
-> **Le comptable de proximité de la Nouvelle-Beauce, avec les outils d'un cabinet en ligne.**
+> **Votre service comptable 100 % en ligne, basé en Nouvelle-Beauce.**
 > Impôts des particuliers et des entreprises, tenue de livres et états financiers — prix
-> annoncés d'avance, dossier accessible 24 h/24 sur votre portail.
+> annoncés d'avance, une personne attitrée, votre dossier accessible 24 h/24 sur votre portail.
 
-Trois preuves à rendre visibles : (1) CPA nommé et vérifiable, (2) prix « à partir de »,
-(3) portail client (captures d'écran).
+Trois preuves à rendre visibles : (1) la personne qui fait les dossiers, nommée, avec son
+expérience réelle, (2) prix « à partir de », (3) portail client (captures d'écran).
+Ce que BVY laisse aux CPA : audit et mission d'examen — via un cabinet partenaire au besoin.

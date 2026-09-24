@@ -1,8 +1,13 @@
-# PLAN — Acquisition de clients · BVY Accounting & Tax Services · v1 (2026-09-24)
+# PLAN — Acquisition de clients · BVY Accounting & Tax Services · v2 (2026-09-24)
 
 **Mode : plan seulement.** Rien n'a été publié, lancé ni modifié sur le site ou dans un compte
-publicitaire. **Statut : v1 en attente de validation client (Partie 5)** — les questions du § 10
-doivent être répondues avant d'engager un dollar de publicité.
+publicitaire. **Statut : v2 — validation client partielle (Partie 5).** Réponses reçues : pas de
+CPA, cabinet virtuel, adresse Google au 1001, route Saint-Martin. Les questions encore ouvertes
+(§ 10) doivent être répondues avant d'engager un dollar de publicité.
+
+**Ce qui change en v2 :** toute mention « CPA » disparaît (site, annonces, fiches) ; le cabinet se
+positionne « 100 % en ligne, basé en Nouvelle-Beauce » ; la fiche Google devient une fiche **zone
+de service à adresse masquée** ; les états financiers signés par un CPA passent par un partenaire.
 
 Sources : `01-audit-seo.md` (audit), `02-concurrents.md` (jeu concurrentiel), `brand-profile.md`.
 
@@ -16,7 +21,9 @@ Sources : `01-audit-seo.md` (audit), `02-concurrents.md` (jeu concurrentiel), `b
    (la cible demandée) n'ont ni page, ni option dans le formulaire.
 4. Localement, les gros (BVA, RCGT) ont la notoriété ; les petits n'ont presque pas de web ;
    **KLAC Gestion** est le seul à bien travailler « tenue de livres Sainte-Marie ».
-5. L'ouverture : **proximité + prix annoncés + portail numérique**. Personne ne combine les trois.
+5. L'ouverture : **service en ligne + ancrage beauceron + prix annoncés + portail**. Personne ne
+   combine les quatre.
+6. **(v2)** Le site affiche le titre CPA alors qu'il n'y a pas de CPA : c'est à corriger **avant tout**.
 
 ## 2. Objectifs (proposés — à valider)
 
@@ -56,16 +63,25 @@ Dates officielles (ARC / Revenu Québec, à revérifier chaque année sur canada
 
 Par ordre de priorité (détails dans `01-audit-seo.md` et `03-correctifs-techniques.md`) :
 
-1. **Décider l'adresse et le téléphone uniques** (Sainte-Marie) → les afficher partout.
-2. **Google Business Profile** : créer/réclamer, catégorie principale « Comptable »,
+0. **(v2 — cette semaine, avant tout le reste) Retirer toutes les mentions CPA du site** (liste
+   exacte dans `01-audit-seo.md`, constat 7) et de la page Facebook.
+1. **Adresse décidée :** 1001, route Saint-Martin, Sainte-Marie G6E 0R8 → reste à choisir **un**
+   téléphone unique (418 de préférence). Sur le site et les annuaires : « Sainte-Marie (Québec) ».
+2. **Google Business Profile — zone de service** : l'adresse sert à la vérification mais est
+   **masquée** ; zone desservie = Sainte-Marie, Nouvelle-Beauce, Beauce-Centre, Lévis
+   (Google accepte jusqu'à 20 zones). Pas de fiche « lieu physique » : un cabinet virtuel qui ne
+   reçoit pas de clients à une adresse résidentielle s'exposerait à une suspension.
+   Catégorie principale « Comptable »,
    catégories secondaires « Service de préparation des déclarations d'impôts », « Service de
-   tenue de livres » ; services avec descriptions ; horaires ; photos (bureau, équipe, logo) ;
-   lien de prise de rendez-vous.
+   tenue de livres » ; services avec descriptions ; horaires ; photos (équipe, logo, captures du portail) ;
+   lien de prise de rendez-vous en visio.
 3. **Corriger les fiches Ontario** : PagesJaunes / YellowPages, Cylex, Infobel, Canpages,
    Scribble Maps, Facebook (adresse + téléphone). Fermer ou mettre à jour l'ancienne adresse.
 4. **Inscriptions locales** : Chambre de commerce et d'industrie Nouvelle-Beauce (répertoire
    ccinb.ca), EnBeauce.com, Maregion.ca, Aubaine.ca.
-5. **Preuve CPA** : nom, photo et numéro de membre sur « À propos » (ou retrait de la mention).
+5. **Page « À propos » vraie** : la personne qui fait les dossiers, son expérience réelle, sa
+   formation, « cabinet virtuel », et le **cabinet CPA partenaire** pour les états financiers
+   qui doivent être signés (à trouver : § 6.4).
 6. **Politique de confidentialité Loi 25** + responsable nommé + bannière de témoins.
 7. **Mesure** : GTM, GA4, Search Console, événements de conversion, numéro d'appel suivi.
 8. **Site en pages** (priorité de rédaction) :
@@ -102,7 +118,7 @@ Par ordre de priorité (détails dans `01-audit-seo.md` et `03-correctifs-techni
   avant, CPC manuel ou « Maximiser les clics » plafonné.
 
 ### 6.3 Meta (Facebook / Instagram) — notoriété locale et particuliers
-- Janv.–avril : vidéos courtes du CPA (visage = confiance) : « 3 erreurs qui coûtent cher sur
+- Janv.–avril : vidéos courtes de la personne qui fait les dossiers (visage = confiance) : « 3 erreurs qui coûtent cher sur
   votre déclaration », « Ce que votre comptable doit recevoir avant le 30 avril ».
 - Formulaire instantané Meta **ou** renvoi vers `/impot-particuliers-sainte-marie`.
 - Vérifier au moment de créer la campagne si Meta impose une catégorie d'annonce spéciale aux
@@ -111,8 +127,11 @@ Par ordre de priorité (détails dans `01-audit-seo.md` et `03-correctifs-techni
 ### 6.4 Réseau et partenariats — le canal le plus rentable en cabinet
 - Membre actif de la CCINB (déjeuners, 5 à 7).
 - Référencement croisé avec notaires, courtiers hypothécaires, conseillers Desjardins,
-  agents immobiliers. Avant tout échange de commissions : vérifier le Code de déontologie des CPA.
-- LinkedIn du CPA : 1 publication/semaine pour les entrepreneurs.
+  agents immobiliers. Commission de référencement : entente écrite et divulguée au client.
+- **(v2) Cabinet CPA partenaire** : entente de sous-traitance pour les missions réservées (audit,
+  examen) et les états financiers exigés « signés CPA » par une banque. BVY garde le client, la
+  tenue de livres et les impôts ; le partenaire signe. Un argument de vente, pas une faiblesse.
+- LinkedIn de la personne qui fait les dossiers : 1 publication/semaine pour les entrepreneurs.
 
 ### 6.5 Courriel (clients et prospects consentants seulement — LCAP)
 - Janv. : « Votre saison d'impôt 2027 : liste des documents + réservez votre place ».
@@ -132,11 +151,11 @@ et par demande en Nouvelle-Beauce est inconnu tant que Keyword Planner et 30 jou
 ne l'ont pas mesuré. Règle : si le coût par demande qualifiée dépasse ⟨la marge d'un premier
 mandat que le client indiquera⟩ après 4 semaines, on coupe le groupe d'annonces concerné.
 
-## 8. Annonces — premier jet (à valider par le CPA)
+## 8. Annonces — premier jet v2 (sans aucune mention CPA)
 
 **Google — Particuliers**
-- Titres : `Comptable impôts Sainte-Marie` · `Vos impôts faits par un CPA`\* · `Prix fixe annoncé d'avance` · `En ligne ou en personne` · `Réservez avant le 30 avril`
-- Descriptions : `Déclaration fédérale et Québec préparée et transmise par notre équipe. Déposez vos feuillets sur votre portail sécurisé.` · `Consultation gratuite de 30 min. Bureau à Sainte-Marie, Nouvelle-Beauce.`
+- Titres : `Comptable impôts Sainte-Marie` · `Vos impôts 100 % en ligne` · `Prix fixe annoncé d'avance` · `Service basé en Beauce` · `Réservez avant le 30 avril`
+- Descriptions : `Déclaration fédérale et Québec préparée et transmise par notre équipe. Déposez vos feuillets sur votre portail sécurisé.` · `Consultation gratuite de 30 min par téléphone ou en visio. Service basé à Sainte-Marie.`
 
 **Google — Entreprises**
 - Titres : `Tenue de livres Beauce` · `Livres à jour chaque mois` · `États financiers et T2` · `Prix mensuel fixe` · `Diagnostic gratuit 30 min`
@@ -147,7 +166,7 @@ mandat que le client indiquera⟩ après 4 semaines, on coupe le groupe d'annonc
 > fédérale et Québec à prix fixe, annoncé avant de commencer. Déposez vos documents en ligne ou
 > passez nous voir. 👉 Réservez votre place avant la cohue d'avril.
 
-\* « CPA » seulement si le statut est confirmé (§ 10, Q1).
+États financiers : jamais « audités », « vérifiés » ni « signés CPA » dans une annonce.
 
 ## 9. Pilotage
 
@@ -162,10 +181,17 @@ mandat que le client indiquera⟩ après 4 semaines, on coupe le groupe d'annonc
 
 ## 10. Validation client — ⛔ arrêt ici (Partie 5)
 
-Réponds à ces questions ; la v2 du plan en dépend :
+Réponses reçues (2026-09-24) : **pas de CPA** · **cabinet virtuel** · adresse Google **1001, route
+Saint-Martin, Sainte-Marie**.
 
-1. **CPA** : qui est le CPA, numéro de membre ? Le cabinet est-il inscrit à l'Ordre ?
-2. **Adresse** : adresse civique exacte à Sainte-Marie ? L'adresse de Scarborough est-elle fermée ?
+Encore ouvertes :
+
+1. ~~CPA~~ — répondu : aucun. → Voulez-vous qu'on cherche un **cabinet CPA partenaire** ?
+2. **Adresse** : le 1001, route Saint-Martin est-il votre logement ? (Les annonces publiques le
+   décrivent comme un immeuble locatif résidentiel.) L'adresse de Scarborough est-elle fermée ?
+   Et pour la **domiciliation** d'entreprises étrangères, quelle adresse leur donnez-vous ? Une
+   adresse résidentielle peut être interdite par le bail ou le zonage : à vérifier avant de
+   continuer à vendre ce service.
 3. **Téléphone** : quel numéro unique (418 idéalement) ?
 4. **Prix** : « à partir de » pour T1 particulier, T1 autonome, tenue de livres mensuelle,
    états financiers + T2 ?

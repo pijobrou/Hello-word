@@ -1,4 +1,7 @@
-# 01 — Audit SEO · bvyaccountingtax.ca · 2026-09-24
+# 01 — Audit SEO · bvyaccountingtax.ca · 2026-09-24 · v2
+
+> **v2 (même jour)** — le client confirme : **aucun CPA**, **cabinet virtuel**, adresse Google
+> **1001, route Saint-Martin, Sainte-Marie G6E 0R8**. Les constats 1 et 7 sont réécrits en conséquence.
 
 **Méthode.** Page d'accueil récupérée en direct via Firecrawl (HTML brut, statut 200), puis
 `/robots.txt`, `/sitemap.xml`, `/connexion/`, et recherches `site:` et marque dans l'index web
@@ -13,7 +16,7 @@ est marqué « à mesurer ». Aucun chiffre ci-dessous n'est une estimation pré
 | Technique / indexation | 🔴 3/10 | Pas de robots.txt, pas de sitemap, pas de canonique, pas de données structurées |
 | Contenu / mots-clés | 🔴 2/10 | Une seule page ; aucune page pour « impôt particulier », « tenue de livres Sainte-Marie », etc. |
 | SEO local | 🔴 1/10 | Pas d'adresse complète ni de téléphone ; annuaires anciens pointent vers Scarborough (Ontario) |
-| Confiance / E-E-A-T | 🟠 3/10 | Aucun nom de CPA, pas d'équipe, pas d'avis, affirmations non prouvées |
+| Confiance / E-E-A-T | 🔴 2/10 | Titre CPA affiché sans CPA dans l'équipe, pas d'équipe nommée, pas d'avis, affirmations non prouvées |
 | Conversion | 🟠 5/10 | Formulaire + consultation gratuite, mais pas de téléphone, pas d'option « impôt des particuliers » |
 | Mesure | 🔴 0/10 | Aucun outil d'analyse ni de suivi des conversions |
 | Visibilité IA (ChatGPT, AI Overviews, Perplexity) | 🔴 1/10 | Rien de citable : pas de FAQ, pas de schéma, pas d'entité cohérente |
@@ -27,8 +30,13 @@ est marqué « à mesurer ». Aucun chiffre ci-dessous n'est une estimation pré
    Scarborough ON**, tél. **647-778-7627** et **438-831-1554** (PagesJaunes, Cylex, Infobel,
    Scribble Maps, Facebook — lus 2026-09-24). Pour Google, l'entreprise est en Ontario : c'est le
    frein n° 1 du référencement local à Sainte-Marie.
-   → Choisir **une** adresse et **un** numéro, les afficher sur le site, puis corriger chaque fiche
-   (liste au PLAN § 6.1).
+   → **Décidé (v2) :** 1001, route Saint-Martin, Sainte-Marie G6E 0R8. D'après les annonces
+   publiques, c'est un immeuble locatif résidentiel (« Sentiers 59 »). Pour un cabinet virtuel qui ne
+   reçoit pas de clients, les règles de Google Business Profile demandent une **zone de service
+   avec adresse masquée** : une adresse résidentielle affichée comme lieu d'accueil expose la fiche
+   à une suspension. Sur le site : « Sainte-Marie (Québec) — services 100 % en ligne », sans numéro
+   de logement. Il reste à choisir **un** numéro de téléphone, puis à corriger chaque fiche de
+   l'Ontario (liste au PLAN § 5).
 2. **Aucun téléphone cliquable.** En comptabilité locale, l'appel est la conversion principale.
 3. **Aucune page par service.** Tout tient dans une page d'accueil : impossible de se classer à la
    fois sur « impôt particulier Sainte-Marie », « tenue de livres Beauce » et « domiciliation
@@ -41,9 +49,22 @@ est marqué « à mesurer ». Aucun chiffre ci-dessous n'est une estimation pré
 6. **Loi 25.** Le site collecte nom, courriel, téléphone et pays, affiche « 100 % Conforme Loi 25 »,
    mais ne montre ni politique de confidentialité ni responsable de la protection des
    renseignements personnels. Risque légal **et** de crédibilité.
-7. **Titre CPA.** « Cabinet agréé CPA Québec » et « avec un CPA » : à rendre vérifiable (nom et
-   numéro de membre du CPA, lien vers le Tableau de l'Ordre). Si ce n'est pas le cas, retirer la
-   mention immédiatement — l'usage du titre est réservé.
+7. **Titre CPA — à retirer cette semaine (v2 : aucun CPA dans l'équipe).** Le titre est réservé
+   aux membres de l'Ordre des CPA ; l'afficher sans l'être est une infraction au Code des
+   professions, et c'est aussi ce qui ferait refuser ou signaler des annonces. Mentions trouvées
+   sur la page d'accueil le 2026-09-24 :
+   - bandeau : « CPA Québec — Agrément officiel » ;
+   - texte d'accroche : « Cabinet agréé CPA Québec » ;
+   - meta description : « Cabinet comptable professionnel agréé CPA au Québec » ;
+   - section contact : « 30 minutes avec un CPA » et « Conforme Loi 25 (Québec) · PIPEDA · CPA Québec » ;
+   - carte portail : « Dashboard CPA ».
+   Remplacer par des preuves vraies : années d'expérience de la personne qui fait les dossiers,
+   formation (DEC/AEC/BAC en comptabilité, si c'est le cas), logiciels maîtrisés, prix.
+8. **États financiers.** Le site promet des bilans « conformes aux NCECF ». Sans CPA, BVY peut
+   préparer des états financiers pour la direction et pour les déclarations fiscales, mais **pas**
+   d'audit ni de mission d'examen (activités réservées). Si le client a besoin d'états financiers
+   signés par un CPA (souvent exigé par une banque), il faut un cabinet CPA partenaire. Le cas de la
+   mission de compilation est à confirmer auprès de l'Ordre des CPA avant de la proposer.
 
 ### P1 — Technique
 
@@ -65,21 +86,24 @@ est marqué « à mesurer ». Aucun chiffre ci-dessous n'est une estimation pré
 | | Actuel | Proposé |
 |---|---|---|
 | `<title>` (68 car.) | BVY Accounting & Tax Services Inc. — Cabinet Comptable Professionnel | **Comptable à Sainte-Marie (Beauce) · Impôts, tenue de livres \| BVY** |
-| Meta description | Cabinet comptable professionnel agréé CPA au Québec… (180 car., tronquée) | **Impôts des particuliers et des entreprises, tenue de livres et états financiers à Sainte-Marie et en Nouvelle-Beauce. Consultation gratuite de 30 min.** (≈150 car.) |
+| Meta description | Cabinet comptable professionnel agréé CPA au Québec… (180 car., tronquée, **mention CPA à retirer**) | **Impôts des particuliers et des entreprises, tenue de livres et états financiers en Nouvelle-Beauce, 100 % en ligne. Consultation gratuite de 30 min.** (≈150 car.) |
 | H1 | Votre partenaire comptable et fiscal au Canada | **Comptable à Sainte-Marie : impôts, tenue de livres et états financiers** |
 | H2 | 4 H2 génériques | Un H2 par service avec le mot-clé (« Déclaration d'impôt des particuliers », « Tenue de livres pour PME »…) |
 
 ### P2 — Contenu et confiance
 
-- Page **À propos** : nom, photo, titre professionnel et numéro de membre du ou des CPA ;
-  histoire du cabinet (Ontario → Québec, s'il y a lieu, dit clairement).
+- Page **À propos** : nom, photo, formation et expérience réelles de la personne qui traite les
+  dossiers (sans titre réservé) ; histoire du cabinet (Ontario → Québec, dit clairement) ;
+  « cabinet virtuel : tout se fait en ligne, par téléphone ou en visio » ; mention du cabinet CPA
+  partenaire si un partenariat est signé.
 - **Tarifs** : fourchettes « à partir de » (le 295 $/mois de la domiciliation prouve que BVY
   assume l'affichage de prix — les concurrents locaux ne le font presque pas).
 - **FAQ** par service (documents à fournir, dates limites, délais) — c'est ce qui est repris par
   les AI Overviews et ChatGPT.
 - **Avis Google** : aucun visible. Objectif ≥ 20 avis réels avant la saison d'impôt (sollicités
   auprès de clients existants, jamais achetés, jamais rédigés par le cabinet).
-- Preuves : badge QuickBooks ProAdvisor (si réel), logos d'ordre professionnel (si autorisé).
+- Preuves : badge QuickBooks ProAdvisor (si réel), code de représentant ARC / Revenu Québec,
+  aucun logo d'ordre professionnel.
 
 ## Mots-clés cibles (volumes à mesurer dans Google Keyword Planner avant de fixer les budgets)
 
