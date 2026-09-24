@@ -8,7 +8,8 @@ Mode : **plan seulement** — rien publié, lancé ni modifié.
 | Audit SEO + visibilité IA | `01-audit-seo.md` | ✅ fait (limites : pas de Search Console, Business Profile, volumes, vitesse) |
 | Analyse concurrentielle | `02-concurrents.md` | ✅ fait — jeu de 7 concurrents retenu |
 | Correctifs techniques (Next.js) | `03-correctifs-techniques.md` | ✅ fait |
-| Plan de campagne | `PLAN.md` v2 | ✅ mis à jour avec les réponses du client (pas de CPA, cabinet virtuel, adresse) |
+| Plan de campagne | `PLAN.md` v3 | ✅ budget Croissance chiffré, domiciliation en attente |
+| Grille tarifaire | `04-grille-tarifaire.md` | ✅ proposée (repères du marché sourcés) — à valider |
 | Contrôle qualité | `scorecard.md` | ✅ PASS avec notes · lancement BLOCKED |
-| **Validation client (Partie 5)** | PLAN § 10 | 🟡 partielle — Q1 et adresse répondues ; téléphone, prix, budget, capacité en attente |
+| **Validation client (Partie 5)** | PLAN § 10 | 🟡 presque complète — manquent le téléphone et l'accord sur la grille de prix |
 | Pages du site, annonces finales, lancement | — | ⬜ après validation |

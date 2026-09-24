@@ -14,7 +14,7 @@ Tag : **[S]** = Stone (fait vérifié, source citée) · **[O]** = Opinion (affi
 
 ## Business model
 - ★ **Revenue model :** mandats récurrents (tenue de livres mensuelle, paie, TPS/TVQ) + mandats annuels (états financiers, T2, T1) + domiciliation « à partir de 295 $ CAD/mois » [S — site] 
-- **Price points / ACV :** grille tarifaire des autres services inconnue [O — à fournir]
+- **Price points / ACV :** prix oubliés par le client [S] → grille proposée dans `04-grille-tarifaire.md` [O — à valider]
 - **Sales motion :** consultation gratuite de 30 min → proposition [S — site]
 - **Unit economics :** CAC · LTV · marge inconnus [O]
 
@@ -59,5 +59,6 @@ Tag : **[S]** = Stone (fait vérifié, source citée) · **[O]** = Opinion (affi
 - AI assets : oui possible (visuels) · marchés UE en publicité payante : non → C2PA non requis pour l'instant.
 
 ## Provenance
-- **Created :** 2026-09-24 · **Last updated :** 2026-09-24 · **Version :** v2
+- **Created :** 2026-09-24 · **Last updated :** 2026-09-24 · **Version :** v3
 - **v2 (2026-09-24) :** réponses du client — pas de CPA, cabinet virtuel, adresse Google 1001 route Saint-Martin. Répercuté dans l'audit, les concurrents, les correctifs et le PLAN.
+- **v3 (2026-09-24) :** l'ancien associé est décédé, l'adresse de Scarborough n'est plus active ; prix oubliés (grille proposée, `04-grille-tarifaire.md`) ; budget **Croissance** ; la domiciliation utilise l'adresse du cabinet ; pas de cabinet CPA partenaire.

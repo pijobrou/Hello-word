@@ -1,7 +1,7 @@
-# PLAN — Acquisition de clients · BVY Accounting & Tax Services · v2 (2026-09-24)
+# PLAN — Acquisition de clients · BVY Accounting & Tax Services · v3 (2026-09-24)
 
 **Mode : plan seulement.** Rien n'a été publié, lancé ni modifié sur le site ou dans un compte
-publicitaire. **Statut : v2 — validation client partielle (Partie 5).** Réponses reçues : pas de
+publicitaire. **Statut : v3 — validation client presque complète (Partie 5) ; restent le téléphone et l'accord sur les prix.** Réponses reçues : pas de
 CPA, cabinet virtuel, adresse Google au 1001, route Saint-Martin. Les questions encore ouvertes
 (§ 10) doivent être répondues avant d'engager un dollar de publicité.
 
@@ -137,7 +137,20 @@ Par ordre de priorité (détails dans `01-audit-seo.md` et `03-correctifs-techni
 - Janv. : « Votre saison d'impôt 2027 : liste des documents + réservez votre place ».
 - Mars : rappel 30 avril. · Mai : autonomes 15 juin. · Oct. : fin d'exercice entreprises.
 
-## 7. Budget (scénarios — le client choisit)
+## 7. Budget — **Croissance retenu** (v3)
+
+Calendrier de dépenses publicitaires avec le scénario Croissance :
+
+| Période | Google Ads | Meta | Total pub / mois |
+|---|---|---|---|
+| Nov. 2026 – janv. 2027 | 800 $ (campagne A Entreprises) | — | 800 $ |
+| Fév. – avril 2027 | 800 $ (550 $ B Particuliers + 250 $ A) | 300 $ | 1 100 $ |
+| Mai – juin 2027 | 800 $ (400 $ B autonomes + 400 $ A) | — | 800 $ |
+| **Total nov. 2026 → juin 2027** | | | **7 300 $** + outils (30–60 $/mois) |
+
+La campagne C « Domiciliation » reste **en attente** (voir § 10, Q2).
+
+Pour mémoire, les trois scénarios proposés :
 
 | Poste / mois | Essentiel | Croissance | Accéléré |
 |---|---|---|---|
@@ -181,23 +194,22 @@ mandat que le client indiquera⟩ après 4 semaines, on coupe le groupe d'annonc
 
 ## 10. Validation client — ⛔ arrêt ici (Partie 5)
 
-Réponses reçues (2026-09-24) : **pas de CPA** · **cabinet virtuel** · adresse Google **1001, route
-Saint-Martin, Sainte-Marie**.
+Réponses reçues (2026-09-24) : **pas de CPA ni de partenaire CPA** · **cabinet virtuel** · adresse
+Google **1001, route Saint-Martin, Sainte-Marie** · Scarborough inactive (associé décédé) ·
+budget **Croissance** · domiciliation à l'adresse du cabinet · prix oubliés.
 
-Encore ouvertes :
-
-1. ~~CPA~~ — répondu : aucun. → Voulez-vous qu'on cherche un **cabinet CPA partenaire** ?
-2. **Adresse** : le 1001, route Saint-Martin est-il votre logement ? (Les annonces publiques le
-   décrivent comme un immeuble locatif résidentiel.) L'adresse de Scarborough est-elle fermée ?
-   Et pour la **domiciliation** d'entreprises étrangères, quelle adresse leur donnez-vous ? Une
-   adresse résidentielle peut être interdite par le bail ou le zonage : à vérifier avant de
-   continuer à vendre ce service.
-3. **Téléphone** : quel numéro unique (418 idéalement) ?
-4. **Prix** : « à partir de » pour T1 particulier, T1 autonome, tenue de livres mensuelle,
-   états financiers + T2 ?
-5. **Capacité** : combien de nouveaux dossiers particuliers et entreprises pouvez-vous absorber
-   cette saison ?
-6. **Budget** : Essentiel, Croissance ou Accéléré (§ 7) ?
+1. ✅ CPA — aucun, pas de partenaire souhaité. BVY n'offre ni audit ni mission d'examen ; quand
+   une banque exige des états financiers signés par un CPA, le dire au client dès le diagnostic.
+2. 🟡 **Domiciliation** — même adresse que le cabinet. **Avant de relancer ce service :** vérifier
+   que le bail et le zonage de Sainte-Marie permettent d'y inscrire le siège d'entreprises
+   tierces, et qui reçoit leur courrier. Sinon, louer une adresse commerciale (centre d'affaires
+   ou espace partagé). D'ici là, pas de publicité sur la domiciliation.
+3. ⏳ **Téléphone** : quel numéro unique (418 idéalement) ? Sans lui, pas de fiche Google ni
+   d'extension d'appel.
+4. 🟡 **Prix** — grille proposée dans `04-grille-tarifaire.md` : oui / à ajuster ?
+5. ✅ **Capacité** — pas de limite indiquée : on ouvre les campagnes au budget Croissance et on
+   ralentit si les délais de traitement dépassent 2 semaines.
+6. ✅ **Budget** — Croissance (§ 7).
 7. **Preuves** : « 15+ ans » et « 200+ clients » — sur quoi reposent-ils ? Badge QuickBooks ProAdvisor ?
 8. **Priorité** : d'abord les entreprises locales (novembre) puis les particuliers (février) — d'accord ?
 9. **Qui modifie le site** (toi, un développeur) ? Accès Google Business Profile / Facebook ?
