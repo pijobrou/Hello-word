@@ -3,6 +3,7 @@
 #   npx wrangler secret put OPENAI_API_KEY
 #   npx wrangler secret put STRIPE_SECRET_KEY
 #   npx wrangler secret put LICENSE_SECRET
+#   npx wrangler secret put ADMIN_SECRET      (au moins 16 caractères : sert à libérer une licence)
 name = "traducteur-audio"
 main = "src/index.js"
 compatibility_date = "2026-09-01"
@@ -12,6 +13,9 @@ compatibility_date = "2026-09-01"
 PRICE_PREMIUM = "price_1UJ3sbCQ40QgCZDJ5sMDLWNo"
 PRICE_LIFETIME = "price_1UJ3sfCQ40QgCZDJXljc53kO"
 PREMIUM_MONTHLY_MINUTES = "300"
+# "never" : licence bloquée À VIE sur son 1er appareil (seul le vendeur peut la libérer via /admin/liberer).
+# Un nombre (ex. "30") : le client peut la transférer lui-même une fois tous les N jours.
+TRANSFER_DAYS = "never"
 OPENAI_TTS_MODEL = "gpt-4o-mini-tts"
 OPENAI_VOICE = "coral"
 

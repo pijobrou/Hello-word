@@ -47,13 +47,13 @@ function duck(on, settings) {
 let settings = null;
 let fallbackShown = false;
 
-// Appelé par common.js quand n8n échoue : on le dit une fois, la traduction continue en voix locale.
+// Appelé par common.js quand la voix IA échoue : on le dit, la traduction continue en voix locale.
 function onN8nFallback(message, silent) {
   $('notice').hidden = false;
   $('notice').textContent = (silent
     ? '⚠️ La voix IA a échoué pour une phrase : elle est affichée sans être lue (pour garder une seule voix). '
     : '⚠️ La voix IA a échoué pour une phrase : voix du navigateur utilisée. ')
-    + message.replace(/^n8n en pause après une erreur : /, '');
+    + message.replace(/^voix IA en pause après une erreur : /, '');
   if (fallbackShown) return;
   fallbackShown = true;
 }
@@ -83,7 +83,7 @@ function enqueue(raw) {
 
 // ⚡ Voix IA en retard : on n'attend pas plus que aiDeadlineMs, la voix du navigateur lit la phrase.
 async function dubWithDeadline(item) {
-  const live = settings.liveMode !== false && settings.engine === 'n8n';
+  const live = settings.liveMode !== false && isAi(settings);
   if (!live) return item.job;
   const late = await Promise.race([item.job, sleep(settings.aiDeadlineMs || 2000).then(() => null)]);
   if (late) return late;
@@ -98,7 +98,7 @@ let aiSuspended = false;
 let aiMisses = 0;
 
 function noteAiMiss() {
-  if (aiSuspended || settings.liveMode === false || settings.engine !== 'n8n') return;
+  if (aiSuspended || settings.liveMode === false || !isAi(settings)) return;
   if (++aiMisses < 2) return;
   aiSuspended = true;
   $('aiSuspended').hidden = false;
@@ -115,9 +115,9 @@ async function processQueue() {
     while (queue.length > 8) queue.shift();
     const item = queue.shift();
     let dub = await dubWithDeadline(item);
-    if (!dub.error && (dub.late || (settings.engine === 'n8n' && dub.via === 'local'))) noteAiMiss();
+    if (!dub.error && (dub.late || (isAi(settings) && dub.via === 'local'))) noteAiMiss();
     // Déjà suspendue : même si l'audio IA d'une phrase en attente est prêt, on garde la voix du navigateur.
-    if (!dub.error && aiSuspended && dub.via === 'n8n') dub = { ...dub, audio: null, via: 'local' };
+    if (!dub.error && aiSuspended && dub.via === 'ai') dub = { ...dub, audio: null, via: 'local' };
     if (dub.error) {
       setStatus('Erreur de traduction : ' + dub.error.message, 'status-err');
       continue;
@@ -130,7 +130,7 @@ async function processQueue() {
     // ⚡ Rattrapage : la voix accélère avec le retard (jusqu'à 1,5×) et avec la file d'attente.
     const byLag = settings.liveMode !== false ? 1 + Math.max(0, lag - 2.5) / 7 : 1;
     const boost = Math.min(settings.liveMode !== false ? 1.5 : 1.35, Math.max(byLag, 1 + 0.12 * queue.length));
-    const voiceEl = addEntry(dub.en, dub.fr + ({ n8n: '  🎙️', silent: '  🔇', local: '' }[dub.via] || ''));
+    const voiceEl = addEntry(dub.en, dub.fr + ({ ai: '  🎙️', silent: '  🔇', local: '' }[dub.via] || ''));
     if (SOURCE === 'mic' && !$('headphones').checked) pauseRecognition();
     duck(true, settings);
     let used;
@@ -141,10 +141,10 @@ async function processQueue() {
     }
     voiceEl.textContent = `🔈 ${used}${dub.late ? ' — voix IA trop lente, lue tout de suite' : ''} · retard ${lag.toFixed(1)} s`
       + (boost > 1.02 ? ` · accéléré ×${boost.toFixed(2)}` : '');
-    if (lagSmoothed > 6 && settings.engine === 'n8n') {
+    if (lagSmoothed > 6 && isAi(settings)) {
       $('notice').hidden = false;
       $('notice').textContent = '⏱️ Le retard dépasse 6 s avec la voix IA. Pour le direct, la voix du navigateur '
-        + '(décochez n8n) ou le découpage « Rapide » réduisent nettement le délai.';
+        + '(Réglages → Moteur de la voix) ou le découpage « Rapide » réduisent nettement le délai.';
     }
     duck(false, settings);
     if (settings.gapMs && !queue.length) await sleep(settings.gapMs);   // pas de pause si on a du retard
@@ -336,8 +336,8 @@ $('tabVolume').oninput = () => {
 
 function updateDirection() {
   if (!settings) return;
-  $('engine').textContent = settings.engine === 'n8n' && settings.n8nUrl
-    ? '🎙️ Moteur : voix IA (n8n)' : '🔈 Moteur : voix du navigateur (n8n désactivé)';
+  $('engine').textContent = 'Moteur : ' + (isAi(settings) ? ENGINE_LABELS[settings.engine]
+    : ENGINE_LABELS.local + (settings.engine !== 'local' ? ' — voix IA non configurée' : ''));
   const src = langInfo(settings.sourceLang), dst = langInfo(settings.targetLang);
   $('direction').textContent = `${src.flag} ${src.fr} → ${dst.flag} ${dst.fr}`;
   $('qSource').value = settings.sourceLang;
@@ -454,7 +454,7 @@ function onLockedVoiceMissing(name) {
   $('notice').textContent = name
     ? `🔒 La voix verrouillée « ${name} » est indisponible sur cet appareil : les phrases sont affichées sans être lues. `
       + 'Choisissez une autre voix dans ⚙️ Réglages → Voix.'
-    : '🔒 Aucune voix installée pour cette langue : installez-en une, ou utilisez la voix IA (n8n).';
+    : '🔒 Aucune voix installée pour cette langue : installez-en une, ou utilisez une voix IA (Premium ou ma clé).';
 }
 
 async function showLockedVoice() {
@@ -462,7 +462,7 @@ async function showLockedVoice() {
   const { lockedVoices = {} } = await chrome.storage.sync.get({ lockedVoices: {} });
   $('qLock').checked = s.lockVoice !== false;
   $('qLive').checked = s.liveMode !== false;
-  const name = s.engine === 'n8n' && s.n8nUrl ? 'voix IA (n8n)' : (s.voiceName || lockedVoices[s.targetLang] || 'choisie à la première phrase');
+  const name = isAi(s) ? ENGINE_LABELS[s.engine] : (s.voiceName || lockedVoices[s.targetLang] || 'choisie à la première phrase');
   $('qLockName').textContent = s.lockVoice !== false
     ? `🔒 ${name}` + (s.liveMode !== false ? ' — remplacée ponctuellement plutôt que de laisser un silence' : ' — jamais remplacée (silence si indisponible)')
     : '(la voix peut changer en cas de problème)';

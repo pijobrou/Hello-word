@@ -83,19 +83,62 @@
     <p id="preview" class="overlay-preview">Bonjour à tous, bienvenue dans cette vidéo.</p>
   </div>
 
-  <h2>🎙️ Voix humaine IA (n8n)</h2>
+  <h2>🎙️ Moteur de la voix</h2>
   <div class="card">
-    <div class="row">
-      <label for="engineN8n"><strong>Utiliser mon workflow n8n</strong><br>
-        <span class="hint">Décoché : voix du navigateur. Vitesse et volume s'appliquent aussi à la voix IA.</span></label>
-      <input type="checkbox" id="engineN8n">
-    </div>
-    <div class="row"><label for="aiFallback">Si la voix IA échoue pour une phrase
+    <div class="row"><label for="engine"><strong>Quelle voix lit la traduction ?</strong></label>
+      <select id="engine">
+        <option value="local">🔈 Voix du navigateur (gratuit)</option>
+        <option value="cloud">💎 Premium — voix IA incluse (4,99 €/mois)</option>
+        <option value="byok">🔑 Ma propre clé OpenAI (licence à vie)</option>
+        <option value="n8n">🛠️ Mon workflow n8n (avancé)</option>
+      </select></div>
+    <p id="engineHint" class="hint"></p>
+    <div class="row"><label for="aiFallback">Si la voix IA échoue pour une phrase (hors « Priorité au direct »)
       <br><span class="hint">« Texte seulement » évite d'entendre deux voix différentes</span></label>
       <select id="aiFallback" data-setting="aiFallback">
         <option value="silent">Afficher le texte sans le lire (une seule voix)</option>
         <option value="local">Lire avec la voix du navigateur</option>
       </select></div>
+  </div>
+
+  <div class="card engine-box" id="boxLicence" hidden>
+    <h3>💎 Licence</h3>
+    <div class="buttons">
+      <a class="button" id="buyPremium" target="_blank" rel="noopener">💎 Premium — 4,99 €/mois</a>
+      <a class="button secondary" id="buyLifetime" target="_blank" rel="noopener">🔑 À vie — 14,99 €</a>
+    </div>
+    <p class="hint">Après le paiement, votre clé <code>TA-XXXX-XXXX-XXXX-XXXX</code> s'affiche. Collez-la ci-dessous.
+      <strong>Une licence est liée définitivement à un seul appareil</strong> (ce navigateur, sur cet ordinateur). Changement d'ordinateur : contactez le support.</p>
+    <label class="field">Clé de licence
+      <input type="text" id="licenseKey" placeholder="TA-XXXX-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false"></label>
+    <details class="advanced"><summary>Adresse du serveur Premium</summary>
+      <label class="field">Adresse
+        <input type="url" id="premiumUrl" placeholder="https://traducteur-audio.votre-nom.workers.dev"></label>
+    </details>
+    <div class="buttons">
+      <button id="activate">✅ Activer sur cet appareil</button>
+      <button id="transfer" class="secondary" hidden>🔁 Transférer sur cet appareil</button>
+    </div>
+    <p id="licenceStatus" class="hint"></p>
+  </div>
+
+  <div class="card engine-box" id="boxByok" hidden>
+    <h3>🔑 Ma propre clé OpenAI</h3>
+    <p class="hint">La voix IA est facturée directement sur votre compte OpenAI. La clé reste sur cet appareil.</p>
+    <label class="field">Clé OpenAI
+      <input type="password" id="openaiKey" placeholder="sk-…" autocomplete="off"></label>
+    <div class="row"><label for="byokVoice">Voix OpenAI</label>
+      <select id="byokVoice" data-setting="byokVoice">
+        <option>coral</option><option>alloy</option><option>sage</option><option>marin</option><option>cedar</option>
+        <option>ash</option><option>ballad</option><option>echo</option><option>fable</option><option>nova</option>
+        <option>onyx</option><option>shimmer</option><option>verse</option>
+      </select></div>
+    <div class="buttons"><button id="byokSave">💾 Enregistrer et tester</button></div>
+    <p id="byokStatus" class="hint"></p>
+  </div>
+
+  <div class="card engine-box" id="boxN8n" hidden>
+    <h3>🛠️ Mon workflow n8n</h3>
     <button id="useLocal" class="secondary">🏠 Utiliser mon n8n local (localhost:5678)</button>
     <label class="field">URL du webhook (« Production URL » du nœud Webhook)
       <input type="url" id="n8nUrl" placeholder="https://…/webhook/traducteur-audio"></label>

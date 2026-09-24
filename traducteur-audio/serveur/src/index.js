@@ -3,18 +3,20 @@
 //   GET  /merci?session_id=cs_…   page affichée après le paiement Stripe : donne la clé de licence
 //   GET  /licence                 (en-tête X-License) : offre, statut, minutes utilisées ce mois-ci
 //   POST /dub                     (en-tête X-License) : { text, targetLang, voiceSettings } → voix IA MP3
-//   POST /activer                 (X-License + X-Device) : { transfert: true } déplace la licence sur cet appareil
+//   POST /activer                 (X-License + X-Device) : active la licence sur cet appareil
+//   POST /admin/liberer           (X-Admin) : { licence } — le VENDEUR détache une licence de son appareil
 //
-// Une licence = UN appareil. L'extension envoie X-Device (identifiant tiré au hasard à l'installation, propre au
-// navigateur). La 1re utilisation attache la licence à cet appareil ; tout autre appareil est refusé (409).
-// Transfert vers un nouvel appareil : au plus 1 tous les TRANSFER_DAYS jours.
+// Une licence = UN appareil, À VIE. L'extension envoie X-Device (identifiant tiré au hasard à l'installation,
+// propre au navigateur). La 1re utilisation attache définitivement la licence à cet appareil ; tout autre
+// appareil est refusé (409). Le client ne peut pas la transférer lui-même (TRANSFER_DAYS = "never") ; seul le
+// vendeur peut la libérer (changement d'ordinateur, panne…), via /admin/liberer et son ADMIN_SECRET.
+// Mettre TRANSFER_DAYS à un nombre (ex. "30") autorise un transfert par le client tous les N jours.
 //
 // Secrets : OPENAI_API_KEY, STRIPE_SECRET_KEY, LICENSE_SECRET. Stockage : KV « LICENSES ».
 // OPENAI_API_BASE / STRIPE_API_BASE ne servent qu'aux tests (serveurs simulés).
 
 const CHARS_PER_MINUTE = 840;   // ≈ 14 caractères lus par seconde à vitesse normale (estimation)
 const MAX_TEXT = 600;           // une phrase ; au-delà la requête est refusée
-const TRANSFER_DAYS = 30;
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type, X-License, X-Device',
@@ -30,6 +32,7 @@ export default {
       if (url.pathname === '/licence' && request.method === 'GET') return json(await licenceStatus(request, env));
       if (url.pathname === '/dub' && request.method === 'POST') return await dub(request, env);
       if (url.pathname === '/activer' && request.method === 'POST') return json(await activate(request, env));
+      if (url.pathname === '/admin/liberer' && request.method === 'POST') return json(await adminRelease(request, env));
       if (url.pathname === '/') return new Response('Traducteur Audio — serveur Voix IA Premium : OK', { headers: CORS });
       return json({ error: 'Adresse inconnue' }, 404);
     } catch (e) {
@@ -82,10 +85,36 @@ async function getLicence(request, env, { bind = true } = {}) {
     lic.activatedAt = Date.now();
     await env.LICENSES.put('lic:' + key, JSON.stringify(lic));
   } else if (lic.device && lic.device !== device) {
+    if (transferDays(env) === null) {
+      throw fail(409, `Cette licence est liée définitivement à un autre appareil (${lic.deviceLabel || 'autre navigateur'}). `
+        + 'Changement d\'ordinateur : contactez le support.', 'other_device_locked');
+    }
     throw fail(409, `Licence déjà active sur un autre appareil (${lic.deviceLabel || 'autre navigateur'}). `
       + 'Utilisez « Transférer sur cet appareil » dans les réglages.', 'other_device');
   }
   return { key, lic };
+}
+
+// null = transfert par le client interdit (licence bloquée à vie sur son 1er appareil).
+function transferDays(env) {
+  const v = String(env.TRANSFER_DAYS ?? 'never').trim().toLowerCase();
+  return /^\d+$/.test(v) && Number(v) > 0 ? Number(v) : null;
+}
+
+// Réservé au vendeur : détache la licence de son appareil (le prochain appareil qui l'utilise la récupère).
+async function adminRelease(request, env) {
+  const secret = request.headers.get('X-Admin') || '';
+  if (!env.ADMIN_SECRET || env.ADMIN_SECRET.length < 16 || secret !== env.ADMIN_SECRET) throw fail(403, 'Accès refusé');
+  const body = await request.json().catch(() => ({}));
+  const key = String(body.licence || '').trim().toUpperCase();
+  const lic = await env.LICENSES.get('lic:' + key, 'json');
+  if (!lic) throw fail(404, 'Licence inconnue');
+  const before = lic.deviceLabel || null;
+  lic.device = null;
+  lic.deviceLabel = null;
+  lic.releases = [...(lic.releases || []), Date.now()];
+  await env.LICENSES.put('lic:' + key, JSON.stringify(lic));
+  return { released: true, licence: key, previousDevice: before, releases: lic.releases.length };
 }
 
 function deviceLabel(request) {
@@ -107,8 +136,12 @@ async function activate(request, env) {
     if (e.code !== 'other_device' || !body.transfert) throw e;
   }
   const lic = await env.LICENSES.get('lic:' + key, 'json');
+  const days = transferDays(env);
+  if (days === null) {
+    throw fail(403, 'Cette licence est liée définitivement à son premier appareil. Changement d\'ordinateur : contactez le support.', 'locked_forever');
+  }
   const last = (lic.transfers || []).slice(-1)[0] || 0;
-  const wait = last + TRANSFER_DAYS * 86400000 - Date.now();
+  const wait = last + days * 86400000 - Date.now();
   if (wait > 0) {
     throw fail(429, `Transfert déjà utilisé récemment : prochain transfert possible dans ${Math.ceil(wait / 86400000)} jour(s).`, 'transfer_wait');
   }

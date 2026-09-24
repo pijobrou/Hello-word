@@ -101,8 +101,8 @@ $('listen').onclick = async () => {
 $('stop').onclick = () => stopDub();
 
 $('reset').onclick = async () => {
-  const { n8nUrl, engine } = await getSettings();
-  await chrome.storage.sync.set({ ...DEFAULTS, n8nUrl, engine });   // on garde la configuration n8n
+  const { n8nUrl, engine, premiumUrl } = await getSettings();
+  await chrome.storage.sync.set({ ...DEFAULTS, n8nUrl, engine, premiumUrl });   // on garde le moteur et les adresses
   fillForm(await getSettings());
   saved('✔ Réglages par défaut rétablis');
 };
@@ -119,13 +119,98 @@ function status(text, cls = '') {
   $('n8nStatus').className = 'hint ' + cls;
 }
 
+// ---------- Moteur de la voix ----------
+const ENGINE_HINTS = {
+  local: 'Gratuit, instantané, idéal en direct. Sur Edge, les voix « Natural » sont très fluides.',
+  cloud: 'Voix IA naturelle fournie par le service : 5 h par mois incluses. Licence liée à cet appareil.',
+  byok: 'Toutes les fonctions à vie ; la voix IA utilise votre propre compte OpenAI.',
+  n8n: 'Pour les utilisateurs avancés qui hébergent leur propre workflow n8n.'
+};
+
+function showEngine(engine) {
+  $('engine').value = engine;
+  $('engineHint').textContent = ENGINE_HINTS[engine] || '';
+  $('boxLicence').hidden = !['cloud', 'byok'].includes(engine);
+  $('boxByok').hidden = engine !== 'byok';
+  $('boxN8n').hidden = engine !== 'n8n';
+}
+
 getSettings().then((s) => {
-  $('engineN8n').checked = s.engine === 'n8n';
+  showEngine(s.engine);
   $('n8nUrl').value = s.n8nUrl;
   $('n8nKey').value = s.n8nKey;
+  $('licenseKey').value = s.licenseKey;
+  $('premiumUrl').value = s.premiumUrl;
+  $('openaiKey').value = s.openaiKey;
+  showLicence(s.licenceStatus);
 });
+$('buyPremium').href = PURCHASE_LINKS.premium;
+$('buyLifetime').href = PURCHASE_LINKS.lifetime;
+$('engine').onchange = (e) => { chrome.storage.sync.set({ engine: e.target.value }); showEngine(e.target.value); };
 
-$('engineN8n').onchange = (e) => chrome.storage.sync.set({ engine: e.target.checked ? 'n8n' : 'local' });
+function licenceMsg(text, cls = '') {
+  $('licenceStatus').textContent = text;
+  $('licenceStatus').className = 'hint ' + cls;
+}
+
+function showLicence(st) {
+  if (!st) return licenceMsg('Aucune licence activée sur cet appareil.');
+  if (!st.valid) return licenceMsg('❌ ' + (st.reason || 'Licence non valide'), 'status-err');
+  const plan = st.plan === 'premium' ? '💎 Premium' : '🔑 À vie (ma propre clé)';
+  const minutes = st.plan === 'premium' ? ` — ${st.minutesUsed} / ${st.minutesLimit} min de voix IA ce mois-ci` : '';
+  licenceMsg(`✅ ${plan} actif sur ${st.device || 'cet appareil'}${minutes}`, 'status-ok');
+}
+
+async function saveLicenceFields() {
+  const url = $('premiumUrl').value.trim().replace(/\/+$/, '');
+  const key = $('licenseKey').value.trim().toUpperCase();
+  if (!/^TA-[A-Z0-9]{4}(-[A-Z0-9]{4}){3}$/.test(key)) { licenceMsg('Clé de licence mal formée (TA-XXXX-XXXX-XXXX-XXXX).', 'status-err'); return false; }
+  let origin;
+  try { origin = new URL(url).origin + '/*'; } catch (_) { licenceMsg('Adresse du serveur Premium invalide.', 'status-err'); return false; }
+  await chrome.storage.sync.set({ premiumUrl: url });
+  await chrome.storage.local.set({ licenseKey: key });
+  if (!(await chrome.permissions.request({ origins: [origin] }))) {
+    licenceMsg('Accès au serveur Premium refusé : recliquez et choisissez « Autoriser ».', 'status-err');
+    return false;
+  }
+  return true;
+}
+
+async function activate(transfert) {
+  if (!(await saveLicenceFields())) return;
+  licenceMsg('Vérification…');
+  try {
+    await sendMessage({ type: 'activate', transfert });
+    const { licenceStatus } = await chrome.storage.local.get({ licenceStatus: null });
+    showLicence(licenceStatus);
+    $('transfer').hidden = true;
+  } catch (e) {
+    licenceMsg('❌ ' + e.message, 'status-err');
+    // Transfert proposé seulement si le serveur l'autorise (sinon : licence bloquée à vie, contacter le support).
+    $('transfer').hidden = !/Transférer sur cet appareil/.test(e.message);
+  }
+}
+$('activate').onclick = () => activate(false);
+$('transfer').onclick = () => {
+  if (confirm('Transférer la licence sur cet appareil ? L\'autre appareil sera désactivé. (1 transfert par mois)')) activate(true);
+};
+
+function byokMsg(text, cls = '') { $('byokStatus').textContent = text; $('byokStatus').className = 'hint ' + cls; }
+$('byokSave').onclick = async () => {
+  const key = $('openaiKey').value.trim();
+  if (!/^sk-/.test(key)) return byokMsg('La clé OpenAI commence par « sk- ».', 'status-err');
+  await chrome.storage.local.set({ openaiKey: key });
+  if (!(await chrome.permissions.request({ origins: ['https://api.openai.com/*'] }))) return byokMsg('Accès à OpenAI refusé.', 'status-err');
+  byokMsg('Test en cours…');
+  try {
+    const s = await getSettings();
+    const res = await sendMessage({ type: 'tts', force: true, text: 'Bonjour ! Votre voix OpenAI fonctionne.' });
+    byokMsg('✅ Voix OpenAI OK', 'status-ok');
+    playDub({ fr: res.translation, audio: `data:${res.mime};base64,${res.audio}`, via: 'ai', speed: res.speed }, s);
+  } catch (e) {
+    byokMsg('❌ ' + e.message, 'status-err');
+  }
+};
 
 // n8n sur ce PC (Docker ou npx) : adresse fixe, autorisée d'office dans le manifeste.
 $('useLocal').onclick = () => {
@@ -145,7 +230,7 @@ $('n8nSave').onclick = async () => {
   // On enregistre d'abord : rien n'est perdu même si la demande d'autorisation est refusée.
   await chrome.storage.sync.set({ n8nUrl: url, engine: 'n8n' });
   await chrome.storage.local.set({ n8nKey: $('n8nKey').value.trim() });
-  $('engineN8n').checked = true;
+  showEngine('n8n');
   // L'extension ne peut appeler que les adresses autorisées : Chrome demande l'accès à ce serveur.
   const granted = await chrome.permissions.request({ origins: [origin] });
   if (!granted) return status('Enregistré, mais l\'accès au serveur a été refusé : recliquez et choisissez « Autoriser ».', 'status-err');
@@ -154,7 +239,7 @@ $('n8nSave').onclick = async () => {
   try {
     const s = await getSettings();
     const res = await sendMessage({ type: 'dub', force: true, text: 'Hello! The human voice is now working.' });
-    const dub = { fr: res.translation, audio: `data:${res.mime || 'audio/mpeg'};base64,${res.audio}`, via: 'n8n' };
+    const dub = { fr: res.translation, audio: `data:${res.mime || 'audio/mpeg'};base64,${res.audio}`, via: 'ai' };
     status(`✅ OK en ${Math.round(performance.now() - t)} ms : « ${dub.fr} »`, 'status-ok');
     playDub(dub, s);
   } catch (e) {

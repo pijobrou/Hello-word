@@ -18,9 +18,10 @@ getSettings().then((s) => {
   currentTarget = s.targetLang;
   fillLanguageSelect($('sourceLang'), s.sourceLang);
   fillLanguageSelect($('targetLang'), s.targetLang);
-  $('engineN8n').checked = s.engine === 'n8n';
-  $('engineN8n').disabled = !s.n8nUrl;
-  $('n8nBadge').textContent = !s.n8nUrl ? 'Non configurée' : s.engine === 'n8n' ? 'Activée' : 'Désactivée (voix locale)';
+  $('engineLabel').textContent = ENGINE_LABELS[s.engine] + (s.engine !== 'local' && !isAi(s) ? ' (à configurer)' : '');
+  const st = s.licenceStatus;
+  $('planLabel').textContent = !st ? '' : !st.valid ? '❌ Licence non valide'
+    : st.plan === 'premium' ? `💎 Premium : ${st.minutesUsed} / ${st.minutesLimit} min ce mois-ci` : '🔑 Licence à vie active';
   $('enabled').checked = s.enabled;
   $('rate').value = s.rate;
   $('duckVolume').value = s.duckVolume;
@@ -63,10 +64,6 @@ $('test').onclick = async () => {
   }
 };
 
-$('engineN8n').onchange = (e) => {
-  chrome.storage.sync.set({ engine: e.target.checked ? 'n8n' : 'local' });
-  $('n8nBadge').textContent = e.target.checked ? 'Activée' : 'Désactivée (voix locale)';
-};
 
 // Réglages dans un onglet : la popup se ferme dès que Chrome affiche une demande d'autorisation.
 $('n8nConfig').onclick = () => { chrome.runtime.openOptionsPage(); window.close(); };

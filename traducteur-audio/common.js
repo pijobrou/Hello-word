@@ -18,7 +18,9 @@ const DEFAULTS = {
   sourceLang: 'en-US', // langue parlée dans la vidéo / par la personne
   targetLang: 'fr-FR', // langue de la voix traduite
   chunking: 'balanced', // découpage des phrases : 'fast', 'balanced' ou 'full'
-  engine: 'local',     // 'local' (voix du navigateur) ou 'n8n' (voix IA via votre workflow)
+  engine: 'local',     // 'local' (navigateur, gratuit) · 'cloud' (Premium) · 'byok' (ma clé OpenAI) · 'n8n' (avancé)
+  premiumUrl: '',      // adresse du serveur Premium (Cloudflare Worker)
+  byokVoice: 'coral',  // voix OpenAI utilisée avec « ma propre clé »
   aiFallback: 'silent', // si la voix IA échoue pour une phrase : 'silent' (texte seul, une seule voix) ou 'local'
   lockVoice: true,     // 🔒 une seule voix : jamais de voix de remplacement, la voix choisie est mémorisée
   liveMode: true,      // ⚡ priorité au direct : jamais de silence, rattrapage du retard (prime sur le verrou strict)
@@ -26,7 +28,30 @@ const DEFAULTS = {
   n8nUrl: ''           // URL du webhook n8n
 };
 // Le secret du webhook reste sur cet appareil (storage.local, jamais synchronisé).
-const LOCAL_DEFAULTS = { n8nKey: '' };
+// Clés et identifiant d'appareil : sur cet appareil uniquement (jamais synchronisés entre navigateurs).
+const LOCAL_DEFAULTS = { n8nKey: '', licenseKey: '', openaiKey: '', licenceStatus: null };
+
+// Liens de paiement Stripe (mode test pour l'instant : à remplacer par les liens « live » au lancement).
+const PURCHASE_LINKS = {
+  premium: 'https://buy.stripe.com/test_8x24gygZlgDwaQSgKuf7i08',
+  lifetime: 'https://buy.stripe.com/test_5kQaEW10n4UOcZ079Uf7i09'
+};
+
+const ENGINE_LABELS = {
+  local: '🔈 Voix du navigateur (gratuit)',
+  cloud: '💎 Premium — voix IA incluse',
+  byok: '🔑 Ma propre clé OpenAI (licence à vie)',
+  n8n: '🛠️ Mon workflow n8n (avancé)'
+};
+
+// Le moteur de voix IA choisi est-il utilisable (configuré) ?
+function isAi(s) {
+  if (!s) return false;
+  if (s.engine === 'n8n') return !!s.n8nUrl;
+  if (s.engine === 'cloud') return !!(s.premiumUrl && s.licenseKey);
+  if (s.engine === 'byok') return !!(s.openaiKey && s.licenseKey);
+  return false;
+}
 
 function getSettings() {
   return new Promise((resolve) => chrome.storage.sync.get(DEFAULTS, (sync) =>
@@ -230,23 +255,29 @@ function speakWith(text, { rate = 1, pitch = 1, voiceVolume = 1, targetLang = 'f
 // Prépare une phrase : traduction + audio. Lancé dès que la phrase anglaise arrive,
 // pour que la suivante soit prête pendant que la précédente est lue.
 async function prepareDub(en, settings) {
-  if (settings.engine === 'n8n' && settings.n8nUrl) {
+  const from = trCode(settings.sourceLang || 'en-US'), to = trCode(settings.targetLang || 'fr-FR');
+  if (isAi(settings)) {
     try {
-      const res = await sendMessage({ type: 'dub', text: en });
-      return { en, fr: res.translation, audio: `data:${res.mime || 'audio/mpeg'};base64,${res.audio}`, via: 'n8n',
-        speed: Number(res.speed) || 1 };   // vitesse déjà appliquée par ElevenLabs/OpenAI
+      let res;
+      if (settings.engine === 'n8n') {
+        res = await sendMessage({ type: 'dub', text: en });                  // n8n traduit et fabrique la voix
+      } else {
+        const fr = await translateText(en, from, to);                         // traduction dans l'extension
+        res = await sendMessage({ type: 'tts', text: fr });                   // voix : serveur Premium ou ma clé
+      }
+      return { en, fr: res.translation, audio: `data:${res.mime || 'audio/mpeg'};base64,${res.audio}`, via: 'ai',
+        speed: Number(res.speed) || 1 };   // vitesse déjà appliquée par le fournisseur de voix
     } catch (e) {
       // ⚡ En direct, un silence fait perdre des phrases : on lit avec la voix du navigateur.
       const silent = settings.liveMode === false && (settings.lockVoice !== false || (settings.aiFallback || 'silent') === 'silent');
       console.warn('[Traducteur Audio] voix IA indisponible pour cette phrase :', e.message);
       if (typeof onN8nFallback === 'function') onN8nFallback(e.message, silent);
-      const fr = await translateText(en, trCode(settings.sourceLang || 'en-US'), trCode(settings.targetLang || 'fr-FR'));
+      const fr = await translateText(en, from, to);
       // « Texte seul » : on n'introduit pas une 2e voix ; la phrase est affichée sans être lue.
       return { en, fr, audio: null, via: silent ? 'silent' : 'local' };
     }
   }
-  return { en, fr: await translateText(en, trCode(settings.sourceLang || 'en-US'), trCode(settings.targetLang || 'fr-FR')),
-    audio: null, via: 'local' };
+  return { en, fr: await translateText(en, from, to), audio: null, via: 'local' };
 }
 
 let currentPlayer = null;
@@ -334,7 +365,7 @@ async function playDub(dub, settings) {
         player.onerror = () => reject(new Error('lecture audio impossible'));
         player.play().catch(reject);
       });
-      return 'voix IA (n8n)';
+      return 'voix IA (' + ({ cloud: 'Premium', byok: 'ma clé OpenAI', n8n: 'n8n' }[settings.engine] || 'IA') + ')';
     } catch (e) {
       console.warn('[Traducteur Audio]', e.message);
     } finally {

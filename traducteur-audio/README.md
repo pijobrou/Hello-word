@@ -48,7 +48,26 @@ avec un casque, cochez la case pour écouter en continu.
 françaises, la reconnaissance vocale, le micro et les deux services de traduction, et le bouton
 *Copier le rapport* permet de copier le résultat.
 
-## 🎙️ Voix humaine IA (via n8n)
+## 🎙️ Moteur de la voix
+
+Réglages → **🎙️ Moteur de la voix** :
+
+| Moteur | Voix | Ce qu'il faut |
+|---|---|---|
+| Voix du navigateur | voix du système, gratuite | rien |
+| 💎 Premium | voix IA fournie par le serveur du vendeur, 5 h par mois | abonnement 4,99 €/mois + clé de licence |
+| 🔑 Ma propre clé OpenAI | voix IA OpenAI payée par l'utilisateur | licence à vie 14,99 € + clé OpenAI |
+| n8n | votre workflow n8n (usage personnel) | n8n + webhook |
+
+Après le paiement, la page de remerciement donne une clé `TA-XXXX-XXXX-XXXX-XXXX`, à coller dans
+Réglages → **Activer**. **La licence est liée à vie au premier appareil et à cette installation de
+l'extension.** Un autre navigateur, un autre ordinateur ou une réinstallation sont refusés. Pour
+changer d'ordinateur, il faut contacter le vendeur, qui peut libérer la licence
+(voir [`serveur/`](serveur/README.md)). La popup affiche le moteur actif et les minutes Premium
+utilisées. Si la voix IA ne répond pas, l'extension continue avec la voix du navigateur (ou se tait,
+selon le réglage « Si la voix IA ne répond pas »).
+
+### Voix humaine IA via n8n
 
 Par défaut, l'extension utilise la voix du navigateur et choisit automatiquement la meilleure voix
 française installée (« Natural », puis « Google »). Pour une voix vraiment humaine (ElevenLabs ou
@@ -146,10 +165,11 @@ manifest.json            configuration de l'extension (Manifest V3)
 background.js            appels de traduction + cache
 content.js               mode vidéo : lit les sous-titres, traduit, parle, baisse le volume
 popup.html / popup.js    réglages
-options.html / options.js  réglages de la voix IA (n8n), dans un onglet
+options.html / options.js  moteur de la voix, licence, clé OpenAI, n8n (dans un onglet)
 listen.html / listen.js  fenêtre d'écoute (son de l'onglet ou micro)
 diagnostics/             page de diagnostics
 common.js, style.css     code et style partagés (voix locale ou n8n, préchargement des phrases)
 n8n/                     workflow n8n « voix humaine » + guide
+serveur/                 serveur Premium (Cloudflare Workers) : licences, quota, voix IA
 build.sh                 reconstruit le ZIP dans ../dist/
 ```
