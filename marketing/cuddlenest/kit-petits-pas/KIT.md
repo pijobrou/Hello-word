@@ -20,7 +20,21 @@ jour seulement », pas de faux témoignages.
 
 ---
 
-## 1. Mise en place dans Shopify (≈ 30 min)
+## 0. Déjà installé par Claude (2026-09-25)
+- ✅ 4 PDF dans Shopify → Contenu → Fichiers (tailles vérifiées) :
+  - https://cdn.shopify.com/s/files/1/0707/3467/6081/files/cuddlenest-guide-7-jours-FR.pdf
+  - https://cdn.shopify.com/s/files/1/0707/3467/6081/files/cuddlenest-guide-7-days-EN.pdf
+  - https://cdn.shopify.com/s/files/1/0707/3467/6081/files/cuddlenest-tableau-recompenses-FR.pdf
+  - https://cdn.shopify.com/s/files/1/0707/3467/6081/files/cuddlenest-reward-chart-EN.pdf
+- ✅ Page publiée **https://www.cuddlenest.ca/pages/kit-petits-pas** (EN « The Small Steps Kit » +
+  traduction FR « Le Kit Petits Pas ») avec les 4 liens de téléchargement.
+- ✅ Fiche produit : bloc « Inclus avec votre commande : le Kit Petits Pas » (EN + FR), avec un
+  lien vers la page. Le bloc ne mentionne **pas** les courriels quotidiens tant qu'ils ne sont
+  pas configurés ; K1 non plus.
+- Les PDF sont publics (lien sur la page) : n'importe qui peut les télécharger, ce qui sert
+  aussi d'aimant à visiteurs.
+
+## 1. Mise en place dans Shopify (≈ 30 min) — étapes restantes : 2 (facultatif), 3 et 4
 
 1. **Téléverser les 4 PDF** : Shopify → **Contenu → Fichiers → Téléverser des fichiers**.
    Copie le lien de chaque fichier (bouton « Copier le lien »).
@@ -166,14 +180,13 @@ Ajoute ces annonces **dans l'ensemble existant** `CN | Canada` (texte FR par dé
 ### K1 — Le déballage du kit (photo/vidéo : culottes + guide imprimé + tableau sur une table)
 - **FR :** Des culottes d'apprentissage, on en trouve partout. Un plan pour les 7 premiers
   jours, beaucoup moins. 🎁 Avec CuddleNest, vous recevez les culottes **et** le Kit Petits
-  Pas : le guide jour par jour, le tableau de récompenses à imprimer et un conseil par courriel
-  chaque jour de la première semaine. Garantie 30 jours.
+  Pas : le guide jour par jour et le tableau de récompenses à imprimer. Garantie 30 jours.
   10 paires pour le prix de 8* · livraison gratuite
   *Motifs sélectionnés, tailles 90 et 100 cm, détails sur la fiche.
   — **Titre :** Un plan, pas que des culottes · **Bouton :** Acheter
 - **EN:** Training pants are everywhere. A plan for the first 7 days isn't. 🎁 With
   CuddleNest you get the pants **and** the Small Steps Kit: a day-by-day guide, a printable
-  reward chart and a daily tips email during your first week. 30-day guarantee.
+  reward chart. 30-day guarantee.
   10 pairs for the price of 8* · free shipping
   *Selected prints, sizes 90 and 100 cm, details on the product page.
   — **Headline:** A plan, not just pants · **CTA:** Shop now
