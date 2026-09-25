@@ -12,8 +12,7 @@ en ligne (Shopify, Meta, Google). Chaque texte ci-dessous est prêt à copier-co
 | 1 courriel de conseils par jour pendant 7 jours | Section 3 ci-dessous | 0 $ (Shopify Email) |
 | Garantie 30 jours, service en français | Déjà en place | — |
 
-⚠️ **Avant de publier :** remplace `[votre courriel]` / `[your email]` à la dernière page
-du guide (ou envoie-moi ton courriel et je régénère les PDF avec `build_kit.py`).
+✅ Courriel de contact dans le guide : **brouinc@yahoo.com** (ajouté le 2026-09-25).
 
 **Règles de contenu respectées :** aucune promesse de résultat (« propre en 7 jours » n'est
 écrit nulle part), conseils généraux avec renvoi vers un professionnel de la santé, « pour le
