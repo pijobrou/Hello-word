@@ -40,13 +40,15 @@ async function run() {
   if (!('speechSynthesis' in window)) synth('err', 'API speechSynthesis absente.');
   else {
     await waitVoices();
-    const fr = frenchVoices();
-    if (fr.length) synth('ok', `${fr.length} voix française(s) : ${fr.map((v) => v.name).join(', ')}`);
-    else synth('warn', 'Aucune voix française installée : ajoutez le français dans les langues/voix du système.');
+    const target = (await getSettings()).targetLang;
+    const fr = voicesFor(target);
+    const name = langInfo(target).fr;
+    if (fr.length) synth('ok', `${fr.length} voix (${name}) : ${fr.map((v) => v.name).join(', ')}`);
+    else synth('warn', `Aucune voix « ${name} » installée : ajoutez cette langue dans les voix du système, ou utilisez la voix IA.`);
   }
 
   // 2. Reconnaissance vocale
-  const recog = row('Reconnaissance vocale anglaise (mode micro)');
+  const recog = row('Reconnaissance vocale (mode micro et onglet)');
   const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (Recognition) recog('ok', 'Disponible (Chrome/Edge, nécessite Internet).');
   else recog('err', 'Indisponible : utilisez Chrome ou Edge pour le mode micro.');
@@ -88,16 +90,27 @@ async function run() {
 
   const settings = await getSettings();
 
-  // 5 bis. Voix IA via n8n
-  const n8n = row('Voix humaine IA (workflow n8n)');
-  if (settings.engine !== 'n8n') n8n('warn', 'Désactivée : voix locale du navigateur (popup → « Voix humaine IA »).');
+  // 5 bis. Voix IA (Premium, ma clé ou n8n)
+  const ai = row('Voix IA : ' + ENGINE_LABELS[settings.engine]);
+  if (settings.engine === 'local') ai('warn', 'Voix du navigateur (gratuite). Réglages → Moteur de la voix pour la voix IA.');
+  else if (!isAi(settings)) ai('err', 'Moteur choisi mais pas configuré (clé de licence, adresse ou clé OpenAI manquante).');
   else {
     try {
-      const { value, ms } = await timed(() => sendMessage({ type: 'dub', force: true, text: 'Good morning, how are you?' }));
-      n8n('ok', `« ${value.translation} » + audio ${Math.round(value.audio.length * 0.75 / 1024)} Ko (${ms} ms)`);
+      const { value, ms } = await timed(() => sendMessage(settings.engine === 'n8n'
+        ? { type: 'dub', force: true, text: 'Good morning, how are you?' }
+        : { type: 'tts', force: true, text: 'Bonjour, comment allez-vous ?' }));
+      ai('ok', `« ${value.translation} » + audio ${Math.round(value.audio.length * 0.75 / 1024)} Ko (${ms} ms)`);
     } catch (e) {
-      n8n('err', e.message + ' — la voix locale est utilisée en secours.');
+      ai('err', e.message + ' — la voix du navigateur est utilisée en secours.');
     }
+  }
+  if (['cloud', 'byok'].includes(settings.engine) && settings.licenseKey) {
+    const lic = row('Licence');
+    try {
+      const st = await sendMessage({ type: 'licence' });
+      lic(st.valid ? 'ok' : 'err', st.valid ? `${st.plan === 'premium' ? 'Premium' : 'À vie'} sur ${st.device}`
+        + (st.plan === 'premium' ? ` — ${st.minutesUsed}/${st.minutesLimit} min ce mois-ci` : '') : (st.reason || 'non valide'));
+    } catch (e) { lic('err', e.message); }
   }
 
   // 6. Onglet actif / mode vidéo
@@ -106,7 +119,8 @@ async function run() {
     settings.enabled ? 'Activé sur toutes les pages.' : 'Désactivé : activez-le depuis la popup.');
 
   // La clé n8n n'apparaît jamais dans le rapport (il peut être copié et partagé).
-  const shown = { ...settings, n8nKey: settings.n8nKey ? '•••• (définie)' : '(vide)' };
+  const hide = (v) => (v ? '•••• (définie)' : '(vide)');
+  const shown = { ...settings, n8nKey: hide(settings.n8nKey), openaiKey: hide(settings.openaiKey), licenseKey: hide(settings.licenseKey) };
   $('settings').textContent = JSON.stringify(shown, null, 2);
 }
 

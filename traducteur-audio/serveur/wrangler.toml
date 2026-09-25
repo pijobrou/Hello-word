@@ -1,0 +1,26 @@
+# Serveur « Voix IA Premium » de Traducteur Audio (Cloudflare Workers).
+# Mise en ligne : voir README.md. Les clés secrètes ne vont JAMAIS dans ce fichier :
+#   npx wrangler secret put OPENAI_API_KEY
+#   npx wrangler secret put STRIPE_SECRET_KEY
+#   npx wrangler secret put LICENSE_SECRET
+#   npx wrangler secret put ADMIN_SECRET      (au moins 16 caractères : sert à libérer une licence)
+name = "traducteur-audio"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+# Prix Stripe (mode test pour l'instant) : servent à reconnaître l'offre achetée.
+PRICE_PREMIUM = "price_1UJ3sbCQ40QgCZDJ5sMDLWNo"
+PRICE_LIFETIME = "price_1UJ3sfCQ40QgCZDJXljc53kO"
+PREMIUM_MONTHLY_MINUTES = "300"
+# "never" : licence bloquée À VIE sur son 1er appareil (seul le vendeur peut la libérer via /admin/liberer).
+# Un nombre (ex. "30") : le client peut la transférer lui-même une fois tous les N jours.
+TRANSFER_DAYS = "never"
+OPENAI_TTS_MODEL = "gpt-4o-mini-tts"
+OPENAI_VOICE = "coral"
+
+# Stockage des licences et des compteurs d'utilisation :
+#   npx wrangler kv namespace create LICENSES   → recopiez l'id ci-dessous
+[[kv_namespaces]]
+binding = "LICENSES"
+id = "A_REMPLACER_PAR_L_ID_DU_KV"
