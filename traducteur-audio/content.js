@@ -27,7 +27,7 @@
     });
   }
 
-  function showText(fr) {
+  function showText(fr, en) {
     if (!settings.showOverlay) return;
     if (!overlay) {
       overlay = document.createElement('div');
@@ -39,7 +39,14 @@
       });
       document.documentElement.appendChild(overlay);
     }
-    overlay.textContent = '🇫🇷 ' + fr;
+    overlay.style.fontSize = settings.overlaySize + 'px';
+    overlay.textContent = langInfo(settings.targetLang).flag + ' ' + fr;
+    if (settings.showEnglish && en) {
+      const small = document.createElement('div');
+      Object.assign(small.style, { fontSize: '0.7em', color: '#ddd', fontWeight: 400, marginTop: '4px' });
+      small.textContent = en;
+      overlay.appendChild(small);
+    }
     overlay.style.display = 'block';
   }
 
@@ -56,24 +63,55 @@
       const dub = await queue.shift();
       const boost = Math.min(1.35, 1 + 0.12 * queue.length);
       if (dub.error) { console.warn('[Traducteur Audio]', dub.error); continue; }
-      showText(dub.fr);
+      showText(dub.fr, dub.en);
       duck(true);
-      await playDub(dub, { ...settings, rate: settings.rate * boost });
+      try {
+        await playDub(dub, { ...settings, rate: settings.rate * boost });
+      } catch (e) {
+        console.warn('[Traducteur Audio] lecture :', e.message);   // ne jamais bloquer la file
+      }
+      if (settings.gapMs && !queue.length) await sleep(settings.gapMs);
     }
     duck(false);
     hideText();
     speaking = false;
   }
 
+  // Chaque copie installée de l'extension laisse son identifiant sur la page : si on en voit deux,
+  // deux extensions « Traducteur Audio » tournent en même temps (deux voix qui se relaient).
+  const root = document.documentElement;
+  const ids = new Set((root.getAttribute('data-traducteur-audio') || '').split(',').filter(Boolean));
+  ids.add(chrome.runtime.id);
+  root.setAttribute('data-traducteur-audio', [...ids].join(','));
+
+  // La fenêtre « Traduire le son de cet onglet » est ouverte sur cet onglet : elle s'occupe de la voix.
+  let listenWindowUntil = 0;
+  chrome.runtime.onMessage.addListener((msg, _sender, reply) => {
+    if (msg && msg.type === 'listenWindowActive') {
+      if (Date.now() >= listenWindowUntil && speaking) { queue = []; stopDub(); }
+      listenWindowUntil = Date.now() + 8000;
+      reply({ copies: (root.getAttribute('data-traducteur-audio') || '').split(',').filter(Boolean) });
+    }
+  });
+
   function onEnglish(text) {
+    if (Date.now() < listenWindowUntil) return;
+    // Une fenêtre d'écoute tourne quelque part : un seul lecteur à la fois, on se tait.
+    chrome.storage.local.get({ listenHeartbeat: 0 }, ({ listenHeartbeat }) => {
+      if (Date.now() - listenHeartbeat > 8000) handleEnglish(text);
+    });
+  }
+
+  function handleEnglish(text) {
     text = text.replace(/\s+/g, ' ').trim();
     if (!settings.enabled || !text || text === lastText) return;
     // Sous-titres « roulants » (YouTube) : on n'envoie que la partie nouvelle.
     const fresh = lastText && text.startsWith(lastText) ? text.slice(lastText.length).trim() : text;
     lastText = text;
-    if (!fresh) return;
+    const cleaned = cleanSpeech(fresh, settings.sourceLang);   // retire [Music], tics, exclamations seules
+    if (!cleaned) return;
     // Préparée tout de suite (traduction + audio) pendant que la phrase précédente est lue.
-    queue.push(prepareDub(fresh, settings).catch((error) => ({ error })));
+    queue.push(prepareDub(cleaned, settings).catch((error) => ({ error })));
     processQueue();
   }
 
@@ -94,7 +132,8 @@
       Array.from(video.textTracks || []).forEach((track) => {
         if (hookedTracks.has(track)) return;
         if (!['subtitles', 'captions'].includes(track.kind)) return;
-        if (track.language && !track.language.toLowerCase().startsWith('en')) return;
+        const base = (settings.sourceLang || 'en-US').split('-')[0];
+        if (track.language && !track.language.toLowerCase().startsWith(base)) return;
         hookedTracks.add(track);
         if (track.mode === 'disabled') track.mode = 'hidden';
         track.addEventListener('cuechange', () => {
