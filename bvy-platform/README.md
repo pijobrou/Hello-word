@@ -27,3 +27,8 @@ Puis ouvrir http://localhost:3000 (Node.js 20.12 ou plus récent ; aucune instal
 1. Modifier le fichier dans `apps/website/src/pages/` (pas dans `public/`, qui est généré).
 2. `node build.js` puis `npm test`.
 3. Redéployer avec `tools\deployment\deploy.cmd`.
+
+## Réglages
+
+`apps/website/src/site.json` contient les liens à changer sans toucher aux pages (ex. lien de paiement Stripe
+de la domiciliation). Après modification : `node build.js`, puis redéployer.

@@ -40,6 +40,7 @@ function build() {
     .update(fs.readFileSync(path.join(PUBLIC, 'assets/js/bvy.js')))
     .digest('hex').slice(0, 8);
   const year = String(new Date().getFullYear());
+  const site = JSON.parse(fs.readFileSync(path.join(SRC, 'site.json'), 'utf8'));
   const pages = fs.readdirSync(path.join(SRC, 'pages')).filter((f) => f.endsWith('.html')).sort();
   const sitemap = [];
 
@@ -55,6 +56,9 @@ function build() {
       .replaceAll('{{robots}}', robots)
       .replaceAll('{{version}}', version)
       .replaceAll('{{year}}', year);
+    for (const [key, value] of Object.entries(site)) {
+      if (!key.startsWith('_')) html = html.replaceAll(`{{${key}}}`, esc(value));
+    }
     if (meta.nav) {
       html = html.replaceAll(`data-nav="${meta.nav}"`, `data-nav="${meta.nav}" aria-current="page"`);
     }

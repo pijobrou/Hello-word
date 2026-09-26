@@ -76,3 +76,10 @@ Contrôle automatique : aucune erreur HTTP, aucun défilement horizontal, aucune
 Après `STATUS: APPROVED` : workflow `01_design_system.md` — transformer ce site en design system
 du portail (jetons, tableaux, modales, états vides/chargement/erreur, graphiques), puis phase 2
 (authentification et rôles).
+
+## 9. Paiement en ligne — domiciliation (ajout)
+
+Bouton « Payer en ligne » (Stripe) sur l'accueil, la page Services et la formule International des Tarifs.
+**Le lien actuel est un lien de TEST Stripe** (`buy.stripe.com/test_…`) : aucun vrai paiement n'est encaissé.
+Avant la mise en production, remplacer le lien dans `apps/website/src/site.json` par le lien réel
+(mode « live » de Stripe), puis `node build.js` et redéployer. La politique de confidentialité mentionne Stripe (section 8).
