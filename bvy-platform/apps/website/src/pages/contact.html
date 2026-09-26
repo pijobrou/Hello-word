@@ -1,0 +1,65 @@
+---
+title: Contact et consultation gratuite — BVY Accounting & Tax Services
+description: Demandez une consultation initiale gratuite avec BVY Accounting & Tax Services à Sainte-Marie (Québec). Réponse dans un délai d'un jour ouvrable.
+path: /contact/
+nav: contact
+---
+<section class="page-hero dark dark-glow dark-grid" style="padding-bottom:clamp(64px,8vw,110px)">
+  <div class="wrap split" style="align-items:start">
+    <div>
+      <p class="crumbs"><a href="/">Accueil</a> / Contact</p>
+      <p class="eyebrow">Nous joindre</p>
+      <h1 class="h1" style="font-size:clamp(38px,4.6vw,62px)">Parlons de votre<br><em>situation financière</em></h1>
+      <p class="lead">Consultation initiale gratuite pour évaluer vos besoins et vous proposer la solution adaptée. Nous vous répondons dans un délai d’un jour ouvrable.</p>
+      <ul class="contact-list">
+        <li><span class="ico"><svg class="i" aria-hidden="true"><use href="#i-pin"/></svg></span><span><small>Bureau principal</small><span>Sainte-Marie, Chaudière-Appalaches, Québec</span></span></li>
+        <li><span class="ico"><svg class="i" aria-hidden="true"><use href="#i-mail"/></svg></span><span><small>Courriel</small><a href="mailto:bvypjb@protonmail.com">bvypjb@protonmail.com</a></span></li>
+        <li><span class="ico"><svg class="i" aria-hidden="true"><use href="#i-clock"/></svg></span><span><small>Heures d’affaires</small><span>Lundi – vendredi : 8 h à 17 h</span></span></li>
+        <li><span class="ico"><svg class="i" aria-hidden="true"><use href="#i-lang"/></svg></span><span><small>Langues</small><span>Français · English · International</span></span></li>
+      </ul>
+      <p class="law25"><svg class="i" aria-hidden="true"><use href="#i-shield"/></svg><span><strong>Données hébergées au Canada</strong>Conforme Loi 25 (Québec) · LPRPDE</span></p>
+    </div>
+
+    <div class="glass">
+      <h2 class="h3" style="color:var(--white);margin-bottom:22px">Demande de consultation</h2>
+      <form id="contact-form" class="form" action="/api/contact" method="post" novalidate>
+        <div class="field"><label for="f-prenom">Prénom <span class="req">*</span></label><input class="input" id="f-prenom" name="prenom" autocomplete="given-name" required maxlength="80"><span class="err" aria-live="polite"></span></div>
+        <div class="field"><label for="f-nom">Nom <span class="req">*</span></label><input class="input" id="f-nom" name="nom" autocomplete="family-name" required maxlength="80"><span class="err" aria-live="polite"></span></div>
+        <div class="field"><label for="f-courriel">Courriel <span class="req">*</span></label><input class="input" id="f-courriel" name="courriel" type="email" autocomplete="email" required maxlength="160" placeholder="vous@entreprise.ca"><span class="err" aria-live="polite"></span></div>
+        <div class="field"><label for="f-tel">Téléphone</label><input class="input" id="f-tel" name="telephone" type="tel" autocomplete="tel" maxlength="40"><span class="err" aria-live="polite"></span></div>
+        <div class="field full"><label for="f-ent">Entreprise</label><input class="input" id="f-ent" name="entreprise" autocomplete="organization" maxlength="120"><span class="err" aria-live="polite"></span></div>
+        <div class="field full"><label for="f-service">Service recherché</label>
+          <select class="input" id="f-service" name="service">
+            <option value="">Sélectionner un service</option>
+            <option value="tenue-de-livres">Tenue de livres mensuelle</option>
+            <option value="paie">Paie</option>
+            <option value="tps-tvq">Déclarations TPS/TVQ</option>
+            <option value="impot-societes">Impôt des sociétés (T2 / CO-17)</option>
+            <option value="travailleurs-autonomes">Travailleur autonome (T1 / TP-1)</option>
+            <option value="etats-financiers">États financiers et soutien comptable</option>
+            <option value="incorporation">Incorporation au Québec</option>
+            <option value="domiciliation">Domiciliation Canada — entreprise étrangère</option>
+            <option value="plateforme">Démonstration de la plateforme BVY</option>
+            <option value="autre">Autre</option>
+          </select><span class="err" aria-live="polite"></span></div>
+        <fieldset class="field full"><legend>Utilisez-vous QuickBooks Online ?</legend>
+          <div class="radios">
+            <label><input type="radio" name="quickbooks" value="oui"> Oui</label>
+            <label><input type="radio" name="quickbooks" value="non"> Non</label>
+            <label><input type="radio" name="quickbooks" value="ne-sais-pas"> Je ne sais pas</label>
+          </div><span class="err" aria-live="polite"></span></fieldset>
+        <div class="field full"><label for="f-region">Pays / province</label>
+          <select class="input" id="f-region" name="region">
+            <option>Québec, Canada</option><option>Ontario, Canada</option><option>Autre province canadienne</option>
+            <option>France</option><option>Belgique</option><option>Suisse</option><option>Maroc</option><option>Sénégal</option><option>Côte d’Ivoire</option><option>Autre pays</option>
+          </select><span class="err" aria-live="polite"></span></div>
+        <div class="field full"><label for="f-msg">Message</label><textarea class="input" id="f-msg" name="message" rows="4" maxlength="4000" placeholder="Décrivez brièvement votre situation…"></textarea><span class="err" aria-live="polite"></span></div>
+        <div class="hp" aria-hidden="true"><label for="f-website">Ne pas remplir</label><input id="f-website" name="website" tabindex="-1" autocomplete="off"></div>
+        <div class="field full"><label class="consent" for="f-consent"><input type="checkbox" id="f-consent" name="consentement" value="on" required><span>J’accepte que BVY utilise ces renseignements pour répondre à ma demande, conformément à la <a href="/confidentialite/">politique de confidentialité</a>. <span class="req">*</span></span></label><span class="err" aria-live="polite"></span></div>
+        <p class="form-status" role="status" aria-live="polite"></p>
+        <div class="field full"><button class="btn btn-gold" type="submit" style="width:100%">Envoyer ma demande <svg class="i i-sm" aria-hidden="true"><use href="#i-arrow"/></svg></button></div>
+        <p class="note full" style="grid-column:1/-1">* Champs obligatoires. Vos renseignements sont conservés au Canada et ne sont jamais vendus.</p>
+      </form>
+    </div>
+  </div>
+</section>

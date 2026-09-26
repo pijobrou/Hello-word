@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /portail-comptable/
+Disallow: /api/
+
+Sitemap: https://bvyaccountingtax.ca/sitemap.xml
