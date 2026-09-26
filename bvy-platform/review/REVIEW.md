@@ -56,14 +56,15 @@ Contrôle automatique : aucune erreur HTTP, aucun défilement horizontal, aucune
 ## 6. Ce qui a changé par rapport à votre fichier et au site actuel
 
 - Retiré : « Cabinet agréé CPA Québec » et « Dashboard CPA » (le site actuel les avait déjà retirés ; le titre CPA est réservé) ; les 3 témoignages (noms inventés — à remplacer par de vrais témoignages avec accord écrit).
-- Courriel : `bvypjb@protonmail.com` (celui du site en ligne) au lieu de `info@bvyaccountingtax.ca`.
+- Courriel : `bvypjb@protonmail.com` (**confirmé**).
+- Aucune mention CPA nulle part sur le site (**confirmé** : BVY n'a pas de CPA).
 - Ajouté : pages Plateforme, Fonctionnement, Tarifs, Connexion, Confidentialité ; formulaire réellement enregistré sur le serveur.
 
 ## 7. Limites connues — à confirmer par vous
 
-1. **Chiffres** « 15+ années » et « 200+ clients » : repris du site actuel, à confirmer.
+1. ~~Chiffres~~ — **réglé** : « 200+ clients » retiré, « 10 ans d'expérience » affiché.
 2. **Tarifs** : modèle « sur soumission » avec 3 formules (noms et contenu proposés) ; seul le prix publié « domiciliation dès 295 $/mois » est affiché.
-3. **Confidentialité** : durée de conservation de 24 mois, nom de la personne responsable, absence de témoins (cookies) publicitaires — à valider.
+3. **Confidentialité** : conservation de 24 mois **confirmée**. Reste à valider : le nom de la personne responsable et l'absence de témoins (cookies) publicitaires.
 4. **Promesses** : « réponse en un jour ouvrable », intégration Payfit, catégorisation assistée par IA — à confirmer.
 5. **Tableau de bord** : c'est une maquette avec des données fictives (indiqué sur la page) ; le vrai portail est la phase 3.
 6. **Formulaire** : les demandes sont enregistrées dans `/var/www/bvy-website/shared/data/leads.jsonl`. Pour les recevoir par courriel, brancher `LEADS_WEBHOOK_URL` sur un flux n8n (voir `DEPLOIEMENT.md`, étape 9).

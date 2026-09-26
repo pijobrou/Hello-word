@@ -17,7 +17,8 @@ gives visitors a clear way to book a consultation or reach the future client por
 | Live site content | scrape of https://bvyaccountingtax.ca on 2026-09-26 | Stone (contact email, platform text, 6-step process) |
 | Logo | owner upload → `apps/website/public/assets/img/bvy-logo.png` | Stone |
 | Product brief | `CLAUDE.md` | Stone |
-| Stats "15+ ans / 200+ clients" | live site | Opinion — owner must confirm before launch |
+| "10 ans d'expérience" (no client count) | owner, 2026-09-26 | Stone |
+| No CPA on staff — never mention CPA | owner, 2026-09-26 | Stone |
 
 ## Tools
 
