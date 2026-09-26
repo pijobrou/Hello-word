@@ -80,6 +80,5 @@ du portail (jetons, tableaux, modales, états vides/chargement/erreur, graphique
 ## 9. Paiement en ligne — domiciliation (ajout)
 
 Bouton « Payer en ligne » (Stripe) sur l'accueil, la page Services et la formule International des Tarifs.
-**Le lien actuel est un lien de TEST Stripe** (`buy.stripe.com/test_…`) : aucun vrai paiement n'est encaissé.
-Avant la mise en production, remplacer le lien dans `apps/website/src/site.json` par le lien réel
-(mode « live » de Stripe), puis `node build.js` et redéployer. La politique de confidentialité mentionne Stripe (section 8).
+Lien Stripe **réel** (mode live) fourni le 26 septembre 2026 : `https://buy.stripe.com/00w4gz1up6QP2Hv8WD00000`.
+Pour le changer : `apps/website/src/site.json`, puis `node build.js` et redéployer. La politique de confidentialité mentionne Stripe (section 8).

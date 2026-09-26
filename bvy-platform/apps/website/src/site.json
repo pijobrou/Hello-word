@@ -1,4 +1,4 @@
 {
-  "_note": "Réglages du site. Après modification : node build.js. Remplacer le lien Stripe de test (buy.stripe.com/test_...) par le lien réel avant la mise en production.",
-  "stripe_domiciliation": "https://buy.stripe.com/test_cNi6oH8WR8YX3LzegX00002"
+  "_note": "Réglages du site. Après modification : node build.js puis redéployer. Lien Stripe réel (mode live) de la domiciliation.",
+  "stripe_domiciliation": "https://buy.stripe.com/00w4gz1up6QP2Hv8WD00000"
 }
