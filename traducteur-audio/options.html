@@ -30,7 +30,7 @@
       <br><span class="hint">Voix du navigateur et voix IA</span></label>
       <input type="range" id="pitch" data-setting="pitch" min="0.5" max="2" step="0.05"></div>
     <div class="row"><label for="expressiveness">Style : posé ↔ expressif <span class="val" data-for="expressiveness"></span>
-      <br><span class="hint">Voix IA : calme ou animée. Nécessite la variante « options-voix » du workflow n8n</span></label>
+      <br><span class="hint">Voix IA Premium : calme ou animée</span></label>
       <input type="range" id="expressiveness" data-setting="expressiveness" min="0" max="1" step="0.05"></div>
     <div class="row"><label for="timbre">Timbre : aigu/brillant ↔ doux/chaud <span class="val" data-for="timbre"></span>
       <br><span class="hint">Voix IA : vers « doux », la voix est moins perçante et plus claire. Marche avec tout workflow</span></label>
@@ -88,9 +88,7 @@
     <div class="row"><label for="engine"><strong>Quelle voix lit la traduction ?</strong></label>
       <select id="engine">
         <option value="local">🔈 Voix du navigateur (gratuit)</option>
-        <option value="cloud">💎 Premium — voix IA incluse (4,99 €/mois)</option>
-        <option value="byok">🔑 Ma propre clé OpenAI (licence à vie)</option>
-        <option value="n8n">🛠️ Mon workflow n8n (avancé)</option>
+        <option value="premium">💎 Premium — voix IA</option>
       </select></div>
     <p id="engineHint" class="hint"></p>
     <div class="row"><label for="aiFallback">Si la voix IA échoue pour une phrase (hors « Priorité au direct »)
@@ -102,9 +100,9 @@
   </div>
 
   <div class="card engine-box" id="boxLicence" hidden>
-    <h3>💎 Licence</h3>
+    <h3>💎 Premium</h3>
     <div class="buttons">
-      <a class="button" id="buyPremium" target="_blank" rel="noopener">💎 Premium — 4,99 €/mois</a>
+      <a class="button" id="buyPremium" target="_blank" rel="noopener">💎 Mensuel — 4,99 €/mois</a>
       <a class="button secondary" id="buyLifetime" target="_blank" rel="noopener">🔑 À vie — 14,99 €</a>
     </div>
     <p class="hint">Après le paiement, votre clé <code>TA-XXXX-XXXX-XXXX-XXXX</code> s'affiche. Collez-la ci-dessous.
@@ -123,8 +121,8 @@
   </div>
 
   <div class="card engine-box" id="boxByok" hidden>
-    <h3>🔑 Ma propre clé OpenAI</h3>
-    <p class="hint">La voix IA est facturée directement sur votre compte OpenAI. La clé reste sur cet appareil.</p>
+    <h3>🔑 Votre clé de voix (offre À vie)</h3>
+    <p class="hint">L'offre À vie utilise votre propre clé OpenAI : la voix est facturée sur votre compte OpenAI. La clé reste sur cet appareil.</p>
     <label class="field">Clé OpenAI
       <input type="password" id="openaiKey" placeholder="sk-…" autocomplete="off"></label>
     <div class="row"><label for="byokVoice">Voix OpenAI</label>
@@ -138,7 +136,8 @@
   </div>
 
   <div class="card engine-box" id="boxN8n" hidden>
-    <h3>🛠️ Mon workflow n8n</h3>
+    <h3>🛠️ Source de la voix Premium : n8n (propriétaire)</h3>
+    <p class="hint">Visible seulement en mode propriétaire (<code>options.html#proprietaire</code>). « ✅ Activer » ci-dessus repasse sur le serveur Premium.</p>
     <button id="useLocal" class="secondary">🏠 Utiliser mon n8n local (localhost:5678)</button>
     <label class="field">URL du webhook (« Production URL » du nœud Webhook)
       <input type="url" id="n8nUrl" placeholder="https://…/webhook/traducteur-audio"></label>

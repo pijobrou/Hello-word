@@ -50,14 +50,19 @@ françaises, la reconnaissance vocale, le micro et les deux services de traducti
 
 ## 🎙️ Moteur de la voix
 
-Réglages → **🎙️ Moteur de la voix** :
+Réglages → **🎙️ Moteur de la voix** : le client ne voit que **deux choix**.
 
-| Moteur | Voix | Ce qu'il faut |
-|---|---|---|
-| Voix du navigateur | voix du système, gratuite | rien |
-| 💎 Premium | voix IA fournie par le serveur du vendeur, 5 h par mois | abonnement 4,99 €/mois + clé de licence |
-| 🔑 Ma propre clé OpenAI | voix IA OpenAI payée par l'utilisateur | licence à vie 14,99 € + clé OpenAI |
-| n8n | votre workflow n8n (usage personnel) | n8n + webhook |
+| Choix | Voix |
+|---|---|
+| 🔈 Voix du navigateur | voix du système, gratuite |
+| 💎 Premium — voix IA | voix IA. Mensuel 4,99 € (5 h/mois) ou À vie 14,99 € |
+
+La source de la voix Premium n'est jamais affichée au client (popup, fenêtre d'écoute, diagnostics :
+« voix IA (Premium) ») :
+- **Premium mensuel** → serveur du vendeur (`serveur/`) ;
+- **Premium à vie** → clé OpenAI du client (champ « Votre clé de voix », visible seulement avec une licence À vie) ;
+- **n8n du propriétaire** → visible seulement en mode propriétaire : ouvrez
+  `chrome-extension://<ID>/options.html#proprietaire`. « ✅ Activer » une licence repasse sur le serveur.
 
 Après le paiement, la page de remerciement donne une clé `TA-XXXX-XXXX-XXXX-XXXX`, à coller dans
 Réglages → **Activer**. **La licence est liée à vie au premier appareil et à cette installation de

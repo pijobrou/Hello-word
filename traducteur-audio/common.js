@@ -37,11 +37,13 @@ const PURCHASE_LINKS = {
   lifetime: 'https://buy.stripe.com/test_5kQaEW10n4UOcZ079Uf7i09'
 };
 
+// Côté client il n'y a que deux choix : navigateur ou Premium. La source de la voix Premium
+// (serveur, clé du client pour l'offre à vie, n8n du propriétaire) n'est pas affichée.
 const ENGINE_LABELS = {
   local: '🔈 Voix du navigateur (gratuit)',
-  cloud: '💎 Premium — voix IA incluse',
-  byok: '🔑 Ma propre clé OpenAI (licence à vie)',
-  n8n: '🛠️ Mon workflow n8n (avancé)'
+  cloud: '💎 Premium — voix IA',
+  byok: '💎 Premium — voix IA',
+  n8n: '💎 Premium — voix IA'
 };
 
 // Le moteur de voix IA choisi est-il utilisable (configuré) ?
@@ -368,7 +370,7 @@ async function playDub(dub, settings) {
         player.onerror = () => reject(new Error('lecture audio impossible'));
         player.play().catch(reject);
       });
-      return 'voix IA (' + ({ cloud: 'Premium', byok: 'ma clé OpenAI', n8n: 'n8n' }[settings.engine] || 'IA') + ')';
+      return 'voix IA (Premium)';
     } catch (e) {
       console.warn('[Traducteur Audio]', e.message);
     } finally {
