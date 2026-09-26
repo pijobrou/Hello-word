@@ -37,7 +37,7 @@ est seulement vérifiée par l'extension, donc elle est moins protégée.
 3. Notez l'adresse affichée (`https://traducteur-audio.<vous>.workers.dev`).
 4. Dans Stripe, modifiez les **deux liens de paiement** → « Après le paiement » → **Rediriger vers**
    `https://traducteur-audio.<vous>.workers.dev/merci?session_id={CHECKOUT_SESSION_ID}`.
-5. Dans l'extension : Réglages → 💎 Premium → **Adresse du serveur Premium**.
+5. Mettez cette adresse dans `common.js` (`DEFAULTS.premiumUrl`), `background.js` (`PREMIUM_SERVER`) et `manifest.json` (`host_permissions`).
 
 Pour passer en réel : refaites les produits et liens de paiement en mode **live** dans Stripe, mettez
 leurs identifiants de prix dans `wrangler.toml` (`PRICE_PREMIUM`, `PRICE_LIFETIME`) et une clé Stripe

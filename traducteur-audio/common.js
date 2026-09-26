@@ -19,7 +19,7 @@ const DEFAULTS = {
   targetLang: 'fr-FR', // langue de la voix traduite
   chunking: 'balanced', // découpage des phrases : 'fast', 'balanced' ou 'full'
   engine: 'local',     // 'local' (navigateur, gratuit) · 'cloud' (Premium) · 'byok' (ma clé OpenAI) · 'n8n' (avancé)
-  premiumUrl: '',      // adresse du serveur Premium (Cloudflare Worker)
+  premiumUrl: 'https://traducteur-audio.pijobrou14.workers.dev',   // serveur Premium (Cloudflare Worker)
   byokVoice: 'coral',  // voix OpenAI utilisée avec « ma propre clé »
   aiFallback: 'silent', // si la voix IA échoue pour une phrase : 'silent' (texte seul, une seule voix) ou 'local'
   lockVoice: true,     // 🔒 une seule voix : jamais de voix de remplacement, la voix choisie est mémorisée
@@ -59,6 +59,7 @@ function getSettings() {
   // Avant la 1.7, le moteur n'existait pas : une adresse n8n enregistrée voulait dire « voix n8n ».
   return new Promise((resolve) => chrome.storage.sync.get({ ...DEFAULTS, engine: null }, (sync) => {
     if (!sync.engine) sync.engine = sync.n8nUrl ? 'n8n' : DEFAULTS.engine;
+    if (!sync.premiumUrl) sync.premiumUrl = DEFAULTS.premiumUrl;
     chrome.storage.local.get(LOCAL_DEFAULTS, (local) => resolve({ ...sync, ...local }));
   }));
 }

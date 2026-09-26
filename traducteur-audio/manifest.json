@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Traducteur Audio — doublage multilingue",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "description": "Traduit la parole d'un onglet, d'une vidéo ou du micro dans plus de 50 langues et la lit à voix haute.",
   "permissions": [
     "storage",
@@ -12,7 +12,8 @@
     "https://translate.googleapis.com/*",
     "https://api.mymemory.translated.net/*",
     "http://localhost:5678/*",
-    "http://127.0.0.1:5678/*"
+    "http://127.0.0.1:5678/*",
+    "https://traducteur-audio.pijobrou14.workers.dev/*"
   ],
   "background": {
     "service_worker": "background.js"
