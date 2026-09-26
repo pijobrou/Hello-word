@@ -1,0 +1,33 @@
+<section class="cn-section cn-steps-section{% if section.settings.soft_background %} cn-section--soft{% endif %}" style="--cn-pad-top: {{ section.settings.padding_top }}px; --cn-pad-bottom: {{ section.settings.padding_bottom }}px;">
+  <div class="cn-container">
+    <div class="cn-center">
+      <p class="cn-eyebrow">{{ 'cuddlenest.steps.eyebrow' | t }}</p>
+      <h2 class="cn-heading">{{ 'cuddlenest.steps.heading' | t }}</h2>
+      <p class="cn-subheading">{{ 'cuddlenest.steps.subheading' | t }}</p>
+    </div>
+    <ol class="cn-grid cn-grid--3 cn-steps" style="list-style: none; padding: 0;">
+      {%- for i in (1..3) -%}
+        {%- capture title_key -%}cuddlenest.steps.step_{{ i }}_title{%- endcapture -%}
+        {%- capture text_key -%}cuddlenest.steps.step_{{ i }}_text{%- endcapture -%}
+        <li class="cn-card cn-step">
+          <span class="cn-step__num" aria-hidden="true">{{ i }}</span>
+          <h3>{{ title_key | t }}</h3>
+          <p>{{ text_key | t }}</p>
+        </li>
+      {%- endfor -%}
+    </ol>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "CN · How it works",
+  "tag": "div",
+  "settings": [
+    { "type": "checkbox", "id": "soft_background", "label": "Soft green background", "default": true },
+    { "type": "range", "id": "padding_top", "label": "Top padding", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 64 },
+    { "type": "range", "id": "padding_bottom", "label": "Bottom padding", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 64 }
+  ],
+  "presets": [{ "name": "CN · How it works" }]
+}
+{% endschema %}

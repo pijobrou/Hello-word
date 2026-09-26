@@ -1,0 +1,54 @@
+# =============================================================================
+#  BVY Accounting & Tax Services — service Node du site public
+#  Installé par remote-install.sh dans /etc/systemd/system/bvy-website.service
+#
+#  Commandes utiles :
+#    sudo systemctl status bvy-website      (état)
+#    sudo systemctl restart bvy-website     (redémarrer)
+#    sudo journalctl -u bvy-website -f      (journal en direct, Ctrl+C pour quitter)
+# =============================================================================
+
+[Unit]
+Description=BVY Accounting & Tax - site public (API Node)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bvy
+Group=bvy
+WorkingDirectory=/var/www/bvy-website/current
+ExecStart=/usr/bin/node /var/www/bvy-website/current/server.js
+
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOST=127.0.0.1
+Environment=TRUST_PROXY=1
+Environment=DATA_DIR=/var/www/bvy-website/shared/data
+# Réglages propres au serveur (ex. LEADS_WEBHOOK_URL). Le « - » rend le fichier
+# facultatif. ATTENTION : une ligne de ce fichier REMPLACE la valeur ci-dessus
+# du même nom — ne pas y mettre PORT, HOST ou DATA_DIR.
+EnvironmentFile=-/var/www/bvy-website/shared/.env
+
+Restart=always
+RestartSec=3
+TimeoutStopSec=15
+UMask=0027
+
+# --- Durcissement (sécurité) ------------------------------------------------
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/www/bvy-website/shared/data
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target
