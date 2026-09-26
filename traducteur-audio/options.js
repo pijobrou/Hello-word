@@ -126,7 +126,23 @@ const ENGINE_HINTS = {
 };
 
 // Mode propriétaire : réglages n8n visibles (jamais pour les clients).
-const owner = () => location.hash === '#proprietaire';
+// Accepte #proprietaire, #propriétaire, #n8n (majuscules et accents ignorés).
+// Ou : 5 clics rapides sur le titre « Moteur de la voix » (retenu sur cet appareil ; 5 clics de plus pour le cacher).
+let ownerFlag = false;
+chrome.storage.local.get({ ownerMode: false }, (r) => { ownerFlag = r.ownerMode; getSettings().then((s) => showEngine(s.engine)); });
+let titleClicks = [];
+$('engineTitle').addEventListener('click', async () => {
+  const now = Date.now();
+  titleClicks = titleClicks.filter((t) => now - t < 3000).concat(now);
+  if (titleClicks.length < 5) return;
+  titleClicks = [];
+  ownerFlag = !ownerFlag;
+  await chrome.storage.local.set({ ownerMode: ownerFlag });
+  showEngine((await getSettings()).engine);
+  saved(ownerFlag ? '🛠️ Mode propriétaire activé sur cet appareil' : 'Mode propriétaire désactivé');
+});
+const owner = () => ownerFlag || /^#(proprietaire|n8n|owner)$/.test(
+  decodeURIComponent(location.hash).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim());
 let lifetime = false;   // licence « À vie » activée : la voix Premium passe par la clé du client
 
 function showEngine(engine) {
@@ -135,7 +151,8 @@ function showEngine(engine) {
   $('engineHint').textContent = ENGINE_HINTS[premium ? 'premium' : 'local'];
   $('boxLicence').hidden = !premium;
   $('boxByok').hidden = !premium || !(engine === 'byok' || lifetime);
-  $('boxN8n').hidden = !premium || !(owner() || engine === 'n8n');
+  // En mode propriétaire, le cadre n8n s'affiche quel que soit le choix du menu.
+  $('boxN8n').hidden = !(owner() || engine === 'n8n');
 }
 window.addEventListener('hashchange', async () => showEngine((await getSettings()).engine));
 

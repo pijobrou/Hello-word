@@ -61,7 +61,7 @@ La source de la voix Premium n'est jamais affichée au client (popup, fenêtre d
 « voix IA (Premium) ») :
 - **Premium mensuel** → serveur du vendeur (`serveur/`) ;
 - **Premium à vie** → clé OpenAI du client (champ « Votre clé de voix », visible seulement avec une licence À vie) ;
-- **n8n du propriétaire** → visible seulement en mode propriétaire : ouvrez
+- **n8n du propriétaire** → visible seulement en mode propriétaire : 5 clics rapides sur le titre « 🎙️ Moteur de la voix » (retenu sur cet appareil), ou ouvrez
   `chrome-extension://<ID>/options.html#proprietaire`. « ✅ Activer » une licence repasse sur le serveur.
 
 Après le paiement, la page de remerciement donne une clé `TA-XXXX-XXXX-XXXX-XXXX`, à coller dans
