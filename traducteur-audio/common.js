@@ -33,8 +33,8 @@ const LOCAL_DEFAULTS = { n8nKey: '', licenseKey: '', openaiKey: '', licenceStatu
 
 // Liens de paiement Stripe (mode test pour l'instant : à remplacer par les liens « live » au lancement).
 const PURCHASE_LINKS = {
-  premium: 'https://buy.stripe.com/test_8x24gygZlgDwaQSgKuf7i08',
-  lifetime: 'https://buy.stripe.com/test_5kQaEW10n4UOcZ079Uf7i09'
+  premium: 'https://buy.stripe.com/test_00w4gz1up6QP2Hv8WD00000',
+  lifetime: 'https://buy.stripe.com/test_bJe4gzflf1wv6XL8WD00001'
 };
 
 // Côté client il n'y a que deux choix : navigateur ou Premium. La source de la voix Premium
