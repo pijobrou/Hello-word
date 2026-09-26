@@ -70,7 +70,8 @@ async function deviceId() {
 }
 
 async function premium(path, { method = 'GET', body } = {}) {
-  const { premiumUrl } = await chrome.storage.sync.get({ premiumUrl: '' });
+  const PREMIUM_SERVER = 'https://traducteur-audio.pijobrou14.workers.dev';
+  const premiumUrl = (await chrome.storage.sync.get({ premiumUrl: '' })).premiumUrl || PREMIUM_SERVER;
   const { licenseKey } = await chrome.storage.local.get({ licenseKey: '' });
   if (!premiumUrl) throw new Error('Adresse du serveur Premium non configurée');
   if (!licenseKey) throw new Error('Aucune clé de licence : achetez ou collez votre clé dans les Réglages');
