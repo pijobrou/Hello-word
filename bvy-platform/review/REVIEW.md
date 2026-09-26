@@ -69,7 +69,7 @@ Contrôle automatique : aucune erreur HTTP, aucun défilement horizontal, aucune
 5. **Tableau de bord** : c'est une maquette avec des données fictives (indiqué sur la page) ; le vrai portail est la phase 3.
 6. **Formulaire** : les demandes sont enregistrées dans `/var/www/bvy-website/shared/data/leads.jsonl`. Pour les recevoir par courriel, brancher `LEADS_WEBHOOK_URL` sur un flux n8n (voir `DEPLOIEMENT.md`, étape 9).
 7. **Polices Google** : chargées depuis les serveurs de Google (mentionné dans la politique). On peut les héberger localement si vous préférez.
-8. **Images** : les photos de services du site actuel n'ont pas pu être récupérées ; le design utilise des icônes. Vous pouvez m'envoyer des photos à intégrer.
+8. ~~Images~~ — **réglé** : 9 photos Pixabay (licence Pixabay, usage commercial permis) sur les cartes services ; sources dans `apps/website/public/assets/img/services/CREDITS.md`.
 
 ## 8. Prochaine étape proposée
 
