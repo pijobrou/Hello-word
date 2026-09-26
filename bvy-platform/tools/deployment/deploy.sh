@@ -8,7 +8,7 @@
 #    bash bvy-platform/tools/deployment/deploy.sh --rollback   version précédente
 #
 #  Réglages possibles sans modifier le fichier :
-#    SERVER=... USER=... SSH_KEY=~/.ssh/id_ed25519 bash deploy.sh
+#    SERVER=... SSH_USER=... SSH_KEY=~/.ssh/id_ed25519 bash deploy.sh
 #  Aucun mot de passe n'est écrit ici : ssh vous le demandera.
 # =============================================================================
 set -euo pipefail

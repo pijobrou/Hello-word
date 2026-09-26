@@ -362,17 +362,126 @@ detect_nginx_layout() {
   fi
 }
 
-render_conf() { # render_conf <modèle>  -> stdout (adapte http2 si nginx < 1.25.1)
+sed_esc() { printf '%s' "$1" | sed -e 's/[\\#&]/\\&/g'; }
+
+render_conf() { # render_conf <modèle>  -> stdout
+  # Adapte le modèle au serveur : chemin réel du certificat, dossier ACME déjà
+  # utilisé par certbot, http2 si nginx < 1.25.1, IPv6 absent.
   local tpl="$1" ver
+  local -a ed=()
   ver="$(nginx -v 2>&1 | sed -nE 's|.*nginx/([0-9.]+).*|\1|p')"
   if [ -n "$ver" ] && ! version_ge "$ver" "1.25.1"; then
-    tr -d '\r' < "$tpl" | sed -E '/^[[:space:]]*http2 on;/d; s/listen (\[::\]:)?443 ssl;/listen \1443 ssl http2;/'
+    ed+=(-e '/^[[:space:]]*http2 on;/d' -e 's/listen (\[::\]:)?443 ssl;/listen \1443 ssl http2;/')
+  fi
+  if [ ! -e /proc/net/if_inet6 ]; then
+    ed+=(-e '/^[[:space:]]*listen[[:space:]]+\[::\]/d')   # IPv6 désactivé : nginx -t échouerait
+  fi
+  if [ -n "$CERT_FULLCHAIN" ]; then
+    ed+=(-e "s#$CERT_DIR/fullchain\.pem#$(sed_esc "$CERT_FULLCHAIN")#"
+         -e "s#$CERT_DIR/privkey\.pem#$(sed_esc "$CERT_KEY")#")
+  fi
+  if [ "$ACME_WEBROOT" != "$ACME_ROOT" ]; then
+    ed+=(-e "s#root $ACME_ROOT;#root $(sed_esc "$ACME_WEBROOT");#")
+  fi
+  if [ "${#ed[@]}" -gt 0 ]; then
+    tr -d '\r' < "$tpl" | sed -E "${ed[@]}"
   else
     tr -d '\r' < "$tpl"
   fi
 }
 
-cert_ok() { [ -s "$CERT_DIR/fullchain.pem" ] && [ -s "$CERT_DIR/privkey.pem" ]; }
+# ----------------------------------------------------------------------------
+# Certificat HTTPS : recherché à l'emplacement standard, puis dans les
+# lignées certbot « bvyaccountingtax.ca-0001 »..., puis dans les directives
+# ssl_certificate des configurations nginx actives qui mentionnent le domaine.
+# ----------------------------------------------------------------------------
+CERT_FULLCHAIN=""; CERT_KEY=""; CERT_LINEAGE=""; ACME_WEBROOT="$ACME_ROOT"
+
+domain_confs() { # configurations nginx actives (hors la nôtre) qui mentionnent le domaine
+  local f
+  shopt -s nullglob
+  for f in /etc/nginx/sites-enabled/* /etc/nginx/conf.d/*.conf; do
+    case "$(basename "$f")" in bvy-website.conf) continue ;; esac
+    grep -qs "bvyaccountingtax\.ca" "$f" && printf '%s\n' "$f"
+  done
+  shopt -u nullglob
+}
+
+conf_directive() { # conf_directive <fichier> <directive> -> 1re valeur (hors commentaires)
+  grep -v '^[[:space:]]*#' "$1" 2>/dev/null \
+    | sed -nE "s/^[[:space:]]*$2[[:space:]]+([^;]+);.*/\1/p" | head -n1 | tr -d "\"'" \
+    | sed -E 's/[[:space:]]+$//' || true
+}
+
+cert_pair_ok() { # cert_pair_ok <fullchain> <clé> [strict] -> certificat lisible, couvre le domaine
+  local c="$1" k="$2"
+  [ -s "$c" ] && [ -s "$k" ] || return 1
+  case "$c$k" in *'$'*) return 1 ;; esac
+  command -v openssl >/dev/null 2>&1 || return 0
+  openssl x509 -in "$c" -noout -text 2>/dev/null | grep -Eq "DNS:${DOMAIN//./\\.}(,|[[:space:]]|$)" || return 1
+  if [ "${3:-}" = "strict" ]; then openssl x509 -in "$c" -noout -checkend 0 >/dev/null 2>&1 || return 1; fi
+  return 0
+}
+
+detect_cert() { # remplit CERT_FULLCHAIN / CERT_KEY ; code 0 si un certificat utilisable existe
+  local -a pairs=()
+  local d f c k pass i
+  CERT_FULLCHAIN=""; CERT_KEY=""; CERT_LINEAGE=""
+  pairs+=("$CERT_DIR/fullchain.pem|$CERT_DIR/privkey.pem")
+  # notre propre configuration déjà installée (chemin retenu lors d'un déploiement précédent)
+  for f in /etc/nginx/sites-available/bvy-website.conf /etc/nginx/conf.d/bvy-website.conf; do
+    [ -f "$f" ] || continue
+    c="$(conf_directive "$f" ssl_certificate)"; k="$(conf_directive "$f" ssl_certificate_key)"
+    [ -n "$c" ] && [ -n "$k" ] && pairs+=("$c|$k")
+  done
+  shopt -s nullglob
+  for d in /etc/letsencrypt/live/"$DOMAIN"-[0-9]* /etc/letsencrypt/live/www."$DOMAIN"*; do
+    pairs+=("$d/fullchain.pem|$d/privkey.pem")
+  done
+  shopt -u nullglob
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    c="$(conf_directive "$f" ssl_certificate)"; k="$(conf_directive "$f" ssl_certificate_key)"
+    [ -n "$c" ] && [ -n "$k" ] && pairs+=("$c|$k")
+  done < <(domain_confs)
+  # 1er passage : certificat valide (non expiré) ; 2e passage : n'importe lequel
+  for pass in strict any; do
+    for i in "${pairs[@]}"; do
+      c="${i%%|*}"; k="${i#*|}"
+      if cert_pair_ok "$c" "$k" "$pass"; then
+        CERT_FULLCHAIN="$c"; CERT_KEY="$k"
+        case "$c" in /etc/letsencrypt/live/*/*) CERT_LINEAGE="$(basename "$(dirname "$c")")" ;; esac
+        detect_acme_webroot
+        return 0
+      fi
+    done
+  done
+  return 1
+}
+
+detect_acme_webroot() { # si certbot renouvelle en mode « webroot », on sert SON dossier
+  ACME_WEBROOT="$ACME_ROOT"
+  local rc="/etc/letsencrypt/renewal/${CERT_LINEAGE:-$DOMAIN}.conf" auth wr
+  [ -f "$rc" ] || return 0
+  auth="$(sed -nE 's/^[[:space:]]*authenticator[[:space:]]*=[[:space:]]*(.*)$/\1/p' "$rc" | head -n1 || true)"
+  wr="$(sed -nE 's/^[[:space:]]*webroot_path[[:space:]]*=[[:space:]]*([^,]*).*/\1/p' "$rc" | head -n1 || true)"
+  wr="${wr%/}"
+  if [ "$auth" = "webroot" ] && [ -n "$wr" ] && [ -d "$wr" ]; then
+    case "$wr" in *[[:space:]\;\'\"\$]*) return 0 ;; esac
+    ACME_WEBROOT="$wr"
+  fi
+}
+
+cert_ok() { detect_cert; }
+
+old_site_uses_https() { # une config active du domaine écoute déjà en HTTPS ?
+  local f
+  while IFS= read -r f; do
+    [ -n "$f" ] || continue
+    if grep -v '^[[:space:]]*#' "$f" | grep -Eq '(listen[^;]*443|ssl_certificate[[:space:]])'; then return 0; fi
+  done < <(domain_confs)
+  return 1
+}
 
 print_certbot_help() {
   info "Pour obtenir le certificat HTTPS (quand le DNS pointe vers ce serveur) :"
@@ -386,16 +495,19 @@ print_certbot_help() {
 }
 
 check_cert_details() {
+  local cn=""; [ -n "$CERT_LINEAGE" ] && cn=" --cert-name $CERT_LINEAGE"
+  info "Certificat utilisé : $CERT_FULLCHAIN"
   if command -v openssl >/dev/null 2>&1; then
-    if ! openssl x509 -in "$CERT_DIR/fullchain.pem" -noout -text 2>/dev/null | grep -q "DNS:www.$DOMAIN"; then
+    if ! openssl x509 -in "$CERT_FULLCHAIN" -noout -text 2>/dev/null | grep -q "DNS:www.$DOMAIN"; then
       warn "Le certificat ne couvre pas www.$DOMAIN (www affichera une alerte)."
-      info "Pour l’ajouter :  sudo certbot certonly --webroot -w $ACME_ROOT -d $DOMAIN -d www.$DOMAIN --expand"
+      info "Pour l’ajouter :  sudo certbot certonly --webroot -w $ACME_WEBROOT$cn -d $DOMAIN -d www.$DOMAIN --expand"
     fi
-    if ! openssl x509 -in "$CERT_DIR/fullchain.pem" -noout -checkend 0 >/dev/null 2>&1; then
+    if ! openssl x509 -in "$CERT_FULLCHAIN" -noout -checkend 0 >/dev/null 2>&1; then
       warn "Le certificat est EXPIRÉ. Renouvelez-le :  sudo certbot renew"
     fi
   fi
-  local rc="/etc/letsencrypt/renewal/$DOMAIN.conf"
+  [ "$ACME_WEBROOT" != "$ACME_ROOT" ] && info "Validation Let’s Encrypt servie depuis le dossier de certbot : $ACME_WEBROOT"
+  local rc="/etc/letsencrypt/renewal/${CERT_LINEAGE:-$DOMAIN}.conf"
   if [ -f "$rc" ]; then
     local auth wr
     auth="$(sed -nE 's/^[[:space:]]*authenticator[[:space:]]*=[[:space:]]*(.*)$/\1/p' "$rc" | head -n1)"
@@ -403,11 +515,11 @@ check_cert_details() {
     if [ "$auth" = "standalone" ]; then
       warn "Le renouvellement automatique du certificat utilise le mode « standalone »,"
       warn "qui échoue quand nginx tourne. Corrigez-le une fois avec :"
-      info "  sudo certbot certonly --webroot -w $ACME_ROOT -d $DOMAIN -d www.$DOMAIN --force-renewal"
-    elif [ "$auth" = "webroot" ] && [ -n "$wr" ] && [ "${wr%/}" != "$ACME_ROOT" ]; then
-      warn "Le renouvellement du certificat utilise l’ancien dossier « $wr »."
+      info "  sudo certbot certonly --webroot -w $ACME_ROOT$cn -d $DOMAIN -d www.$DOMAIN --force-renewal"
+    elif [ "$auth" = "webroot" ] && [ -n "$wr" ] && [ "${wr%/}" != "$ACME_WEBROOT" ]; then
+      warn "Le renouvellement du certificat utilise le dossier « $wr », introuvable ou inutilisable."
       warn "Il faut le rediriger une fois vers $ACME_ROOT :"
-      info "  sudo certbot certonly --webroot -w $ACME_ROOT -d $DOMAIN -d www.$DOMAIN --force-renewal"
+      info "  sudo certbot certonly --webroot -w $ACME_ROOT$cn -d $DOMAIN -d www.$DOMAIN --force-renewal"
     else
       ok "Renouvellement du certificat : mode « ${auth:-inconnu} » (compatible)"
     fi
@@ -417,15 +529,15 @@ check_cert_details() {
 
 # Retour arrière de la config nginx si « nginx -t » échoue
 declare -a NGX_MOVED_FROM=() NGX_MOVED_TO=()
-NGX_PREV_COPY=""
+NGX_PREV_COPY=""; NGX_LINK_EXISTED=0
 nginx_undo() {
   local i
   if [ -n "$NGX_PREV_COPY" ] && [ -f "$NGX_PREV_COPY" ]; then
     cp -f "$NGX_PREV_COPY" "$NGX_CONF"
   else
-    [ -n "$NGX_LINK" ] && rm -f "$NGX_LINK"
-    if [ "$NGX_LAYOUT" = "confd" ]; then rm -f "$NGX_CONF"; fi
+    rm -f "$NGX_CONF"
   fi
+  if [ -n "$NGX_LINK" ] && [ "$NGX_LINK_EXISTED" -eq 0 ]; then rm -f "$NGX_LINK"; fi
   for i in "${!NGX_MOVED_TO[@]}"; do
     mv -f "${NGX_MOVED_TO[$i]}" "${NGX_MOVED_FROM[$i]}" 2>/dev/null || true
   done
@@ -449,6 +561,7 @@ install_nginx() {
     NGX_PREV_COPY="$bk/bvy-website.conf.avant"
     cp -f "$NGX_CONF" "$NGX_PREV_COPY"
   fi
+  if [ -n "$NGX_LINK" ] && [ -e "$NGX_LINK" ]; then NGX_LINK_EXISTED=1; fi
 
   # --- Ancien(s) site(s) qui répondent pour le domaine --------------------
   local f name old_roots="" r
@@ -459,6 +572,21 @@ install_nginx() {
     if grep -qs "bvyaccountingtax\.ca" "$f"; then candidates+=("$f"); fi
   done
   shopt -u nullglob
+
+  # Une ancienne configuration qui sert AUSSI d'autres sites ne doit pas être
+  # désactivée d'office : ces autres sites tomberaient.
+  local others
+  for f in "${candidates[@]}"; do
+    others="$(grep -v '^[[:space:]]*#' "$f" | sed -nE 's/^[[:space:]]*server_name[[:space:]]+([^;]+);.*/\1/p' \
+              | tr -s '[:space:]' '\n' | grep -Ev "^(|_|localhost|$DOMAIN|www\.$DOMAIN|[0-9.]+|\[.*\])$" | sort -u | tr '\n' ' ' || true)"
+    if [ -n "$others" ]; then
+      ko "$f sert aussi d’autres sites : $others"
+      info "Le désactiver couperait ces sites. Rien n’a été modifié côté nginx ;"
+      info "l’ancien site reste en ligne. Retirez $DOMAIN de ce fichier (ou demandez"
+      info "de l’aide), puis relancez avec l’option --nginx."
+      die "Configuration nginx partagée avec d’autres sites."
+    fi
+  done
 
   if [ "${#candidates[@]}" -eq 0 ]; then
     ok "Aucune autre configuration active ne mentionne $DOMAIN"
@@ -537,6 +665,23 @@ install_nginx() {
   if systemctl is-active --quiet nginx; then systemctl reload nginx; else systemctl restart nginx; fi
   ok "nginx rechargé"
 
+  # --- Le site répond-il vraiment ? Sinon : retour immédiat à l'ancienne config
+  local url code i
+  if [ "$mode" = "https" ]; then url="https://$DOMAIN/"; else url="http://$DOMAIN/"; fi
+  for i in 1 2 3 4 5; do
+    sleep 1
+    code="$(curl --noproxy "*" -sk -o /dev/null -w '%{http_code}' --max-time 5 \
+             --resolve "$DOMAIN:443:127.0.0.1" --resolve "$DOMAIN:80:127.0.0.1" "$url" || true)"
+    [ "$code" = "200" ] && break
+  done
+  if [ "$code" != "200" ]; then
+    ko "$url répond « ${code:-rien} » au lieu de 200 avec la nouvelle configuration."
+    nginx_undo
+    if nginx -t >/dev/null 2>&1; then systemctl reload nginx || true; fi
+    die "Ancienne configuration nginx remise en place (le site d’avant reste en ligne). Sauvegardes dans $bk"
+  fi
+  ok "$url répond (200)"
+
   # --- Script pour remettre l'ancien site ---------------------------------
   if [ "${#candidates[@]}" -eq 0 ]; then
     rmdir "$bk/configs-anciennes" "$bk/desactives-sites-enabled" 2>/dev/null || true
@@ -580,6 +725,17 @@ maybe_nginx() {
   local mode want="https"
   cert_ok || want="http"
   mode="$(nginx_mode)"
+  if [ "$want" = "http" ] && { [ "$mode" = "https" ] || old_site_uses_https; }; then
+    # Installer la version « HTTP seul » couperait l'HTTPS actuel des visiteurs
+    # (et les navigateurs qui ont mémorisé HSTS ne pourraient plus ouvrir le site).
+    step "8. Configuration nginx"
+    warn "Le site est déjà servi en HTTPS, mais aucun certificat valide pour $DOMAIN"
+    warn "n’a été trouvé (ni dans $CERT_DIR, ni dans les configurations nginx actives)."
+    warn "La configuration nginx n’est PAS modifiée : l’ancien site reste en ligne."
+    info "Vérifiez les certificats :  sudo certbot certificates"
+    info "puis relancez :  sudo bash $KIT_DIR/remote-install.sh --nginx"
+    return 0
+  fi
   if [ "$FORCE_NGINX" -eq 1 ]; then
     install_nginx "$want"
   elif [ -z "$mode" ]; then
@@ -617,6 +773,10 @@ smoke_test() {
   step "10. Vérification du site via nginx"
   local mode
   mode="$(nginx_mode)"
+  if [ -z "$mode" ]; then
+    warn "nginx n’est pas (encore) configuré par ce script — vérification sautée."
+    return 0
+  fi
   if [ "$mode" = "https" ]; then
     expect_code 200 "https://$DOMAIN/" -k --resolve "$DOMAIN:443:127.0.0.1"
     expect_code 200 "https://$DOMAIN/api/health" -k --resolve "$DOMAIN:443:127.0.0.1"

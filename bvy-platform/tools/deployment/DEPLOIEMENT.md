@@ -195,6 +195,9 @@ cd %USERPROFILE%\Documents\Hello-word
 bvy-platform\tools\deployment\deploy.cmd
 ```
 
+(Un double-clic sur `deploy.cmd` dans l'Explorateur fonctionne aussi : la fenêtre attend alors
+une touche à la fin pour que vous puissiez lire les messages.)
+
 Le script fait tout seul, en affichant chaque étape :
 
 1. vérifie que `ssh`, `scp` et `tar` sont présents ;
@@ -212,7 +215,14 @@ Le script fait tout seul, en affichant chaque étape :
    - **au premier déploiement seulement** : sauvegarde tout `/etc/nginx`, trouve l'ancienne
      configuration du site, l'archive (ainsi que l'ancien dossier du site), la désactive
      (sans rien supprimer), installe la nouvelle configuration, teste avec `nginx -t`
-     (et **remet tout comme avant** si le test échoue), puis recharge nginx ;
+     (et **remet tout comme avant** si le test échoue), recharge nginx, puis vérifie que la page
+     d'accueil répond — sinon il **remet aussitôt l'ancienne configuration** ;
+   - le certificat HTTPS existant est retrouvé même s'il n'est pas à l'emplacement habituel
+     (par exemple `/etc/letsencrypt/live/bvyaccountingtax.ca-0001/`, ou le chemin indiqué dans
+     l'ancienne configuration nginx) ;
+   - **sécurité** : si l'ancien site est en HTTPS mais qu'aucun certificat valide n'est trouvé, ou si
+     l'ancienne configuration sert aussi **d'autres sites**, le script ne touche pas à nginx
+     (l'ancien site reste en ligne) et explique quoi faire ;
    - ouvre les ports 80/443 si le pare-feu `ufw` est actif ;
    - vérifie les pages via nginx et affiche un résumé.
 
@@ -393,8 +403,15 @@ sudo ls /etc/letsencrypt/live/bvyaccountingtax.ca/
 
 - Vous voyez `fullchain.pem` et `privkey.pem` → utilisez la version **HTTPS** :
   `MODELE=bvyaccountingtax.ca.conf`
-- « No such file or directory » → utilisez la version **HTTP seul** :
-  `MODELE=bvyaccountingtax.ca.http-only.conf`
+- « No such file or directory » → regardez d'abord `sudo certbot certificates` et les lignes
+  `ssl_certificate` de l'ancienne configuration (`sudo grep -n ssl_certificate /etc/nginx/sites-available/NOM_DU_FICHIER`).
+  Le certificat est peut-être ailleurs (par exemple `/etc/letsencrypt/live/bvyaccountingtax.ca-0001/`) :
+  prenez alors la version **HTTPS** et, après l'étape e), corrigez les deux lignes `ssl_certificate`
+  et `ssl_certificate_key` avec `sudo nano`.
+- Seulement s'il n'y a **vraiment aucun** certificat **et** que l'ancien site n'était pas en HTTPS →
+  version **HTTP seul** : `MODELE=bvyaccountingtax.ca.http-only.conf`
+  (⚠ installer la version HTTP seul à la place d'un site HTTPS rendrait le site inaccessible aux
+  visiteurs qui arrivent en `https://`.)
 
 Tapez la ligne `MODELE=...` qui vous concerne, puis :
 
@@ -675,7 +692,9 @@ sudo ss -ltnp | grep -E ':80 |:443 |:3000 '   # qui utilise les ports ?
 | **Permission denied (publickey)** | Le serveur n'accepte pas votre clé | Vérifier `SSH_KEY` dans `deploy.cmd` ; recopier la clé (section 2.1 b) en vous connectant avec le mot de passe ; ou connexion via la console KVM de l'espace client OVH. |
 | **Connection timed out** / **refused** | Mauvaise adresse, serveur éteint, pare-feu | Vérifier l'adresse `148.113.238.146`, redémarrer le VPS depuis l'espace client OVH, vérifier le pare-feu réseau OVH (port 22). |
 | **nginx -t** : `unknown directive "http2"` | nginx plus ancien que 1.25 | Le script automatique corrige tout seul. En manuel, voir la note de 5.7 f. |
-| **nginx -t** : `cannot load certificate` | Certificat absent ou chemin différent | `sudo ls /etc/letsencrypt/live/` ; installer la version HTTP seul puis faire la section 6. |
+| **nginx -t** : `cannot load certificate` | Certificat absent ou chemin différent | Le script a remis l'ancienne configuration. `sudo certbot certificates` et `sudo ls /etc/letsencrypt/live/` pour trouver le bon chemin ; si aucun certificat n'existe, faire la section 6. |
+| Le script dit « aucun certificat valide » et ne modifie pas nginx | L'ancien site est en HTTPS mais son certificat est introuvable, expiré depuis longtemps ou ne couvre pas `bvyaccountingtax.ca` | L'ancien site reste en ligne. `sudo certbot certificates` ; obtenir/renouveler le certificat (section 6, variante `certonly --webroot`), puis `sudo bash /var/www/bvy-website/shared/deploy-kit/remote-install.sh --nginx`. |
+| Le script dit « sert aussi d'autres sites » | L'ancienne configuration contient aussi un autre domaine | L'ancien site reste en ligne. Retirer les blocs `server` de `bvyaccountingtax.ca` de ce fichier (faire une copie avant), `sudo nginx -t`, puis relancer avec `--nginx`. En cas de doute, demander de l'aide. |
 | **nginx -t** : `duplicate listen options for [::]:80` ou `a duplicate default server` | Une autre configuration déclare les mêmes options | Le script a remis l'ancienne configuration. Envoyer le message complet à votre prestataire, ou retirer `ipv6only=on` / `default_server` du fichier signalé. |
 | **Port 80 déjà utilisé** (`bind() to 0.0.0.0:80 failed`) | Apache ou un autre programme occupe le port | `sudo ss -ltnp \| grep ':80 '`. Si c'est Apache : `sudo systemctl disable --now apache2`, puis `sudo systemctl restart nginx`. |
 | **Port 3000 déjà utilisé** (message du script) | L'ancien site utilisait peut-être Node sur ce port | `sudo ss -ltnp \| grep ':3000 '` pour trouver le programme, l'arrêter, puis relancer la publication. |

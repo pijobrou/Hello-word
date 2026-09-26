@@ -21,6 +21,13 @@ rem Exemple : set "SSH_KEY=%USERPROFILE%\.ssh\id_ed25519"
 set "SSH_KEY="
 rem -------------------------------------------------------------------------
 
+rem Lance par double-clic depuis l'Explorateur ? On attendra une touche a la
+rem fin, sinon la fenetre se fermerait avant que l'on puisse lire les messages.
+set "PAUSE_AT_END="
+set "CCL=%CMDCMDLINE:"=%"
+if /i not "%CCL:/c =%"=="%CCL%" set "PAUSE_AT_END=1"
+set "RC=0"
+
 set "KIT=%~dp0"
 if "%KIT:~-1%"=="\" set "KIT=%KIT:~0,-1%"
 for %%I in ("%KIT%\..\..") do set "PLATFORM=%%~fI"
@@ -75,7 +82,8 @@ node "%BUILD%"
 if errorlevel 1 (
   popd
   echo   ERREUR  La generation des pages a echoue. Rien n'a ete envoye.
-  exit /b 1
+  set "RC=1"
+  goto :finish
 )
 popd
 echo   OK  Pages regenerees.
@@ -130,7 +138,7 @@ echo ============================================================
 echo   TERMINE. Ouvrez https://bvyaccountingtax.ca/
 echo   (Ctrl+F5 dans le navigateur pour voir la nouvelle version)
 echo ============================================================
-exit /b 0
+goto :finish
 
 rem ==========================================================================
 :rollback
@@ -139,7 +147,7 @@ echo Retour a la version precedente du site sur le serveur...
 ssh -t %SSH_OPTS% %TARGET% "sudo bash /var/www/bvy-website/shared/deploy-kit/remote-install.sh --rollback"
 if errorlevel 1 goto :fail_remote
 echo   OK  Version precedente remise en ligne.
-exit /b 0
+goto :finish
 
 rem ==========================================================================
 :no_openssh
@@ -151,13 +159,15 @@ echo     2. "Ajouter une fonctionnalite" ^> cocher "Client OpenSSH" ^> Installer
 echo     3. Fermer puis rouvrir cette fenetre, et taper :  ssh -V
 echo   (ou, dans PowerShell en administrateur :
 echo    Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0 )
-exit /b 1
+set "RC=1"
+goto :finish
 
 :no_tar
 echo.
 echo   ERREUR  La commande tar est introuvable (Windows 10 version 1803 ou plus recent requis).
 echo   Mettez Windows a jour, ou utilisez la methode manuelle du guide DEPLOIEMENT.md.
-exit /b 1
+set "RC=1"
+goto :finish
 
 :no_app
 echo.
@@ -165,28 +175,40 @@ echo   ERREUR  Le site est introuvable dans :
 echo           %APP%
 echo   Il faut server.js et public\index.html. Verifiez que le projet est complet
 echo   (bonne branche git, ou ZIP entierement decompresse).
-exit /b 1
+set "RC=1"
+goto :finish
 
 :no_kit
 echo.
 echo   ERREUR  remote-install.sh est introuvable dans %KIT%
-exit /b 1
+set "RC=1"
+goto :finish
 
 :fail_pack
 echo.
 echo   ERREUR  Impossible de preparer l'archive dans %STAGE%
-exit /b 1
+set "RC=1"
+goto :finish
 
 :fail_ssh
 echo.
 echo   ERREUR  Connexion ou envoi vers %TARGET% impossible.
 echo   Verifiez : Internet, l'adresse %SERVER%, le mot de passe ou la cle SSH.
 echo   Test simple :  ssh %TARGET%
-exit /b 1
+set "RC=1"
+goto :finish
 
 :fail_remote
 echo.
 echo   ERREUR  L'installation sur le serveur a signale un probleme (voir les lignes en rouge).
 echo   Le site precedent reste en ligne si la nouvelle version ne demarrait pas.
 echo   Voir le guide DEPLOIEMENT.md, section 11 (Depannage).
-exit /b 1
+set "RC=1"
+goto :finish
+
+:finish
+if defined PAUSE_AT_END (
+  echo.
+  pause
+)
+exit /b %RC%
