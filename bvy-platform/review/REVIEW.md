@@ -63,7 +63,7 @@ Contrôle automatique : aucune erreur HTTP, aucun défilement horizontal, aucune
 ## 7. Limites connues — à confirmer par vous
 
 1. ~~Chiffres~~ — **réglé** : « 200+ clients » retiré, « 10 ans d'expérience » affiché.
-2. **Tarifs** : modèle « sur soumission » avec 3 formules (noms et contenu proposés) ; seul le prix publié « domiciliation dès 295 $/mois » est affiché.
+2. **Tarifs** : modèle « sur soumission » avec 3 formules (noms et contenu proposés) ; seul le prix publié « domiciliation 294,99 $ CAD, paiement unique » (identique au lien Stripe) est affiché.
 3. **Confidentialité** : conservation de 24 mois **confirmée**. Reste à valider : le nom de la personne responsable et l'absence de témoins (cookies) publicitaires.
 4. **Promesses** : « réponse en un jour ouvrable », intégration Payfit, catégorisation assistée par IA — à confirmer.
 5. **Tableau de bord** : c'est une maquette avec des données fictives (indiqué sur la page) ; le vrai portail est la phase 3.
