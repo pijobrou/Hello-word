@@ -54,8 +54,11 @@ function isAi(s) {
 }
 
 function getSettings() {
-  return new Promise((resolve) => chrome.storage.sync.get(DEFAULTS, (sync) =>
-    chrome.storage.local.get(LOCAL_DEFAULTS, (local) => resolve({ ...sync, ...local }))));
+  // Avant la 1.7, le moteur n'existait pas : une adresse n8n enregistrée voulait dire « voix n8n ».
+  return new Promise((resolve) => chrome.storage.sync.get({ ...DEFAULTS, engine: null }, (sync) => {
+    if (!sync.engine) sync.engine = sync.n8nUrl ? 'n8n' : DEFAULTS.engine;
+    chrome.storage.local.get(LOCAL_DEFAULTS, (local) => resolve({ ...sync, ...local }));
+  }));
 }
 
 function sendMessage(msg) {
