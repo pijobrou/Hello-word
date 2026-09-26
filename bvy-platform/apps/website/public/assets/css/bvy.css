@@ -418,3 +418,13 @@ fieldset.field{border:0}
 .dash .h3,.portal.client .h3{color:var(--plum)}
 @media (max-width:1240px) and (min-width:961px){.nav-cta .hide-m{display:none}}
 @media (max-width:640px){.nav-cta .btn-line{display:none}}
+
+/* ── CARTES AVEC PHOTO (services) ── */
+.card.has-media{--pad:32px;padding-top:0;overflow:hidden;display:flex;flex-direction:column}
+.card.has-media::before{z-index:2}
+.media{position:relative;margin:0 calc(-1 * var(--pad));aspect-ratio:16/10;overflow:hidden;background:linear-gradient(135deg,var(--plum3),var(--plum))}
+.media img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease}
+.media::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(30,8,32,0) 45%,rgba(30,8,32,.45) 100%)}
+.card.lift:hover .media img{transform:scale(1.04)}
+.card.has-media .ico{position:relative;z-index:2;margin-top:-26px;background:var(--white);box-shadow:0 8px 24px rgba(58,15,62,.18)}
+@media (max-width:640px){.card.has-media{--pad:22px}}

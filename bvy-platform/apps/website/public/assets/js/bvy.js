@@ -4,6 +4,15 @@
   var root = document.documentElement;
   root.classList.remove('no-js');
 
+  // Photo absente : on garde le fond prune au lieu d'une image cassée
+  document.addEventListener('error', function (e) {
+    var t = e.target;
+    if (t && t.tagName === 'IMG' && t.parentNode && t.parentNode.classList.contains('media')) t.remove();
+  }, true);
+  document.querySelectorAll('.media img').forEach(function (img) {
+    if (img.complete && img.naturalWidth === 0) img.remove();
+  });
+
   // Menu mobile
   var toggle = document.querySelector('.nav-toggle');
   var menu = document.getElementById('nav-mobile');
