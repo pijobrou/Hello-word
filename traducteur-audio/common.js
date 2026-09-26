@@ -33,7 +33,7 @@ const LOCAL_DEFAULTS = { n8nKey: '', licenseKey: '', openaiKey: '', licenceStatu
 
 // Liens de paiement Stripe (mode test pour l'instant : à remplacer par les liens « live » au lancement).
 const PURCHASE_LINKS = {
-  premium: 'https://buy.stripe.com/test_8x24gygZlgDwaQSgKuf7i08',
+  premium: 'https://buy.stripe.com/test_00w4gz1up6QP2Hv8WD00000',
   lifetime: 'https://buy.stripe.com/test_5kQaEW10n4UOcZ079Uf7i09'
 };
 
