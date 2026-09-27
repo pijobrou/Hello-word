@@ -183,7 +183,7 @@ function licenceMsg(text, cls = '') {
 }
 
 function showLicence(st) {
-  lifetime = !!(st && st.valid && st.plan === 'lifetime');
+  lifetime = !!(st && st.valid && String(st.plan).startsWith('lifetime'));
   if (!st) return licenceMsg('Aucune licence activée sur cet appareil.');
   if (!st.valid) return licenceMsg('❌ ' + (st.reason || 'Licence non valide'), 'status-err');
   const plan = st.plan === 'premium' ? '💎 Premium mensuel' : '🔑 Premium à vie';
@@ -215,7 +215,7 @@ async function activate(transfert) {
     showLicence(licenceStatus);
     $('transfer').hidden = true;
     // L'activation choisit la source de la voix Premium : serveur (mensuel) ou clé du client (à vie).
-    const engine = licenceStatus && licenceStatus.plan === 'lifetime' ? 'byok' : 'cloud';
+    const engine = licenceStatus && String(licenceStatus.plan).startsWith('lifetime') ? 'byok' : 'cloud';
     await chrome.storage.sync.set({ engine });
     showEngine(engine);
   } catch (e) {
