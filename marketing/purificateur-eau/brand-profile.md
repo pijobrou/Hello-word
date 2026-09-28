@@ -56,11 +56,16 @@ non vérifié de façon indépendante.
 - **Technical ←→ Accessible :** 7
 - **Voice tolerance :** distance ≤ 0,15 (échelle 0–1)
 - **Banned words / phrases :** « purifie », « élimine 99,9 % », « supprime les bactéries / virus »,
-  « métaux lourds », « certifié NSF » (tant que non vérifié), « écologique », « éco-responsable »,
+  « métaux lourds », « certifié NSF » (tant que non vérifié ; si le certificat vient de WQA ou IAPMO, écrire « certifié NSF/ANSI 42 par WQA », jamais « certifié NSF »), « écologique », « éco-responsable »,
   « eau pure », « santé » en promesse
 - **Claims we may not make (état au 2026-09-27) :** toute allégation santé ou de réduction d'un
   contaminant sans certificat NSF/ANSI 42/53 (ou équivalent accrédité CCN) au nom du modèle
   vendu ; « 5 ans / 10 000 gallons » (contredit par « 3 000 gallons » sur la même fiche)
+
+- **Règle de certification (décision client D-01, 2026-09-28) [Stone] :** certifié NSF/ANSI
+  42 / 53 / 58 par un organisme accrédité par le Conseil canadien des normes (CSA, NSF, WQA, UL,
+  BNQ, Truesdail, IAPMO), pour le modèle exact, vérifiable dans l'annuaire public de l'organisme.
+  N'écrire que les allégations inscrites au certificat.
 
 ## Channels
 - **Active :** aucun [Opinion]
@@ -80,4 +85,4 @@ non vérifié de façon indépendante.
 - **EU markets targeted :** non → C2PA non obligatoire ; divulgation IA recommandée quand même
 
 ## Provenance
-- **Created :** 2026-09-27 · **Last updated :** 2026-09-27 · **Version :** v1
+- **Created :** 2026-09-27 · **Last updated :** 2026-09-28 · **Version :** v1.1 (règle de certification D-01)

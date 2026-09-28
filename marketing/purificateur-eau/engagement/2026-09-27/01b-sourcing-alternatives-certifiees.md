@@ -13,6 +13,10 @@ Recherche du **2026-09-28**. Elle répond à la Partie 5, bloc F-03 (option c : 
 4. Un fabricant OEM peut apparaître sous le nom de la marque cliente et non sous le sien.
    « Absent de l'annuaire NSF » veut dire « **à prouver par le fournisseur** », pas « faux ».
 
+> **Décision client D-01 (2026-09-28) : tout organisme accrédité est accepté.** Ecopure
+> EWF-8116 et Kiki restent donc candidats, **sous réserve** de la vérification WQA / IAPMO
+> ci-dessous.
+>
 > **Mise au point (2026-09-28).** NSF n'est pas le seul organisme admis au Canada. Santé Canada
 > liste sept organismes accrédités par le Conseil canadien des normes : CSA Group, NSF, WQA, UL,
 > BNQ, Truesdail et IAPMO. « NSF/ANSI 42/53 » est la **norme** ; un appareil certifié par
@@ -78,3 +82,16 @@ ou WQA** du modèle exact, puis vérifie-le toi-même sur pld.iapmo.org ou find.
 - Les allégations autorisées dépendent du certificat. Exemple LONSID 6FC-X : « certifié NSF/ANSI
   42 pour le chlore, le goût et l'odeur et NSF/ANSI 53 pour les COV ». Rien sur le plomb, les
   bactéries ou les PFAS.
+
+## Vérification WQA / IAPMO à faire toi-même (5 minutes, le réseau de Claude est bloqué)
+
+1. **WQA** → https://find.wqa.org/find-products → champ « Manufacturer / Brand / Model » :
+   taper `Ecopure`, puis `Waterdrop`, puis `EWF-8116`. Noter la norme (42 ? 53 ?) et les
+   allégations listées.
+2. **IAPMO** → https://pld.iapmo.org → taper `Kiki`, puis `Ningbo Kiki`, puis `MK99` et `DW15`.
+   Faire de même avec `Eastpure`, `SW15` et `Nobana`.
+3. Pour chaque résultat, envoie-moi une capture ou le numéro de dossier : je mets à jour ce
+   tableau et les allégations autorisées.
+
+Un fournisseur sérieux te donnera aussi directement le lien de son inscription (message
+fournisseur ci-dessus).

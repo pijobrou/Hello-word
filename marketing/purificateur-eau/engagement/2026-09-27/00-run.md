@@ -31,9 +31,15 @@ tout autre fichier, à chaque reprise de cet engagement.
 | Contrôle qualité | `scorecard.md` | ✅ PASS avec notes (documents) · lancement BLOCKED |
 
 ## Décisions en vigueur
-Aucune pour l'instant : tout ce qui est en v1 est une proposition.
+- **D-01 (client, 2026-09-28) — règle de certification :** un produit est admissible s'il est
+  certifié selon une norme **NSF/ANSI** (42, 53 ou 58) par **n'importe quel organisme accrédité
+  par le Conseil canadien des normes** (CSA, NSF, WQA, UL, BNQ, Truesdail, IAPMO). Le certificat
+  doit viser le **modèle exact** et être vérifiable dans l'annuaire public de l'organisme. Seules
+  les allégations inscrites au certificat peuvent être publiées.
+- Tout le reste de la v1 reste une proposition.
 
 ## Journal des versions
 - v1 — 2026-09-27 — Parties 1–5.
 - v1.1 — 2026-09-28 — ajout de 01b (sourcing certifié) ; aucune décision modifiée.
-- v1.2 — 2026-09-28 — 02 § 2.1 et 01b : liste des 7 organismes de certification reconnus (Santé Canada). En attente : règle « NSF seulement » ou « tout organisme accrédité » ?
+- v1.2 — 2026-09-28 — 02 § 2.1 et 01b : liste des 7 organismes de certification reconnus (Santé Canada).
+- v1.3 — 2026-09-28 — décision D-01 (tout organisme accrédité) ; brand-profile passé en v1.1.
