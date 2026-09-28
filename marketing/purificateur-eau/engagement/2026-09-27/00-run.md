@@ -19,6 +19,7 @@ tout autre fichier, à chaque reprise de cet engagement.
 | 2 · Recherche externe | `02-recherche-externe.md` | ✅ fait · tailles de marché et volumes de recherche **N/A** |
 | 3 · Quatre documents clés (v1) | `03-quatre-documents-cles.md` | ✅ fait (version condensée) |
 | 4 · Concurrence, client, marché | `04-concurrence-client-marche.md` | ✅ fait (lecture qualitative) |
+| 1b · Produits similaires certifiés (Alibaba × annuaire NSF) | `01b-sourcing-alternatives-certifiees.md` | ✅ fait le 2026-09-28 · WQA et IAPMO non vérifiés (réseau bloqué) |
 | 5 · **Validation client** | `05-document-validation-client.md` | ⛔ **ARRÊT — en attente de toi** |
 | 6 · Re-exécutions v2 | — | ⬜ selon la matrice de décision |
 | 7 · Documents de préparation (KPI, piliers, actifs) | — | ⬜ |
@@ -34,3 +35,4 @@ Aucune pour l'instant : tout ce qui est en v1 est une proposition.
 
 ## Journal des versions
 - v1 — 2026-09-27 — Parties 1–5.
+- v1.1 — 2026-09-28 — ajout de 01b (sourcing certifié) ; aucune décision modifiée.
