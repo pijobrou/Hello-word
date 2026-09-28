@@ -13,6 +13,13 @@ Recherche du **2026-09-28**. Elle répond à la Partie 5, bloc F-03 (option c : 
 4. Un fabricant OEM peut apparaître sous le nom de la marque cliente et non sous le sien.
    « Absent de l'annuaire NSF » veut dire « **à prouver par le fournisseur** », pas « faux ».
 
+> **Mise au point (2026-09-28).** NSF n'est pas le seul organisme admis au Canada. Santé Canada
+> liste sept organismes accrédités par le Conseil canadien des normes : CSA Group, NSF, WQA, UL,
+> BNQ, Truesdail et IAPMO. « NSF/ANSI 42/53 » est la **norme** ; un appareil certifié par
+> WQA ou IAPMO selon cette norme est tout aussi valable. Se limiter aux produits listés **chez
+> NSF** reste possible, mais c'est un choix d'entreprise plus strict, pas une obligation
+> légale : il écarterait Ecopure EWF-8116 (si WQA le confirme) et Kiki (si IAPMO le confirme).
+
 Rappel du critère canadien : Santé Canada recommande un appareil certifié selon la norme
 NSF/ANSI applicable (42 goût/chlore, 53 santé, 58 osmose inverse), par un organisme accrédité
 (NSF, WQA, IAPMO, CSA…). Seules les allégations **listées dans le certificat** peuvent être

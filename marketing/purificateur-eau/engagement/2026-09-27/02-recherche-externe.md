@@ -12,6 +12,7 @@ sourcé est marqué N/A, sans estimation.**
 | Les fabricants font parfois des allégations « en dehors » des normes ; le consommateur doit vérifier lesquelles sont réellement certifiées | idem |
 | Les appareils sans certification microbiologique « ne retirent pas les virus ni les bactéries » | idem |
 | Les allégations fausses ou trompeuses sur ces appareils sont interdites par la **Loi sur l'emballage et l'étiquetage des produits de consommation** et la **Loi sur la concurrence** | idem |
+| Organismes accrédités par le Conseil canadien des normes pour certifier ces appareils, tels que listés par Santé Canada : **CSA Group, NSF International, Water Quality Association (WQA), UL LLC, Bureau de normalisation du Québec (BNQ), Truesdail Laboratories, IAPMO**. « NSF/ANSI 42/53/58 » est le nom de la **norme** ; n'importe lequel de ces organismes peut certifier un appareil selon cette norme | Santé Canada, même page (lue le 2026-09-28) |
 | L'annuaire public NSF permet de vérifier un modèle précis par fabricant, marque et norme | NSF, info.nsf.org/certified/dwtu (consulté le 2026-09-27) |
 
 Conséquence : au Canada, **la certification est l'argument d'achat central de la catégorie**, et

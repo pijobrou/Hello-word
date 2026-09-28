@@ -36,3 +36,4 @@ Aucune pour l'instant : tout ce qui est en v1 est une proposition.
 ## Journal des versions
 - v1 — 2026-09-27 — Parties 1–5.
 - v1.1 — 2026-09-28 — ajout de 01b (sourcing certifié) ; aucune décision modifiée.
+- v1.2 — 2026-09-28 — 02 § 2.1 et 01b : liste des 7 organismes de certification reconnus (Santé Canada). En attente : règle « NSF seulement » ou « tout organisme accrédité » ?
