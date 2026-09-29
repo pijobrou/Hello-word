@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BVY Accounting & Tax Services Inc. — Cabinet Comptable Professionnel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Jost:wght@200;300;400;500;600&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --plum:#1E0820;--plum2:#3A0F3E;--plum3:#5C1F60;--plum4:#7A3080;
+  --gold:#C4A040;--gold2:#D4B860;--gold3:#E8D080;--gold4:#FBF5E0;
+  --white:#FFFFFF;--cream:#FDFBFF;--cream2:#F8F4FF;
+  --border:#EDE5F4;--border2:#DDD0EC;
+  --text:#1A0A1E;--text2:#4A3555;--text3:#8A7A98;
+  --green:#1B6B45;--fd:'Cormorant Garamond',serif;--fb:'Jost',sans-serif;--fm:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--white);color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--plum)}
+::-webkit-scrollbar-thumb{background:var(--gold);border-radius:2px}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 6vw;height:72px;display:flex;align-items:center;justify-content:space-between;background:rgba(30,8,32,.92);backdrop-filter:blur(20px);border-bottom:1px solid rgba(196,160,64,.15);transition:all .3s}
+.nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.nav-logo svg{width:38px;height:38px;flex-shrink:0}
+.nav-logo-text .n1{font-family:var(--fd);font-size:15px;font-weight:600;color:var(--white);letter-spacing:.5px}
+.nav-logo-text .n2{font-size:10px;color:rgba(196,160,64,.6);text-transform:uppercase;letter-spacing:2px;margin-top:1px}
+.nav-links{display:flex;align-items:center;gap:32px}
+.nav-links a{font-size:12px;font-weight:500;color:rgba(255,255,255,.55);text-decoration:none;text-transform:uppercase;letter-spacing:1.5px;transition:color .2s}
+.nav-links a:hover{color:var(--gold2)}
+.nav-cta{display:flex;align-items:center;gap:10px}
+.btn-nav{padding:9px 20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;border-radius:3px;text-decoration:none;transition:all .2s;cursor:pointer;border:none;font-family:var(--fb)}
+.btn-nav-outline{background:transparent;border:1px solid rgba(196,160,64,.4);color:var(--gold2)}
+.btn-nav-outline:hover{border-color:var(--gold);color:var(--gold);background:rgba(196,160,64,.06)}
+.btn-nav-gold{background:var(--gold);color:var(--plum);font-weight:700}
+.btn-nav-gold:hover{background:var(--gold2);transform:translateY(-1px)}
+
+/* ── HERO ── */
+.hero{min-height:100vh;background:var(--plum);position:relative;display:flex;align-items:center;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:
+  radial-gradient(ellipse 80% 60% at 70% 40%,rgba(92,31,96,.5) 0%,transparent 60%),
+  radial-gradient(ellipse 50% 40% at 20% 80%,rgba(196,160,64,.08) 0%,transparent 50%),
+  radial-gradient(ellipse 60% 50% at 90% 10%,rgba(58,15,62,.8) 0%,transparent 50%);
+}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(196,160,64,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(196,160,64,.03) 1px,transparent 1px);background-size:80px 80px;opacity:.6}
+.hero-content{position:relative;z-index:2;padding:0 6vw;max-width:760px;padding-top:72px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:10px;margin-bottom:28px;opacity:0;animation:fadeUp .8s .3s forwards}
+.hero-eyebrow-line{width:32px;height:1px;background:var(--gold)}
+.hero-eyebrow-text{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:3px;color:var(--gold2)}
+.hero-title{font-family:var(--fd);font-size:clamp(42px,5.5vw,76px);font-weight:500;color:var(--white);line-height:1.08;margin-bottom:24px;opacity:0;animation:fadeUp .9s .5s forwards}
+.hero-title em{font-style:italic;color:var(--gold3)}
+.hero-desc{font-size:16px;font-weight:300;color:rgba(255,255,255,.55);line-height:1.8;max-width:520px;margin-bottom:44px;opacity:0;animation:fadeUp .9s .7s forwards}
+.hero-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap;opacity:0;animation:fadeUp .9s .9s forwards}
+.btn-hero-gold{padding:16px 34px;background:var(--gold);color:var(--plum);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;border-radius:3px;text-decoration:none;transition:all .25s;display:inline-flex;align-items:center;gap:8px}
+.btn-hero-gold:hover{background:var(--gold2);transform:translateY(-2px);box-shadow:0 12px 32px rgba(196,160,64,.25)}
+.btn-hero-outline{padding:16px 34px;background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8);font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:1.5px;border-radius:3px;text-decoration:none;transition:all .25s}
+.btn-hero-outline:hover{border-color:rgba(255,255,255,.5);color:var(--white);background:rgba(255,255,255,.05)}
+.hero-stats{position:absolute;right:6vw;bottom:15%;z-index:2;display:flex;flex-direction:column;gap:24px;opacity:0;animation:fadeLeft .9s 1.1s forwards}
+.hero-stat{text-align:right}
+.hero-stat-num{font-family:var(--fd);font-size:42px;font-weight:600;color:var(--gold2);line-height:1}
+.hero-stat-label{font-size:11px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px}
+.hero-scroll{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;animation:fadeUp .6s 1.5s forwards}
+.hero-scroll span{font-size:10px;color:rgba(255,255,255,.25);letter-spacing:2px;text-transform:uppercase}
+.scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,rgba(196,160,64,.4),transparent);animation:scrollPulse 2s ease-in-out infinite}
+
+/* ── TRUST BAR ── */
+.trust-bar{background:var(--plum2);border-top:1px solid rgba(196,160,64,.1);border-bottom:1px solid rgba(196,160,64,.1);padding:20px 6vw;display:flex;align-items:center;justify-content:center;gap:clamp(20px,4vw,60px);flex-wrap:wrap}
+.trust-item{display:flex;align-items:center;gap:10px}
+.trust-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:.6}
+.trust-text{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.4)}
+
+/* ── SECTIONS COMMUNES ── */
+section{padding:100px 6vw}
+.section-eyebrow{display:inline-flex;align-items:center;gap:10px;margin-bottom:16px}
+.section-eyebrow-line{width:28px;height:1px;background:var(--gold)}
+.section-eyebrow-text{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:2.5px;color:var(--gold)}
+.section-title{font-family:var(--fd);font-size:clamp(32px,3.5vw,52px);font-weight:500;color:var(--plum);line-height:1.15;margin-bottom:16px}
+.section-title.white{color:var(--white)}
+.section-subtitle{font-size:15px;font-weight:300;color:var(--text3);line-height:1.8;max-width:560px}
+.section-subtitle.white{color:rgba(255,255,255,.5)}
+
+/* ── SERVICES ── */
+.services{background:var(--cream2)}
+.services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2px;margin-top:60px;border:2px solid var(--border)}
+.service-card{background:var(--white);padding:44px 36px;border:1px solid var(--border);position:relative;transition:all .3s;overflow:hidden}
+.service-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gold3));transform:scaleX(0);transform-origin:left;transition:transform .35s}
+.service-card:hover{transform:translateY(-4px);box-shadow:0 20px 60px rgba(58,15,62,.12)}
+.service-card:hover::before{transform:scaleX(1)}
+.service-icon{width:52px;height:52px;background:var(--cream2);border:1px solid var(--border2);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:24px;font-size:22px}
+.service-num{font-family:var(--fm);font-size:11px;color:var(--text3);margin-bottom:12px;opacity:.5}
+.service-title{font-family:var(--fd);font-size:22px;font-weight:600;color:var(--plum);margin-bottom:12px;line-height:1.2}
+.service-desc{font-size:13px;font-weight:300;color:var(--text2);line-height:1.8;margin-bottom:20px}
+.service-tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;padding:4px 10px;border-radius:3px;border:1px solid var(--border2);color:var(--text3);background:var(--cream2)}
+
+/* ── DOMICILIATION ── */
+.domiciliation{background:var(--plum);position:relative;overflow:hidden}
+.dom-bg{position:absolute;inset:0;background:
+  radial-gradient(ellipse 70% 60% at 100% 50%,rgba(92,31,96,.6) 0%,transparent 60%),
+  radial-gradient(ellipse 40% 40% at 0% 50%,rgba(196,160,64,.06) 0%,transparent 50%)}
+.dom-grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(196,160,64,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(196,160,64,.03) 1px,transparent 1px);background-size:60px 60px}
+.dom-content{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+.dom-left .section-title{color:var(--white)}
+.dom-left .section-subtitle{color:rgba(255,255,255,.5);margin-bottom:36px}
+.dom-features{display:flex;flex-direction:column;gap:16px;margin-bottom:40px}
+.dom-feature{display:flex;align-items:flex-start;gap:14px;padding:16px 20px;background:rgba(255,255,255,.04);border:1px solid rgba(196,160,64,.12);border-radius:6px}
+.dom-feature-icon{width:32px;height:32px;background:rgba(196,160,64,.1);border:1px solid rgba(196,160,64,.2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.dom-feature-text{flex:1}
+.dom-feature-title{font-size:13px;font-weight:600;color:var(--white);margin-bottom:3px}
+.dom-feature-desc{font-size:12px;color:rgba(255,255,255,.4);line-height:1.6}
+.dom-right{position:relative}
+.dom-card{background:rgba(255,255,255,.04);border:1px solid rgba(196,160,64,.15);border-radius:12px;padding:36px;backdrop-filter:blur(10px)}
+.dom-card-title{font-family:var(--fd);font-size:20px;font-weight:600;color:var(--gold2);margin-bottom:24px}
+.dom-steps{display:flex;flex-direction:column;gap:16px}
+.dom-step{display:flex;align-items:flex-start;gap:14px}
+.dom-step-num{width:28px;height:28px;border-radius:50%;background:rgba(196,160,64,.15);border:1px solid rgba(196,160,64,.3);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:11px;color:var(--gold2);flex-shrink:0;margin-top:1px}
+.dom-step-text{flex:1}
+.dom-step-title{font-size:13px;font-weight:600;color:var(--white);margin-bottom:3px}
+.dom-step-desc{font-size:12px;color:rgba(255,255,255,.4);line-height:1.5}
+.dom-price{margin-top:24px;padding-top:24px;border-top:1px solid rgba(196,160,64,.15);display:flex;align-items:center;justify-content:space-between}
+.dom-price-label{font-size:11px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px}
+.dom-price-value{font-family:var(--fd);font-size:28px;font-weight:600;color:var(--gold2)}
+.dom-price-period{font-size:12px;color:rgba(255,255,255,.35)}
+
+/* ── EXPERTISE ── */
+.expertise{background:var(--white)}
+.expertise-layout{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;margin-top:60px}
+.expertise-image{position:relative;border-radius:4px;overflow:hidden}
+.expertise-image img{width:100%;height:500px;object-fit:cover;display:block;filter:saturate(.85)}
+.expertise-image::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(30,8,32,.3),transparent 60%)}
+.expertise-badge{position:absolute;bottom:28px;left:28px;background:rgba(30,8,32,.85);backdrop-filter:blur(10px);border:1px solid rgba(196,160,64,.25);border-radius:8px;padding:16px 20px;z-index:2}
+.expertise-badge-num{font-family:var(--fd);font-size:32px;font-weight:600;color:var(--gold2);line-height:1}
+.expertise-badge-text{font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.expertise-list{display:flex;flex-direction:column;gap:0}
+.expertise-item{display:flex;align-items:flex-start;gap:20px;padding:24px 0;border-bottom:1px solid var(--border)}
+.expertise-item:last-child{border-bottom:none}
+.expertise-item-icon{width:44px;height:44px;background:var(--cream2);border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.expertise-item-title{font-family:var(--fd);font-size:18px;font-weight:600;color:var(--plum);margin-bottom:5px}
+.expertise-item-desc{font-size:13px;color:var(--text2);line-height:1.7;font-weight:300}
+
+/* ── TEAM / CPA ── */
+.team{background:var(--cream2)}
+.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;margin-top:56px}
+.team-card{background:var(--white);border:1px solid var(--border);border-radius:8px;overflow:hidden;transition:all .3s}
+.team-card:hover{transform:translateY(-4px);box-shadow:0 20px 50px rgba(58,15,62,.1)}
+.team-card-img{width:100%;height:240px;object-fit:cover;object-position:top;display:block;filter:saturate(.8)}
+.team-card-body{padding:24px}
+.team-card-name{font-family:var(--fd);font-size:20px;font-weight:600;color:var(--plum);margin-bottom:4px}
+.team-card-title{font-size:12px;color:var(--gold);text-transform:uppercase;letter-spacing:1.5px;font-weight:500;margin-bottom:10px}
+.team-card-desc{font-size:13px;color:var(--text2);line-height:1.7;font-weight:300}
+
+/* ── PORTAILS ── */
+.portals{background:var(--plum2);padding:80px 6vw}
+.portals-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:50px}
+.portal-card{border-radius:10px;padding:44px;position:relative;overflow:hidden;transition:all .3s}
+.portal-card:hover{transform:translateY(-3px)}
+.portal-card.client{background:var(--white);border:1px solid var(--border)}
+.portal-card.cpa{background:linear-gradient(135deg,rgba(92,31,96,.5),rgba(30,8,32,.8));border:1px solid rgba(196,160,64,.2)}
+.portal-card-eyebrow{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px}
+.portal-card.client .portal-card-eyebrow{color:var(--text3)}
+.portal-card.cpa .portal-card-eyebrow{color:var(--gold2)}
+.portal-card-title{font-family:var(--fd);font-size:28px;font-weight:600;margin-bottom:12px}
+.portal-card.client .portal-card-title{color:var(--plum)}
+.portal-card.cpa .portal-card-title{color:var(--white)}
+.portal-card-desc{font-size:13px;line-height:1.8;margin-bottom:28px;font-weight:300}
+.portal-card.client .portal-card-desc{color:var(--text2)}
+.portal-card.cpa .portal-card-desc{color:rgba(255,255,255,.5)}
+.portal-features{display:flex;flex-direction:column;gap:8px;margin-bottom:32px}
+.portal-feature{display:flex;align-items:center;gap:8px;font-size:12px}
+.portal-card.client .portal-feature{color:var(--text2)}
+.portal-card.cpa .portal-feature{color:rgba(255,255,255,.6)}
+.portal-check{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;flex-shrink:0}
+.portal-card.client .portal-check{background:var(--cream2);color:var(--green)}
+.portal-card.cpa .portal-check{background:rgba(196,160,64,.15);color:var(--gold2)}
+.btn-portal{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;text-decoration:none;transition:all .25s}
+.btn-portal-plum{background:var(--plum);color:var(--white)}
+.btn-portal-plum:hover{background:var(--plum2)}
+.btn-portal-gold{background:var(--gold);color:var(--plum)}
+.btn-portal-gold:hover{background:var(--gold2);transform:translateY(-1px)}
+
+/* ── TESTIMONIALS ── */
+.testimonials{background:var(--white);padding:100px 6vw}
+.testimonials-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-top:56px}
+.testimonial-card{background:var(--cream2);border:1px solid var(--border);border-radius:8px;padding:32px;position:relative}
+.testimonial-card::before{content:'«';font-family:var(--fd);font-size:60px;color:var(--gold);opacity:.2;position:absolute;top:12px;right:20px;line-height:1}
+.testimonial-text{font-family:var(--fd);font-size:17px;font-style:italic;color:var(--plum);line-height:1.7;margin-bottom:24px}
+.testimonial-author{display:flex;align-items:center;gap:12px}
+.testimonial-avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--plum3),var(--plum2));display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-size:16px;font-weight:600;color:var(--gold2);flex-shrink:0}
+.testimonial-name{font-size:13px;font-weight:600;color:var(--plum)}
+.testimonial-company{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* ── CONTACT ── */
+.contact{background:var(--plum);position:relative;overflow:hidden}
+.contact-bg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 80% 50%,rgba(92,31,96,.6) 0%,transparent 60%)}
+.contact-content{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start}
+.contact-form{background:rgba(255,255,255,.04);border:1px solid rgba(196,160,64,.12);border-radius:10px;padding:40px}
+.form-title{font-family:var(--fd);font-size:24px;font-weight:600;color:var(--white);margin-bottom:28px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4)}
+.form-input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:4px;padding:12px 14px;font-size:13px;color:var(--white);font-family:var(--fb);transition:border-color .2s;outline:none}
+.form-input:focus{border-color:rgba(196,160,64,.4)}
+.form-input::placeholder{color:rgba(255,255,255,.2)}
+select.form-input option{background:var(--plum);color:var(--white)}
+.form-submit{width:100%;padding:15px;background:var(--gold);color:var(--plum);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;border:none;border-radius:4px;cursor:pointer;font-family:var(--fb);transition:all .25s;margin-top:8px}
+.form-submit:hover{background:var(--gold2);transform:translateY(-1px)}
+.contact-info{padding-top:16px}
+.contact-info .section-title{color:var(--white);margin-bottom:16px}
+.contact-info .section-subtitle{color:rgba(255,255,255,.45);margin-bottom:40px}
+.contact-details{display:flex;flex-direction:column;gap:20px}
+.contact-detail{display:flex;align-items:flex-start;gap:14px}
+.contact-detail-icon{width:36px;height:36px;background:rgba(196,160,64,.1);border:1px solid rgba(196,160,64,.2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.contact-detail-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.3);margin-bottom:3px}
+.contact-detail-value{font-size:14px;color:rgba(255,255,255,.75)}
+.loi25-badge{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(27,107,69,.15);border:1px solid rgba(27,107,69,.3);border-radius:4px;margin-top:32px}
+.loi25-badge span{font-size:11px;color:rgba(255,255,255,.5)}
+.loi25-badge strong{color:#6FCF97;font-size:11px}
+
+/* ── FOOTER ── */
+footer{background:var(--plum);border-top:1px solid rgba(196,160,64,.1);padding:48px 6vw 28px}
+.footer-top{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:40px}
+.footer-brand .n1{font-family:var(--fd);font-size:18px;font-weight:600;color:var(--white);margin-bottom:12px;display:block}
+.footer-brand p{font-size:12px;color:rgba(255,255,255,.35);line-height:1.8;max-width:260px;margin-bottom:20px}
+.footer-col-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.25);margin-bottom:16px}
+.footer-links{display:flex;flex-direction:column;gap:10px}
+.footer-links a{font-size:12px;color:rgba(255,255,255,.4);text-decoration:none;transition:color .2s}
+.footer-links a:hover{color:var(--gold2)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.06);padding-top:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-copy{font-size:11px;color:rgba(255,255,255,.2)}
+.footer-flags{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,.2)}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeLeft{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+@keyframes scrollPulse{0%,100%{opacity:.4;transform:scaleY(1)}50%{opacity:1;transform:scaleY(1.2)}}
+
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s,transform .7s}
+.reveal.visible{opacity:1;transform:translateY(0)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .dom-content,.expertise-layout,.contact-content,.portals-grid,.footer-top{grid-template-columns:1fr;gap:40px}
+  .hero-stats{display:none}
+  .nav-links{display:none}
+  .form-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ NAVIGATION ══ -->
+<nav>
+  <a href="#" class="nav-logo">
+    <img src="BVY_LOGO.webp" alt="BVY" style="width:46px;height:46px;object-fit:contain">
+    <div class="nav-logo-text">
+      <div class="n1">BVY Accounting & Tax</div>
+      <div class="n2">Services Inc.</div>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="#services">Services</a>
+    <a href="#domiciliation">Domiciliation</a>
+    <a href="#expertise">Expertise</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <div class="nav-cta">
+    <a href="https://portail.bvyaccountingtax.ca" class="btn-nav btn-nav-outline">Portail Client</a>
+    <a href="#contact" class="btn-nav btn-nav-gold">Consultation</a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div style="margin-bottom:32px;opacity:0;animation:fadeUp .7s .1s forwards">
+      <img src="BVY_LOGO.webp" alt="BVY Accounting & Tax Services" style="width:90px;height:90px;object-fit:contain;border-radius:8px;filter:drop-shadow(0 8px 32px rgba(196,160,64,.3))">
+    </div>
+    <div class="hero-eyebrow">
+      <div class="hero-eyebrow-line"></div>
+      <span class="hero-eyebrow-text">Cabinet Comptable Professionnel — Québec, Canada</span>
+    </div>
+    <h1 class="hero-title">
+      Votre partenaire<br>
+      <em>comptable et fiscal</em><br>
+      au Canada
+    </h1>
+    <p class="hero-desc">
+      Expertise en tenue de livres, comptabilité, fiscalité canadienne et domiciliation d'entreprise pour entrepreneurs locaux et investisseurs étrangers. Cabinet agréé CPA Québec.
+    </p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-hero-gold">
+        Consultation gratuite
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a href="https://portail.bvyaccountingtax.ca" class="btn-hero-outline">Accès Portail Client</a>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-num">15+</div>
+      <div class="hero-stat-label">Années d'expérience</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">200+</div>
+      <div class="hero-stat-label">Clients actifs</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">100%</div>
+      <div class="hero-stat-label">Conforme Loi 25</div>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <span>Découvrir</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ══ TRUST BAR ══ -->
+<div class="trust-bar">
+  <div class="trust-item"><div class="trust-dot"></div><span class="trust-text">CPA Québec — Agrément officiel</span></div>
+  <div class="trust-item"><div class="trust-dot"></div><span class="trust-text">🇨🇦 Données hébergées au Canada</span></div>
+  <div class="trust-item"><div class="trust-dot"></div><span class="trust-text">Conforme Loi 25 & PIPEDA</span></div>
+  <div class="trust-item"><div class="trust-dot"></div><span class="trust-text">QuickBooks Online Partner</span></div>
+  <div class="trust-item"><div class="trust-dot"></div><span class="trust-text">Fiscalité ARC & Revenu Québec</span></div>
+</div>
+
+<!-- ══ SERVICES ══ -->
+<section class="services" id="services">
+  <div class="reveal">
+    <div class="section-eyebrow"><div class="section-eyebrow-line"></div><span class="section-eyebrow-text">Nos services</span></div>
+    <h2 class="section-title">Une expertise complète<br>pour votre entreprise</h2>
+    <p class="section-subtitle">Du démarrage jusqu'aux déclarations annuelles, nous prenons en charge l'ensemble de vos obligations comptables et fiscales canadiennes.</p>
+  </div>
+  <div class="services-grid reveal" style="transition-delay:.15s">
+    <div class="service-card">
+      <div class="service-icon">📒</div>
+      <div class="service-num">01</div>
+      <div class="service-title">Tenue de livres</div>
+      <p class="service-desc">Enregistrement quotidien de vos transactions, rapprochement bancaire automatisé et catégorisation intelligente via intelligence artificielle.</p>
+      <div class="service-tags"><span class="tag">QuickBooks Online</span><span class="tag">Mensuel</span><span class="tag">IA</span></div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">📊</div>
+      <div class="service-num">02</div>
+      <div class="service-title">États financiers</div>
+      <p class="service-desc">Préparation des bilans, états des résultats et états des flux de trésorerie conformes aux NCECF (Normes comptables pour les entreprises à capital fermé).</p>
+      <div class="service-tags"><span class="tag">NCECF</span><span class="tag">Annuel</span><span class="tag">IFRS</span></div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">🧾</div>
+      <div class="service-num">03</div>
+      <div class="service-title">Fiscalité canadienne</div>
+      <p class="service-desc">Déclarations TPS/TVQ, T2 corporation, T1 particuliers, RL-1, DAS mensuel. Planification fiscale pour optimiser votre charge d'imposition.</p>
+      <div class="service-tags"><span class="tag">TPS/TVQ</span><span class="tag">T2 Corp</span><span class="tag">ARC & RQ</span></div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">👥</div>
+      <div class="service-num">04</div>
+      <div class="service-title">Paie & RH</div>
+      <p class="service-desc">Gestion complète de la paie, calcul des cotisations RRQ/AE/RQAP, déclarations sociales et intégration Payfit pour vos employés au Québec.</p>
+      <div class="service-tags"><span class="tag">Payfit</span><span class="tag">RRQ</span><span class="tag">RQAP</span></div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">🏢</div>
+      <div class="service-num">05</div>
+      <div class="service-title">Incorporation</div>
+      <p class="service-desc">Conseils en structure juridique, incorporation provinciale ou fédérale, rédaction de résolutions et registre des actionnaires.</p>
+      <div class="service-tags"><span class="tag">LSAQ</span><span class="tag">Fédéral</span><span class="tag">RBQ</span></div>
+    </div>
+    <div class="service-card">
+      <div class="service-icon">🌐</div>
+      <div class="service-num">06</div>
+      <div class="service-title">Domiciliation Canada</div>
+      <p class="service-desc">Adresse d'affaires officielle au Québec pour entreprises étrangères. Représentation fiscale, ouverture de compte bancaire et conformité réglementaire.</p>
+      <div class="service-tags"><span class="tag">International</span><span class="tag">Numéro TPS</span><span class="tag">NEQ</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ DOMICILIATION ══ -->
+<section class="domiciliation" id="domiciliation">
+  <div class="dom-bg"></div>
+  <div class="dom-grid-bg"></div>
+  <div class="dom-content">
+    <div class="dom-left reveal">
+      <div class="section-eyebrow"><div class="section-eyebrow-line"></div><span class="section-eyebrow-text">Investisseurs étrangers</span></div>
+      <h2 class="section-title">Établissez votre<br><em style="color:var(--gold3)">présence au Canada</em></h2>
+      <p class="section-subtitle">BVY accompagne les entrepreneurs et sociétés étrangères dans leur établissement au Canada — de l'adresse d'affaires jusqu'à la conformité fiscale complète.</p>
+      <div class="dom-features">
+        <div class="dom-feature">
+          <div class="dom-feature-icon">📍</div>
+          <div class="dom-feature-text">
+            <div class="dom-feature-title">Adresse d'affaires officielle — Québec</div>
+            <div class="dom-feature-desc">Adresse réelle utilisable pour l'enregistrement des entreprises, courrier commercial et représentation.</div>
+          </div>
+        </div>
+        <div class="dom-feature">
+          <div class="dom-feature-icon">🏦</div>
+          <div class="dom-feature-text">
+            <div class="dom-feature-title">Ouverture de compte bancaire</div>
+            <div class="dom-feature-desc">Accompagnement auprès des institutions financières canadiennes (BNC, Desjardins, TD).</div>
+          </div>
+        </div>
+        <div class="dom-feature">
+          <div class="dom-feature-icon">🔢</div>
+          <div class="dom-feature-text">
+            <div class="dom-feature-title">Numéro TPS/TVQ & NEQ</div>
+            <div class="dom-feature-desc">Obtention des numéros fiscaux obligatoires pour opérer légalement au Canada et au Québec.</div>
+          </div>
+        </div>
+        <div class="dom-feature">
+          <div class="dom-feature-icon">📋</div>
+          <div class="dom-feature-text">
+            <div class="dom-feature-title">Représentation fiscale</div>
+            <div class="dom-feature-desc">Agent désigné auprès de l'ARC et de Revenu Québec pour toutes vos obligations déclaratives.</div>
+          </div>
+        </div>
+      </div>
+      <a href="#contact" class="btn-hero-gold" style="display:inline-flex;align-items:center;gap:8px;text-decoration:none">
+        Démarrer ma domiciliation
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+    <div class="dom-right reveal" style="transition-delay:.2s">
+      <div class="dom-card">
+        <div class="dom-card-title">Processus de domiciliation</div>
+        <div class="dom-steps">
+          <div class="dom-step"><div class="dom-step-num">01</div><div class="dom-step-text"><div class="dom-step-title">Consultation initiale</div><div class="dom-step-desc">Analyse de votre situation, choix de la structure juridique et planification fiscale.</div></div></div>
+          <div class="dom-step"><div class="dom-step-num">02</div><div class="dom-step-text"><div class="dom-step-title">Incorporation & enregistrement</div><div class="dom-step-desc">Constitution de la société, obtention du NEQ et enregistrement au REQ.</div></div></div>
+          <div class="dom-step"><div class="dom-step-num">03</div><div class="dom-step-text"><div class="dom-step-title">Numéros fiscaux ARC & RQ</div><div class="dom-step-desc">Demande de numéro d'entreprise, inscription TPS/TVQ et compte de paie.</div></div></div>
+          <div class="dom-step"><div class="dom-step-num">04</div><div class="dom-step-text"><div class="dom-step-title">Suivi comptable continu</div><div class="dom-step-desc">Tenue de livres, déclarations trimestrielles et rapports financiers annuels.</div></div></div>
+        </div>
+        <div class="dom-price">
+          <div>
+            <div class="dom-price-label">À partir de</div>
+            <div class="dom-price-value">295 $<span class="dom-price-period"> CAD/mois</span></div>
+          </div>
+          <a href="#contact" style="display:inline-flex;align-items:center;gap:6px;padding:10px 18px;background:rgba(196,160,64,.15);border:1px solid rgba(196,160,64,.3);border-radius:4px;text-decoration:none;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--gold2);transition:all .2s">
+            En savoir plus →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ EXPERTISE ══ -->
+<section class="expertise" id="expertise">
+  <div class="reveal">
+    <div class="section-eyebrow"><div class="section-eyebrow-line"></div><span class="section-eyebrow-text">Notre approche</span></div>
+    <h2 class="section-title">Technologie et expertise<br>au service de votre succès</h2>
+  </div>
+  <div class="expertise-layout">
+    <div class="expertise-image reveal">
+      <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80" alt="Bureau comptable BVY">
+      <div class="expertise-badge">
+        <div class="expertise-badge-num">CPA</div>
+        <div class="expertise-badge-text">Comptable professionnel agréé</div>
+      </div>
+    </div>
+    <div class="expertise-list reveal" style="transition-delay:.2s">
+      <div class="expertise-item">
+        <div class="expertise-item-icon">🤖</div>
+        <div>
+          <div class="expertise-item-title">Automatisation intelligente</div>
+          <p class="expertise-item-desc">Catégorisation IA des transactions, rapprochement bancaire automatique et alertes proactives pour une tenue de livres irréprochable.</p>
+        </div>
+      </div>
+      <div class="expertise-item">
+        <div class="expertise-item-icon">📱</div>
+        <div>
+          <div class="expertise-item-title">Portail client en temps réel</div>
+          <p class="expertise-item-desc">Accès 24/7 à vos états financiers, transactions, déclarations TPS/TVQ et factures BVY depuis n'importe où.</p>
+        </div>
+      </div>
+      <div class="expertise-item">
+        <div class="expertise-item-icon">🔒</div>
+        <div>
+          <div class="expertise-item-title">Sécurité & conformité Loi 25</div>
+          <p class="expertise-item-desc">Données hébergées au Canada (OVH Montréal), chiffrement SSL, conformité PIPEDA et Loi 25 du Québec. Vos données vous appartiennent.</p>
+        </div>
+      </div>
+      <div class="expertise-item">
+        <div class="expertise-item-icon">🎯</div>
+        <div>
+          <div class="expertise-item-title">Spécialiste PME québécoises</div>
+          <p class="expertise-item-desc">Expertise pointue en NCECF, fiscalité provinciale et fédérale, et réglementation québécoise pour accompagner votre croissance.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PORTAILS ══ -->
+<section class="portals" id="portails">
+  <div class="reveal" style="text-align:center;margin-bottom:0">
+    <div class="section-eyebrow" style="justify-content:center"><div class="section-eyebrow-line"></div><span class="section-eyebrow-text">Accès en ligne</span></div>
+    <h2 class="section-title white" style="text-align:center">Vos outils numériques BVY</h2>
+    <p class="section-subtitle white" style="margin:0 auto;text-align:center">Deux portails sécurisés — un pour vos clients, un pour nos professionnels</p>
+  </div>
+  <div class="portals-grid reveal" style="transition-delay:.15s">
+    <div class="portal-card client">
+      <div class="portal-card-eyebrow">Portail Client</div>
+      <h3 class="portal-card-title">Votre dossier comptable, toujours disponible</h3>
+      <p class="portal-card-desc">Accédez en temps réel à vos états financiers, confirmez vos transactions, payez vos factures BVY et consultez vos déclarations TPS/TVQ.</p>
+      <div class="portal-features">
+        <div class="portal-feature"><div class="portal-check" style="background:#E8F5EE;color:#1B6B45">✓</div>États financiers temps réel</div>
+        <div class="portal-feature"><div class="portal-check" style="background:#E8F5EE;color:#1B6B45">✓</div>Transactions & catégorisation IA</div>
+        <div class="portal-feature"><div class="portal-check" style="background:#E8F5EE;color:#1B6B45">✓</div>Déclarations TPS/TVQ</div>
+        <div class="portal-feature"><div class="portal-check" style="background:#E8F5EE;color:#1B6B45">✓</div>Paiement factures en ligne</div>
+        <div class="portal-feature"><div class="portal-check" style="background:#E8F5EE;color:#1B6B45">✓</div>Documents & rapports PDF</div>
+      </div>
+      <a href="https://portail.bvyaccountingtax.ca" class="btn-portal btn-portal-plum">
+        Accéder au portail →
+      </a>
+    </div>
+    <div class="portal-card cpa">
+      <div class="portal-card-eyebrow">Espace Professionnel</div>
+      <h3 class="portal-card-title">Dashboard CPA — Gestion complète</h3>
+      <p class="portal-card-desc">Tableau de bord centralisé pour la gestion de tous vos dossiers clients, approbations fiscales et supervision des automatisations n8n.</p>
+      <div class="portal-features">
+        <div class="portal-feature"><div class="portal-check" style="background:rgba(196,160,64,.15);color:var(--gold2)">✓</div>Gestion multi-clients</div>
+        <div class="portal-feature"><div class="portal-check" style="background:rgba(196,160,64,.15);color:var(--gold2)">✓</div>Approbations TPS/TVQ</div>
+        <div class="portal-feature"><div class="portal-check" style="background:rgba(196,160,64,.15);color:var(--gold2)">✓</div>Alertes IA & anomalies</div>
+        <div class="portal-feature"><div class="portal-check" style="background:rgba(196,160,64,.15);color:var(--gold2)">✓</div>Rapprochements bancaires</div>
+        <div class="portal-feature"><div class="portal-check" style="background:rgba(196,160,64,.15);color:var(--gold2)">✓</div>Workflows n8n supervisés</div>
+      </div>
+      <a href="https://dashboard.bvyaccountingtax.ca" class="btn-portal btn-portal-gold">
+        Accès professionnel →
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TESTIMONIALS ══ -->
+<section class="testimonials">
+  <div class="reveal" style="text-align:center">
+    <div class="section-eyebrow" style="justify-content:center"><div class="section-eyebrow-line"></div><span class="section-eyebrow-text">Témoignages</span></div>
+    <h2 class="section-title" style="text-align:center">Ce que disent nos clients</h2>
+  </div>
+  <div class="testimonials-grid reveal" style="transition-delay:.1s">
+    <div class="testimonial-card">
+      <p class="testimonial-text">« BVY a transformé notre gestion comptable. Le portail client est remarquable — je consulte mes états financiers en temps réel sans attendre. Leur expertise en fiscalité québécoise est rassurante. »</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">JT</div>
+        <div>
+          <div class="testimonial-name">Jean-François Tremblay</div>
+          <div class="testimonial-company">Construction Tremblay Inc. — Sainte-Marie, QC</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <p class="testimonial-text">« Nous avons utilisé BVY pour établir notre filiale canadienne depuis Paris. Le service de domiciliation a été impeccable — incorporation, compte bancaire et numéros fiscaux en moins de 3 semaines. »</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">SB</div>
+        <div>
+          <div class="testimonial-name">Sophie Beaumont</div>
+          <div class="testimonial-company">Clinique Beaumont — Expansion Canada</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <p class="testimonial-text">« L'automatisation IA des transactions m'économise des heures chaque mois. Les alertes proactives m'ont évité deux erreurs importantes en TPS. Je recommande BVY à tous les entrepreneurs. »</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">ML</div>
+        <div>
+          <div class="testimonial-name">Marc Langevin</div>
+          <div class="testimonial-company">Ferme Langevin Inc. — Chaudière-Appalaches</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CONTACT ══ -->
+<section class="contact" id="contact">
+  <div class="contact-bg"></div>
+  <div class="contact-content">
+    <div class="contact-info reveal">
+      <div class="section-eyebrow"><div class="section-eyebrow-line"></div><span class="section-eyebrow-text">Nous joindre</span></div>
+      <h2 class="section-title white">Parlons de votre<br><em style="color:var(--gold3)">situation financière</em></h2>
+      <p class="section-subtitle white">Consultation initiale gratuite — 30 minutes avec un CPA pour évaluer vos besoins et vous proposer la solution adaptée.</p>
+      <div class="contact-details">
+        <div class="contact-detail">
+          <div class="contact-detail-icon">📍</div>
+          <div>
+            <div class="contact-detail-label">Bureau principal</div>
+            <div class="contact-detail-value">Sainte-Marie, Chaudière-Appalaches, Québec</div>
+          </div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-detail-icon">📧</div>
+          <div>
+            <div class="contact-detail-label">Courriel</div>
+            <div class="contact-detail-value">info@bvyaccountingtax.ca</div>
+          </div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-detail-icon">🕐</div>
+          <div>
+            <div class="contact-detail-label">Heures d'affaires</div>
+            <div class="contact-detail-value">Lundi – Vendredi : 8h00 à 17h00</div>
+          </div>
+        </div>
+        <div class="contact-detail">
+          <div class="contact-detail-icon">🌐</div>
+          <div>
+            <div class="contact-detail-label">Services offerts</div>
+            <div class="contact-detail-value">Français · English · International</div>
+          </div>
+        </div>
+      </div>
+      <div class="loi25-badge">
+        <span>🇨🇦</span>
+        <div><strong>Données hébergées au Canada — OVH Montréal</strong><br><span>Conforme Loi 25 (Québec) · PIPEDA · CPA Québec</span></div>
+      </div>
+    </div>
+    <div class="contact-form reveal" style="transition-delay:.2s">
+      <div class="form-title">Demande de consultation</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Prénom</label>
+          <input type="text" class="form-input" placeholder="Jean-François">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nom</label>
+          <input type="text" class="form-input" placeholder="Tremblay">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Courriel</label>
+          <input type="email" class="form-input" placeholder="jf@votreentreprise.ca">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Téléphone</label>
+          <input type="tel" class="form-input" placeholder="418-555-0123">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Service recherché</label>
+          <select class="form-input">
+            <option value="">Sélectionner un service</option>
+            <option>Tenue de livres mensuelle</option>
+            <option>États financiers annuels</option>
+            <option>Déclarations TPS/TVQ</option>
+            <option>Fiscalité corporative (T2)</option>
+            <option>Paie & RH</option>
+            <option>Domiciliation Canada — Entreprise étrangère</option>
+            <option>Incorporation au Québec</option>
+            <option>Autre</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Pays / Province</label>
+          <select class="form-input">
+            <option>Québec, Canada</option>
+            <option>Ontario, Canada</option>
+            <option>Autres provinces canadiennes</option>
+            <option>France</option>
+            <option>Belgique</option>
+            <option>Maroc</option>
+            <option>Sénégal</option>
+            <option>Côte d'Ivoire</option>
+            <option>Autre pays</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Message</label>
+          <textarea class="form-input" rows="3" placeholder="Décrivez brièvement votre situation..."></textarea>
+        </div>
+      </div>
+      <button class="form-submit">Envoyer ma demande →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <img src="BVY_LOGO.webp" alt="BVY" style="width:42px;height:42px;object-fit:contain;border-radius:4px">
+        <span class="n1" style="margin-bottom:0">BVY Accounting & Tax Services Inc.</span>
+      </div>
+      <p>Cabinet comptable professionnel agréé CPA au Québec. Expertise en tenue de livres, fiscalité canadienne et domiciliation pour entrepreneurs locaux et étrangers.</p>
+      <div style="display:flex;gap:8px">
+        <span style="font-size:10px;padding:4px 10px;border:1px solid rgba(255,255,255,.1);border-radius:3px;color:rgba(255,255,255,.3)">CPA Québec</span>
+        <span style="font-size:10px;padding:4px 10px;border:1px solid rgba(255,255,255,.1);border-radius:3px;color:rgba(255,255,255,.3)">Loi 25</span>
+        <span style="font-size:10px;padding:4px 10px;border:1px solid rgba(255,255,255,.1);border-radius:3px;color:rgba(255,255,255,.3)">PIPEDA</span>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Services</div>
+      <div class="footer-links">
+        <a href="#services">Tenue de livres</a>
+        <a href="#services">États financiers</a>
+        <a href="#services">TPS/TVQ</a>
+        <a href="#services">Fiscalité corporative</a>
+        <a href="#services">Paie & RH</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">International</div>
+      <div class="footer-links">
+        <a href="#domiciliation">Domiciliation Canada</a>
+        <a href="#domiciliation">Incorporation Québec</a>
+        <a href="#domiciliation">Compte bancaire</a>
+        <a href="#domiciliation">Numéros TPS/TVQ</a>
+        <a href="#domiciliation">Représentation ARC</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Accès rapide</div>
+      <div class="footer-links">
+        <a href="https://portail.bvyaccountingtax.ca">Portail Client</a>
+        <a href="https://dashboard.bvyaccountingtax.ca">Dashboard CPA</a>
+        <a href="#contact">Consultation gratuite</a>
+        <a href="mailto:info@bvyaccountingtax.ca">info@bvyaccountingtax.ca</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2025 BVY Accounting & Tax Services Inc. Tous droits réservés. Sainte-Marie, Québec, Canada.</div>
+    <div class="footer-flags">
+      <span>🇨🇦 Données hébergées au Canada</span>
+      <span>·</span>
+      <span>Conforme Loi 25 & PIPEDA</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Scroll reveal
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+reveals.forEach(r => observer.observe(r));
+
+// Form submit
+document.querySelector('.form-submit').addEventListener('click', function() {
+  this.textContent = '✓ Demande envoyée — nous vous contactons sous 24h';
+  this.style.background = '#1B6B45';
+  this.style.color = '#fff';
+  this.disabled = true;
+});
+
+// Nav scroll effect
+window.addEventListener('scroll', () => {
+  document.querySelector('nav').style.boxShadow = window.scrollY > 50 ? '0 4px 30px rgba(0,0,0,.3)' : 'none';
+});
+</script>
+</body>
+</html>

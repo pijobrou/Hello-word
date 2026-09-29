@@ -122,31 +122,60 @@ function status(text, cls = '') {
 // ---------- Moteur de la voix ----------
 const ENGINE_HINTS = {
   local: 'Gratuit, instantané, idéal en direct. Sur Edge, les voix « Natural » sont très fluides.',
-  cloud: 'Voix IA naturelle fournie par le service : 5 h par mois incluses. Licence liée à cet appareil.',
-  byok: 'Toutes les fonctions à vie ; la voix IA utilise votre propre compte OpenAI.',
-  n8n: 'Pour les utilisateurs avancés qui hébergent leur propre workflow n8n.'
+  premium: 'Voix IA naturelle et constante. Mensuel : 5 h par mois incluses. Licence liée à cet appareil.'
 };
 
+// Mode propriétaire : réglages n8n visibles (jamais pour les clients).
+// Accepte #proprietaire, #propriétaire, #n8n (majuscules et accents ignorés).
+// Ou : 5 clics rapides sur le titre « Moteur de la voix » (retenu sur cet appareil ; 5 clics de plus pour le cacher).
+let ownerFlag = false;
+chrome.storage.local.get({ ownerMode: false }, (r) => { ownerFlag = r.ownerMode; getSettings().then((s) => showEngine(s.engine)); });
+let titleClicks = [];
+$('engineTitle').addEventListener('click', async () => {
+  const now = Date.now();
+  titleClicks = titleClicks.filter((t) => now - t < 3000).concat(now);
+  if (titleClicks.length < 5) return;
+  titleClicks = [];
+  ownerFlag = !ownerFlag;
+  await chrome.storage.local.set({ ownerMode: ownerFlag });
+  showEngine((await getSettings()).engine);
+  saved(ownerFlag ? '🛠️ Mode propriétaire activé sur cet appareil' : 'Mode propriétaire désactivé');
+});
+const owner = () => ownerFlag || /^#(proprietaire|n8n|owner)$/.test(
+  decodeURIComponent(location.hash).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim());
+let lifetime = false;   // licence « À vie » activée : la voix Premium passe par la clé du client
+
 function showEngine(engine) {
-  $('engine').value = engine;
-  $('engineHint').textContent = ENGINE_HINTS[engine] || '';
-  $('boxLicence').hidden = !['cloud', 'byok'].includes(engine);
-  $('boxByok').hidden = engine !== 'byok';
-  $('boxN8n').hidden = engine !== 'n8n';
+  const premium = engine !== 'local';
+  $('engine').value = premium ? 'premium' : 'local';
+  $('engineHint').textContent = ENGINE_HINTS[premium ? 'premium' : 'local'];
+  $('boxLicence').hidden = !premium;
+  $('boxByok').hidden = !premium || !(engine === 'byok' || lifetime);
+  // En mode propriétaire, le cadre n8n s'affiche quel que soit le choix du menu.
+  $('boxN8n').hidden = !(owner() || engine === 'n8n');
 }
+window.addEventListener('hashchange', async () => showEngine((await getSettings()).engine));
 
 getSettings().then((s) => {
+  showLicence(s.licenceStatus);
   showEngine(s.engine);
   $('n8nUrl').value = s.n8nUrl;
   $('n8nKey').value = s.n8nKey;
   $('licenseKey').value = s.licenseKey;
   $('premiumUrl').value = s.premiumUrl;
   $('openaiKey').value = s.openaiKey;
-  showLicence(s.licenceStatus);
 });
 $('buyPremium').href = PURCHASE_LINKS.premium;
 $('buyLifetime').href = PURCHASE_LINKS.lifetime;
-$('engine').onchange = (e) => { chrome.storage.sync.set({ engine: e.target.value }); showEngine(e.target.value); };
+$('engine').onchange = async (e) => {
+  const cur = (await getSettings()).engine;
+  const { premiumSource } = await chrome.storage.sync.get({ premiumSource: '' });
+  const engine = e.target.value === 'local' ? 'local'
+    : cur !== 'local' ? cur : premiumSource || (lifetime ? 'byok' : 'cloud');
+  // On retient la source Premium pour la retrouver après un passage par la voix du navigateur.
+  chrome.storage.sync.set(engine === 'local' && cur !== 'local' ? { engine, premiumSource: cur } : { engine });
+  showEngine(engine);
+};
 
 function licenceMsg(text, cls = '') {
   $('licenceStatus').textContent = text;
@@ -154,9 +183,10 @@ function licenceMsg(text, cls = '') {
 }
 
 function showLicence(st) {
+  lifetime = !!(st && st.valid && String(st.plan).startsWith('lifetime'));
   if (!st) return licenceMsg('Aucune licence activée sur cet appareil.');
   if (!st.valid) return licenceMsg('❌ ' + (st.reason || 'Licence non valide'), 'status-err');
-  const plan = st.plan === 'premium' ? '💎 Premium' : '🔑 À vie (ma propre clé)';
+  const plan = st.plan === 'premium' ? '💎 Premium mensuel' : '🔑 Premium à vie';
   const minutes = st.plan === 'premium' ? ` — ${st.minutesUsed} / ${st.minutesLimit} min de voix IA ce mois-ci` : '';
   licenceMsg(`✅ ${plan} actif sur ${st.device || 'cet appareil'}${minutes}`, 'status-ok');
 }
@@ -184,6 +214,10 @@ async function activate(transfert) {
     const { licenceStatus } = await chrome.storage.local.get({ licenceStatus: null });
     showLicence(licenceStatus);
     $('transfer').hidden = true;
+    // L'activation choisit la source de la voix Premium : serveur (mensuel) ou clé du client (à vie).
+    const engine = licenceStatus && String(licenceStatus.plan).startsWith('lifetime') ? 'byok' : 'cloud';
+    await chrome.storage.sync.set({ engine });
+    showEngine(engine);
   } catch (e) {
     licenceMsg('❌ ' + e.message, 'status-err');
     // Transfert proposé seulement si le serveur l'autorise (sinon : licence bloquée à vie, contacter le support).
@@ -200,12 +234,13 @@ $('byokSave').onclick = async () => {
   const key = $('openaiKey').value.trim();
   if (!/^sk-/.test(key)) return byokMsg('La clé OpenAI commence par « sk- ».', 'status-err');
   await chrome.storage.local.set({ openaiKey: key });
+  await chrome.storage.sync.set({ engine: 'byok' });
   if (!(await chrome.permissions.request({ origins: ['https://api.openai.com/*'] }))) return byokMsg('Accès à OpenAI refusé.', 'status-err');
   byokMsg('Test en cours…');
   try {
     const s = await getSettings();
     const res = await sendMessage({ type: 'tts', force: true, text: 'Bonjour ! Votre voix OpenAI fonctionne.' });
-    byokMsg('✅ Voix OpenAI OK', 'status-ok');
+    byokMsg('✅ Voix Premium OK', 'status-ok');
     playDub({ fr: res.translation, audio: `data:${res.mime};base64,${res.audio}`, via: 'ai', speed: res.speed }, s);
   } catch (e) {
     byokMsg('❌ ' + e.message, 'status-err');

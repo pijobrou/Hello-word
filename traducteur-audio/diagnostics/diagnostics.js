@@ -90,7 +90,7 @@ async function run() {
 
   const settings = await getSettings();
 
-  // 5 bis. Voix IA (Premium, ma clé ou n8n)
+  // 5 bis. Voix IA Premium (quelle que soit sa source)
   const ai = row('Voix IA : ' + ENGINE_LABELS[settings.engine]);
   if (settings.engine === 'local') ai('warn', 'Voix du navigateur (gratuite). Réglages → Moteur de la voix pour la voix IA.');
   else if (!isAi(settings)) ai('err', 'Moteur choisi mais pas configuré (clé de licence, adresse ou clé OpenAI manquante).');

@@ -70,7 +70,8 @@ async function deviceId() {
 }
 
 async function premium(path, { method = 'GET', body } = {}) {
-  const { premiumUrl } = await chrome.storage.sync.get({ premiumUrl: '' });
+  const PREMIUM_SERVER = 'https://traducteur-audio.pijobrou14.workers.dev';
+  const premiumUrl = (await chrome.storage.sync.get({ premiumUrl: '' })).premiumUrl || PREMIUM_SERVER;
   const { licenseKey } = await chrome.storage.local.get({ licenseKey: '' });
   if (!premiumUrl) throw new Error('Adresse du serveur Premium non configurée');
   if (!licenseKey) throw new Error('Aucune clé de licence : achetez ou collez votre clé dans les Réglages');
@@ -229,6 +230,11 @@ async function diagnose(n8nUrl) {
     return `Le serveur ${url.host} répond (healthz ${res.status}), mais l'appel du webhook a été bloqué. `
       + 'Vérifiez que l\'URL se termine par /webhook/traducteur-audio (pas /webhook-test/).';
   } catch (_) {
+    if (/^(localhost|127\.0\.0\.1)$/.test(url.hostname)) {
+      return `n8n ne tourne pas sur ${url.host} : démarrez Docker Desktop puis le conteneur n8n `
+        + '(« docker start n8n »), et vérifiez que http://localhost:5678 s\'ouvre dans le navigateur. '
+        + 'Sans n8n, choisissez un autre moteur dans Réglages → Moteur de la voix.';
+    }
     return `Le serveur ${url.host} est injoignable. Si c'est un tunnel trycloudflare : il est fermé ou son `
       + 'adresse a changé. Relancez « cloudflared tunnel --url http://localhost:5678 » et collez la nouvelle adresse.';
   }

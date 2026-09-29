@@ -19,7 +19,7 @@ const DEFAULTS = {
   targetLang: 'fr-FR', // langue de la voix traduite
   chunking: 'balanced', // découpage des phrases : 'fast', 'balanced' ou 'full'
   engine: 'local',     // 'local' (navigateur, gratuit) · 'cloud' (Premium) · 'byok' (ma clé OpenAI) · 'n8n' (avancé)
-  premiumUrl: '',      // adresse du serveur Premium (Cloudflare Worker)
+  premiumUrl: 'https://traducteur-audio.pijobrou14.workers.dev',   // serveur Premium (Cloudflare Worker)
   byokVoice: 'coral',  // voix OpenAI utilisée avec « ma propre clé »
   aiFallback: 'silent', // si la voix IA échoue pour une phrase : 'silent' (texte seul, une seule voix) ou 'local'
   lockVoice: true,     // 🔒 une seule voix : jamais de voix de remplacement, la voix choisie est mémorisée
@@ -33,15 +33,17 @@ const LOCAL_DEFAULTS = { n8nKey: '', licenseKey: '', openaiKey: '', licenceStatu
 
 // Liens de paiement Stripe (mode test pour l'instant : à remplacer par les liens « live » au lancement).
 const PURCHASE_LINKS = {
-  premium: 'https://buy.stripe.com/test_8x24gygZlgDwaQSgKuf7i08',
-  lifetime: 'https://buy.stripe.com/test_5kQaEW10n4UOcZ079Uf7i09'
+  premium: 'https://buy.stripe.com/test_00w4gz1up6QP2Hv8WD00000',
+  lifetime: 'https://buy.stripe.com/test_bJe4gzflf1wv6XL8WD00001'
 };
 
+// Côté client il n'y a que deux choix : navigateur ou Premium. La source de la voix Premium
+// (serveur, clé du client pour l'offre à vie, n8n du propriétaire) n'est pas affichée.
 const ENGINE_LABELS = {
   local: '🔈 Voix du navigateur (gratuit)',
-  cloud: '💎 Premium — voix IA incluse',
-  byok: '🔑 Ma propre clé OpenAI (licence à vie)',
-  n8n: '🛠️ Mon workflow n8n (avancé)'
+  cloud: '💎 Premium — voix IA',
+  byok: '💎 Premium — voix IA',
+  n8n: '💎 Premium — voix IA'
 };
 
 // Le moteur de voix IA choisi est-il utilisable (configuré) ?
@@ -54,8 +56,12 @@ function isAi(s) {
 }
 
 function getSettings() {
-  return new Promise((resolve) => chrome.storage.sync.get(DEFAULTS, (sync) =>
-    chrome.storage.local.get(LOCAL_DEFAULTS, (local) => resolve({ ...sync, ...local }))));
+  // Avant la 1.7, le moteur n'existait pas : une adresse n8n enregistrée voulait dire « voix n8n ».
+  return new Promise((resolve) => chrome.storage.sync.get({ ...DEFAULTS, engine: null }, (sync) => {
+    if (!sync.engine) sync.engine = sync.n8nUrl ? 'n8n' : DEFAULTS.engine;
+    if (!sync.premiumUrl) sync.premiumUrl = DEFAULTS.premiumUrl;
+    chrome.storage.local.get(LOCAL_DEFAULTS, (local) => resolve({ ...sync, ...local }));
+  }));
 }
 
 function sendMessage(msg) {
@@ -365,7 +371,7 @@ async function playDub(dub, settings) {
         player.onerror = () => reject(new Error('lecture audio impossible'));
         player.play().catch(reject);
       });
-      return 'voix IA (' + ({ cloud: 'Premium', byok: 'ma clé OpenAI', n8n: 'n8n' }[settings.engine] || 'IA') + ')';
+      return 'voix IA (Premium)';
     } catch (e) {
       console.warn('[Traducteur Audio]', e.message);
     } finally {
