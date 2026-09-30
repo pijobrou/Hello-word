@@ -77,3 +77,20 @@ All items of "Website Acceptance Criteria" in `CLAUDE.md`, plus: `npm test` gree
 Return `STATUS: WAITING_FOR_OWNER_APPROVAL`. Continue to workflow 01 only on `STATUS: APPROVED`.
 On `STATUS: CHANGES_REQUESTED`: collect changes → update → redeploy → new review package → wait again.
 On `STATUS: REJECTED`: stop.
+
+## Revision 2 — sector pages (2026-09-30, owner request)
+
+- Editorial line: « Votre entreprise avance. Vos chiffres doivent avancer avec elle. » Clients are presented as
+  entrepreneurs in motion, never as worried people.
+- Six sector pages generated from `apps/website/src/niches/<slug>.json` (format: `src/niches/_SCHEMA.md`) by
+  `src/niche-template.js`: hero image, sector quote, reality, 3 growth stages with their accounting needs,
+  money-flow diagram, expertise, services, « Ce qui change dans votre secteur » (3 cards + last-update date),
+  FAQ, CTA. JSON-LD: Service, BreadcrumbList, FAQPage. Hub page `/secteurs/`; six cards on the home page.
+- All six are published; the owner will pick the main niche after analysing traffic and enquiries.
+- « Ce qui change » is edited only in the JSON files and published only after human validation
+  (change `changes.updated`, run `node build.js`, redeploy).
+- Offers: Mise au clair Shopify 850 $ (fixed, one-time), Clarté mensuelle « sur soumission » (three options
+  presented after the 30-minute consultation), Domiciliation 294,99 $. No turnaround time is published.
+- New pages: `/a-propos/` (founder biography to be supplied by the owner), `/rendez-vous/`.
+- Footer on every page: no audit, review or compilation engagements; certification work is referred to an
+  independent licensed CPA. BVY Accounting & Tax Services Inc. is incorporated (owner, 2026-09-30).

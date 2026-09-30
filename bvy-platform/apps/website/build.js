@@ -6,6 +6,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const niche = require('./src/niche-template.js');
 
 const SITE = 'https://bvyaccountingtax.ca';
 const SRC = path.join(__dirname, 'src');
@@ -44,8 +45,19 @@ function build() {
   const pages = fs.readdirSync(path.join(SRC, 'pages')).filter((f) => f.endsWith('.html')).sort();
   const sitemap = [];
 
-  for (const name of pages) {
-    const { meta, body } = parse(path.join(SRC, 'pages', name));
+  // Pages sectorielles (src/niches/*.json) : cartes pour l'accueil et /secteurs/, puis une page chacune
+  const nicheDir = path.join(SRC, 'niches');
+  const niches = fs.readdirSync(nicheDir).filter((f) => f.endsWith('.json')).map((f) => {
+    const n = JSON.parse(fs.readFileSync(path.join(nicheDir, f), 'utf8'));
+    niche.validate(n, `src/niches/${f}`);
+    return n;
+  }).sort((a, b) => (a.order || 99) - (b.order || 99));
+  const published = niches.filter((n) => !(n.robots || '').startsWith('noindex'));
+  site.secteurs_cards = published.map((n) => niche.card(n)).join('\n      ');
+  const entries = pages.map((name) => ({ name: `src/pages/${name}`, ...parse(path.join(SRC, 'pages', name)) }))
+    .concat(niches.map((n) => ({ name: `src/niches/${n.slug}.json`, ...niche.render(n) })));
+
+  for (const { name, meta, body } of entries) {
     const robots = meta.robots || 'index,follow';
     let html = layout
       .replace('{{content}}', () => body.trim())
@@ -57,7 +69,8 @@ function build() {
       .replaceAll('{{version}}', version)
       .replaceAll('{{year}}', year);
     for (const [key, value] of Object.entries(site)) {
-      if (!key.startsWith('_')) html = html.replaceAll(`{{${key}}}`, esc(value));
+      if (key.startsWith('_')) continue;
+      html = html.replaceAll(`{{${key}}}`, key.endsWith('_cards') ? value : esc(value));
     }
     if (meta.nav) {
       html = html.replaceAll(`data-nav="${meta.nav}"`, `data-nav="${meta.nav}" aria-current="page"`);
@@ -68,7 +81,7 @@ function build() {
     fs.mkdirSync(path.dirname(out), { recursive: true });
     fs.writeFileSync(out, html);
     if (robots.startsWith('index')) sitemap.push(meta.path);
-    console.log(`✔ ${meta.path.padEnd(22)} ← src/pages/${name}`);
+    console.log(`✔ ${meta.path.padEnd(52)} ← ${name}`);
   }
 
   const today = new Date().toISOString().slice(0, 10);

@@ -7,9 +7,9 @@
   // Photo absente : on garde le fond prune au lieu d'une image cassée
   document.addEventListener('error', function (e) {
     var t = e.target;
-    if (t && t.tagName === 'IMG' && t.parentNode && t.parentNode.classList.contains('media')) t.remove();
+    if (t && t.tagName === 'IMG' && t.parentNode && t.parentNode.matches('.media, .sector-media, .niche-photo')) t.remove();
   }, true);
-  document.querySelectorAll('.media img').forEach(function (img) {
+  document.querySelectorAll('.media img, .sector-media img, .niche-photo img').forEach(function (img) {
     if (img.complete && img.naturalWidth === 0) img.remove();
   });
 
