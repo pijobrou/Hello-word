@@ -15,7 +15,9 @@ fs.mkdirSync(out, { recursive: true });
 const PAGES = [
   ['accueil', '/'], ['services', '/services/'], ['plateforme', '/plateforme/'],
   ['fonctionnement', '/fonctionnement/'], ['tarifs', '/tarifs/'], ['contact', '/contact/'],
-  ['connexion', '/connexion/'],
+  ['connexion', '/connexion/'], ['secteurs', '/secteurs/'], ['a-propos', '/a-propos/'],
+  ['secteur-shopify', '/comptable-shopify-commerce-electronique-quebec/'],
+  ['secteur-soins', '/comptabilite-soins-domicile-services-sociaux-quebec/'],
 ];
 const VIEWPORTS = [['bureau', { width: 1440, height: 900 }, false], ['mobile', { width: 390, height: 844 }, true]];
 
@@ -32,6 +34,9 @@ for (const [vpName, viewport, isMobile] of VIEWPORTS) {
     page.on('requestfailed', (r) => { if (!r.url().includes('fonts.g')) problems.push(`${vpName} ${url}: échec ${r.url()}`); });
     const res = await page.goto(base + url, { waitUntil: 'networkidle' }).catch((e) => ({ status: () => e.message }));
     if (res.status() !== 200) problems.push(`${vpName} ${url}: HTTP ${res.status()}`);
+    // Faire défiler pour déclencher les images en chargement différé (loading="lazy")
+    await page.evaluate(async () => { for (let y = 0; y < document.body.scrollHeight; y += 600) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 60)); } window.scrollTo(0, 0); });
+    await page.waitForLoadState('networkidle');
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     if (overflow > 1) problems.push(`${vpName} ${url}: défilement horizontal de ${overflow}px`);
     const file = path.join(out, `${vpName}-${name}.jpg`);
