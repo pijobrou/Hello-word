@@ -1,0 +1,199 @@
+{
+  "slug": "comptabilite-agence-placement-personnel-quebec",
+  "order": 4,
+  "title": "Comptabilité pour agences de placement | BVY",
+  "description": "Comptabilité pour agences de placement de personnel au Québec : feuilles de temps, paie, facturation, CNESST et marge par contrat dans QuickBooks Online.",
+  "breadcrumb": "Agences de placement de personnel",
+  "card": {
+    "title": "Agences de placement de personnel",
+    "text": "Des heures travaillées reliées à la paie, à la facturation et à la marge, pour faire grandir votre agence contrat après contrat.",
+    "button": "Comptabilité pour agences"
+  },
+  "image": {
+    "alt": "Gestionnaire d'agence de placement analysant les horaires et la paie au Québec"
+  },
+  "image2": {
+    "alt": "Employés arrivant au travail en début de quart, dans l'entrée d'une entreprise cliente"
+  },
+  "eyebrow": "Agences de placement et location de personnel",
+  "h1": "Comptabilité pour agences de placement : relier les heures travaillées à la rentabilité de chaque contrat",
+  "quote": "Dans une agence de placement, le temps devient une dépense avant de devenir un revenu.",
+  "intro": [
+    "Chaque semaine, vos équipes se déploient chez vos clients. La comptabilité pour agences de placement relie chaque heure travaillée à la paie, à la facture et à la marge réelle de chaque contrat.",
+    "BVY Accounting & Tax Services travaille directement dans votre QuickBooks Online. QBO reste votre système comptable; nous y ajoutons l'explication, les tâches, les alertes et les tableaux de bord qui vous aident à décider. À distance, en français ou en anglais."
+  ],
+  "reality": {
+    "h2": "La paie part avant que la facture soit payée",
+    "paragraphs": [
+      "Vos travailleurs sont payés selon votre calendrier de paie. Vos clients, eux, paient selon leurs conditions. Entre les deux, votre trésorerie porte le décalage.",
+      "Chaque quart combine un taux payé, des déductions, des cotisations d'employeur et un taux facturé. Une petite variation, répétée sur des centaines d'heures, change la marge d'un contrat. Bien suivie, elle devient un levier de négociation."
+    ]
+  },
+  "stages": {
+    "h2": "Une structure qui évolue avec votre agence",
+    "intro": "À chaque nouveau contrat, vos chiffres peuvent gagner en précision.",
+    "items": [
+      {
+        "name": "Démarrage",
+        "text": "Premiers clients, premiers travailleurs affectés.",
+        "needs": [
+          "Structure de paie et de déductions à la source",
+          "Facturation reliée aux feuilles de temps",
+          "Inscriptions TPS/TVQ et employeur"
+        ]
+      },
+      {
+        "name": "Multiplication des contrats",
+        "text": "Les clients, les taux et les horaires se multiplient.",
+        "needs": [
+          "Marge par employé, par quart et par contrat",
+          "Suivi des comptes à recevoir",
+          "Prévisions de paie"
+        ]
+      },
+      {
+        "name": "Expansion",
+        "text": "Nouveaux secteurs, nouvelles régions, volumes plus importants.",
+        "needs": [
+          "Prévisions de trésorerie",
+          "Tableaux de bord par client",
+          "Suivi des cotisations CNESST"
+        ]
+      }
+    ]
+  },
+  "flow": {
+    "h2": "Le parcours d'une heure travaillée",
+    "intro": "Du quart effectué au paiement du client, chaque étape influence votre marge.",
+    "steps": [
+      {
+        "label": "Quart",
+        "detail": "Le travailleur est affecté chez un client."
+      },
+      {
+        "label": "Feuille de temps",
+        "detail": "Les heures sont saisies, validées et approuvées."
+      },
+      {
+        "label": "Paie",
+        "detail": "Salaire, déductions à la source et cotisations d'employeur sont calculés."
+      },
+      {
+        "label": "Facture",
+        "detail": "Les mêmes heures sont facturées au taux convenu."
+      },
+      {
+        "label": "Encaissement",
+        "detail": "Le client paie; les comptes à recevoir sont suivis."
+      },
+      {
+        "label": "Marge",
+        "detail": "L'écart réel entre coût et facturation, par contrat."
+      }
+    ],
+    "result": "Comprendre aujourd'hui pour mieux décider demain : quel contrat renouveler, quel taux revoir."
+  },
+  "expertise": {
+    "h2": "Comptabilité pour agences de placement : notre expertise",
+    "intro": "Notre expertise comptable appliquée à votre réalité d'agence.",
+    "items": [
+      "Feuilles de temps",
+      "Paie et déductions à la source",
+      "Facturation",
+      "Comptes à recevoir",
+      "CNESST",
+      "Marge par employé",
+      "Marge par quart et par contrat",
+      "Prévisions de paie",
+      "Prévisions de trésorerie"
+    ]
+  },
+  "services": {
+    "h2": "Les services BVY pour votre agence",
+    "items": [
+      {
+        "name": "Paie",
+        "text": "Paie, déductions à la source et relevés de fin d'année pour vos travailleurs.",
+        "link": "/services/#paie"
+      },
+      {
+        "name": "Tenue de livres",
+        "text": "Facturation, encaissements et dépenses rapprochés chaque mois dans QBO.",
+        "link": "/services/#tenue-de-livres"
+      },
+      {
+        "name": "TPS/TVQ",
+        "text": "Déclarations préparées à partir de votre facturation.",
+        "link": "/services/#tps-tvq"
+      },
+      {
+        "name": "Impôt des sociétés",
+        "text": "Déclarations T2 et CO-17 préparées à partir de livres à jour.",
+        "link": "/services/#impot-societes"
+      },
+      {
+        "name": "Tableaux de bord BVY",
+        "text": "Marges et comptes à recevoir visibles au-dessus de QBO.",
+        "link": "/services/#plateforme"
+      }
+    ]
+  },
+  "offer": null,
+  "changes": {
+    "updated": "2026-09-30",
+    "items": [
+      {
+        "kind": "Technologies",
+        "title": "Horaires et feuilles de temps numériques",
+        "text": "Les applications d'horaires et de pointage se généralisent. Lorsqu'elles sont bien reliées à la paie et à la facturation, elles réduisent les saisies en double.",
+        "link": null,
+        "source": null
+      },
+      {
+        "kind": "Modèles de revenus",
+        "title": "Des affectations plus variées",
+        "text": "Remplacements de courte durée, missions longues, quarts de fin de semaine : les formes d'affectation se diversifient, et chacune a sa propre structure de marge.",
+        "link": null,
+        "source": null
+      },
+      {
+        "kind": "Obligations fiscales et administratives",
+        "title": "Permis et registres de la CNESST",
+        "text": "Au Québec, une agence de placement de personnel doit détenir un permis valide de la CNESST. Pour le maintenir, elle conserve notamment, pendant six ans, les heures travaillées par chaque travailleur affecté.",
+        "link": null,
+        "source": "https://www.cnesst.gouv.qc.ca/fr/demarches-formulaires/agences-placement-personnel-recrutement/permis-agences/demande-renouvellement-permis"
+      }
+    ]
+  },
+  "faq": [
+    {
+      "q": "BVY travaille-t-elle dans notre QuickBooks Online?",
+      "a": "Oui. QuickBooks Online demeure votre système comptable et le travail s'y fait. BVY ajoute par-dessus l'explication, les tâches, les alertes et les tableaux de bord qui vous aident à suivre vos chiffres."
+    },
+    {
+      "q": "Pouvez-vous calculer la marge par contrat?",
+      "a": "Oui. En reliant les feuilles de temps, la paie et la facturation, nous présentons la marge par employé, par quart et par contrat."
+    },
+    {
+      "q": "Vous occupez-vous de la demande de permis CNESST?",
+      "a": "La demande de permis relève de l'agence. Nous tenons des livres et des registres de paie ordonnés, qui facilitent la préparation des documents demandés."
+    },
+    {
+      "q": "Quels sont vos tarifs?",
+      "a": "Nos services sont offerts sur soumission, selon le volume de transactions et les besoins de votre entreprise."
+    }
+  ],
+  "cta": {
+    "title": "Votre entreprise avance. Vos chiffres doivent avancer avec elle.",
+    "text": "Parlons de vos contrats, de votre paie et de votre trésorerie. Nous vous proposerons une structure qui relie chaque heure à sa marge.",
+    "button": "Voir la rentabilité réelle de mes contrats",
+    "service": "paie"
+  },
+  "keywords": [
+    "comptabilité agence de placement",
+    "comptable agence de personnel Québec",
+    "paie agence de placement",
+    "marge par contrat",
+    "CNESST agence de placement"
+  ]
+}

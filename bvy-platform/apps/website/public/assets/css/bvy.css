@@ -498,3 +498,4 @@ fieldset.field{border:0}
   .sectors,.chips-lg{grid-template-columns:1fr}
   .offer-price{font-size:36px}
 }
+.cta-band .lead{margin-left:auto;margin-right:auto}

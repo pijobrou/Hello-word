@@ -1,0 +1,195 @@
+{
+  "slug": "comptabilite-soins-domicile-services-sociaux-quebec",
+  "order": 5,
+  "title": "Comptabilité pour soins et services sociaux | BVY",
+  "description": "Comptabilité pour entreprises de soins à domicile et de services sociaux au Québec : paie, coût par usager, budgets et trésorerie dans QuickBooks Online.",
+  "breadcrumb": "Soins à domicile et services sociaux",
+  "card": {
+    "title": "Soins à domicile et services sociaux",
+    "text": "Paie, coûts par usager et budgets réunis clairement, pour que vos services humains continuent de grandir sur une base solide.",
+    "button": "Comptabilité pour soins"
+  },
+  "image": {
+    "alt": "Équipe québécoise de soins à domicile planifiant les services et les ressources"
+  },
+  "image2": {
+    "alt": "Intervenante en soins à domicile échangeant avec une personne âgée dans un cadre professionnel et respectueux"
+  },
+  "eyebrow": "Soins à domicile, services sociaux et organismes",
+  "h1": "Comptabilité pour soins à domicile et services sociaux : protéger l'équilibre financier qui soutient vos services humains",
+  "quote": "La valeur du service est humaine. Sa continuité dépend d'un équilibre financier solide.",
+  "intro": [
+    "Vos équipes se déplacent, accompagnent et prennent soin. La comptabilité pour soins à domicile et services sociaux donne à ce travail humain une base financière claire, visite après visite.",
+    "BVY Accounting & Tax Services travaille directement dans votre QuickBooks Online. QBO reste votre système comptable; nous y ajoutons l'explication, les tâches, les alertes et les tableaux de bord qui vous aident à décider. À distance, en français ou en anglais."
+  ],
+  "reality": {
+    "h2": "Des services humains, des coûts bien réels",
+    "paragraphs": [
+      "La paie représente souvent la plus grande part de vos dépenses : horaires variables, remplacements, déplacements entre deux usagers. Chaque intervention mobilise du temps, des kilomètres et de la coordination.",
+      "Vos revenus peuvent venir d'usagers, de familles, d'ententes avec des organismes ou de contrats. Relier ces revenus aux coûts réels de chaque service permet de planifier sereinement la suite."
+    ]
+  },
+  "stages": {
+    "h2": "Une structure qui évolue avec vos services",
+    "intro": "À mesure que vos services se développent, vos chiffres peuvent gagner en finesse.",
+    "items": [
+      {
+        "name": "Mise en place",
+        "text": "Premiers usagers, première équipe, premières ententes.",
+        "needs": [
+          "Structure de paie et de remplacements",
+          "Facturation claire aux usagers ou aux organismes",
+          "Plan comptable adapté aux services"
+        ]
+      },
+      {
+        "name": "Développement",
+        "text": "Plus d'usagers, plus d'intervenants, plus de déplacements.",
+        "needs": [
+          "Coût par usager et par intervention",
+          "Suivi des déplacements",
+          "Comptes à recevoir"
+        ]
+      },
+      {
+        "name": "Structuration",
+        "text": "Des ententes plus nombreuses et des décisions plus structurantes.",
+        "needs": [
+          "Rentabilité par contrat",
+          "Budgets et prévisions de trésorerie",
+          "Tableaux de bord pour la direction"
+        ]
+      }
+    ]
+  },
+  "flow": {
+    "h2": "Le parcours financier d'un service",
+    "intro": "De la planification à la lecture des résultats, chaque étape compte.",
+    "steps": [
+      {
+        "label": "Planification",
+        "detail": "Les visites et les interventions sont prévues à l'horaire."
+      },
+      {
+        "label": "Intervention",
+        "detail": "L'intervenant se déplace et offre le service."
+      },
+      {
+        "label": "Paie",
+        "detail": "Heures, remplacements et déplacements sont rémunérés."
+      },
+      {
+        "label": "Facturation",
+        "detail": "Le service est facturé à l'usager, à la famille ou à l'organisme."
+      },
+      {
+        "label": "Encaissement",
+        "detail": "Les paiements sont reçus et les comptes à recevoir suivis."
+      },
+      {
+        "label": "Lecture",
+        "detail": "Coût par usager, par intervention et par contrat."
+      }
+    ],
+    "result": "Des chiffres conçus pour éclairer la prochaine décision : ouvrir un service, ajuster une entente, embaucher."
+  },
+  "expertise": {
+    "h2": "Comptabilité pour soins et services sociaux : notre expertise",
+    "intro": "Notre expertise comptable appliquée à votre réalité de services humains.",
+    "items": [
+      "Paie et remplacements",
+      "Coût par usager",
+      "Coût par intervention",
+      "Rentabilité par contrat",
+      "Déplacements",
+      "Facturation",
+      "Comptes à recevoir",
+      "Budgets",
+      "Prévisions de trésorerie",
+      "Tableaux de bord"
+    ]
+  },
+  "services": {
+    "h2": "Les services BVY pour vos services de soins",
+    "items": [
+      {
+        "name": "Paie",
+        "text": "Paie, remplacements, déductions à la source et relevés de fin d'année.",
+        "link": "/services/#paie"
+      },
+      {
+        "name": "Tenue de livres",
+        "text": "Revenus, dépenses et déplacements classés chaque mois dans QBO.",
+        "link": "/services/#tenue-de-livres"
+      },
+      {
+        "name": "Soutien aux états financiers",
+        "text": "Dossier comptable préparé pour la direction et vos partenaires.",
+        "link": "/services/#etats-financiers"
+      },
+      {
+        "name": "Tableaux de bord BVY",
+        "text": "Budgets, trésorerie et coûts suivis au-dessus de QBO.",
+        "link": "/services/#plateforme"
+      }
+    ]
+  },
+  "offer": null,
+  "changes": {
+    "updated": "2026-09-30",
+    "items": [
+      {
+        "kind": "Technologies",
+        "title": "Planification et suivi mobiles",
+        "text": "Les applications d'horaires et de suivi des visites se répandent chez les intervenants. Bien reliées à la paie, elles rendent le coût de chaque intervention plus facile à lire.",
+        "link": null,
+        "source": null
+      },
+      {
+        "kind": "Modèles de revenus",
+        "title": "Des sources de financement combinées",
+        "text": "Beaucoup d'organisations combinent services payés par les usagers ou leurs familles et ententes avec des organismes. Chaque source a ses règles de facturation et son propre rythme de paiement.",
+        "link": null,
+        "source": null
+      },
+      {
+        "kind": "Obligations fiscales et administratives",
+        "title": "La production électronique des feuillets",
+        "text": "Depuis janvier 2024, un employeur qui produit plus de cinq déclarations de renseignements, comme les feuillets T4, pour une même année civile doit les produire par voie électronique auprès de l'ARC.",
+        "link": null,
+        "source": "https://www.canada.ca/fr/agence-revenu/services/services-electroniques/produire-declarations-renseignements-voie-electronique-t4-t5-autres-genres-declarations-apercu/produire-declarations-renseignements-voie-electronique-t4-t5-autres-genres-declarations-vous-devriez-savoir-prealable.html"
+      }
+    ]
+  },
+  "faq": [
+    {
+      "q": "BVY travaille-t-elle dans notre QuickBooks Online?",
+      "a": "Oui. QuickBooks Online demeure votre système comptable et le travail s'y fait. BVY ajoute par-dessus l'explication, les tâches, les alertes et les tableaux de bord qui vous aident à suivre vos chiffres."
+    },
+    {
+      "q": "Pouvez-vous calculer le coût par usager?",
+      "a": "Oui. En reliant la paie, les déplacements et la facturation, nous présentons le coût par usager et par intervention."
+    },
+    {
+      "q": "BVY offre-t-elle des audits ou des missions d'examen?",
+      "a": "BVY n'offre actuellement aucune mission d'audit, d'examen ou de compilation. Lorsque ce type de rapport est requis, nous pouvons préparer le dossier comptable et orienter le client vers un CPA autorisé indépendant."
+    },
+    {
+      "q": "Quels sont vos tarifs?",
+      "a": "Nos services sont offerts sur soumission, selon le volume de transactions et les besoins de votre entreprise."
+    }
+  ],
+  "cta": {
+    "title": "Votre entreprise avance. Vos chiffres doivent avancer avec elle.",
+    "text": "Parlons de vos services, de votre équipe et de vos projets. Nous vous proposerons une structure qui soutient la continuité de votre mission.",
+    "button": "Construire un équilibre durable pour mes services",
+    "service": "paie"
+  },
+  "keywords": [
+    "comptabilité soins à domicile",
+    "comptable services sociaux Québec",
+    "paie soins à domicile",
+    "coût par usager",
+    "comptabilité organisme services"
+  ]
+}
