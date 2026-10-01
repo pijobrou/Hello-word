@@ -1,6 +1,6 @@
 # Dossier de revue — portail client BVY, phase 3
 
-`STATUS: WAITING_FOR_OWNER_APPROVAL`
+`STATUS: APPROVED` (propriétaire, 1er octobre 2026)
 
 Date : 1er octobre 2026. Procédure : `workflows/03_client_portal.md`. Code : `apps/portal/`.
 **Construit et testé sur ordinateur, pas encore en ligne.** Toutes les captures utilisent une entreprise fictive
@@ -54,4 +54,4 @@ Onglets Documents et Messages du dossier : partager un document ou un rapport, r
 1. Votre approbation de ces écrans, puis la mise en ligne sur `portail.bvyaccountingtax.ca`.
 2. Phase 4 — connexion QuickBooks Online (les chiffres et les liens se mettent à jour tout seuls).
 
-`STATUS: WAITING_FOR_OWNER_APPROVAL`
+`STATUS: APPROVED` (propriétaire, 1er octobre 2026)
