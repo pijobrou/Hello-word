@@ -124,3 +124,6 @@ On `STATUS: REJECTED`: stop.
   reserves text-and-data-mining rights. Tested against a real nginx (browser 200, Googlebot 200, GPTBot 403,
   robots.txt readable). Requires deploying with `--nginx`. Trade-off accepted by the owner's request: the site
   will not be read by AI search assistants (ChatGPT search, Perplexity, Claude). Guide: `DEPLOIEMENT.md` §9.5.
+- 2026-10-01 — v5 deployed by the owner (`deploy.cmd --nginx`). `ANTHROPIC_API_KEY` added by the owner to
+  `/var/www/bvy-website/shared/.env` (never in the repo or chat); `/api/chat` → `{"ok":true,"enabled":true}`.
+  Jessica is live; first real conversation still to be checked by the owner.
