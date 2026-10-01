@@ -192,7 +192,9 @@ function createServer(options = {}) {
       const ua = String(req.headers['user-agent'] || '');
 
       if (p === '/sante') return send200(res, 'ok', 200, { 'Content-Type': 'text/plain; charset=utf-8' });
-      if (p.startsWith('/assets/') && (req.method === 'GET' || req.method === 'HEAD')) {
+      // HEAD se comporte exactement comme GET (sans corps) : jamais comme une soumission de formulaire.
+      const isGet = req.method === 'GET' || req.method === 'HEAD';
+      if (p.startsWith('/assets/') && isGet) {
         if (await serveAsset(req, res, p)) return;
         return send200(res, V.errorPage(404, 'Cette page n’existe pas.'), 404);
       }
@@ -237,7 +239,7 @@ function createServer(options = {}) {
       if (p === '/') return redirect(res, s ? (s.mfa_done ? '/accueil' : '/verification') : '/connexion');
 
       if (p === '/connexion') {
-        if (req.method === 'GET') {
+        if (isGet) {
           if (s && s.mfa_done) return redirect(res, '/accueil');
           return send200(res, V.loginPage({ flash: flashOf(url), csrf: '' }));
         }
@@ -268,7 +270,7 @@ function createServer(options = {}) {
           const ok = await mailCode(s.user, code);
           return send200(res, V.verifyPage({ method: 'email', email: s.user.email, csrf: csrfOf(s), flash: ok ? { notice: 'Un nouveau code vient d’être envoyé.' } : { error: 'Le code n’a pas pu être envoyé. Réessayez.' } }));
         }
-        if (req.method === 'GET') return send200(res, V.verifyPage({ method, email: s.user.email, csrf: csrfOf(s) }));
+        if (isGet) return send200(res, V.verifyPage({ method, email: s.user.email, csrf: csrfOf(s) }));
         try {
           if (form.method === 'app' && s.user.totp_enabled) acc.verifyAppCode(s.user, form.code, ip);
           else acc.verifyEmailCode(s.user, form.code, ip);
@@ -286,10 +288,10 @@ function createServer(options = {}) {
       }
 
       if (p === '/invitation') {
-        const jeton = req.method === 'GET' ? url.searchParams.get('jeton') : form.jeton;
+        const jeton = isGet ? url.searchParams.get('jeton') : form.jeton;
         const t = acc.tokenUser(jeton, 'invite');
         if (!t || t.user.status !== 'invited') return send200(res, V.invalidLinkPage('Ce lien d’invitation n’est plus valide. Demandez-en un nouveau à BVY.'), 410);
-        if (req.method === 'GET') return send200(res, V.invitePage({ token: jeton, user: t.user }));
+        if (isGet) return send200(res, V.invitePage({ token: jeton, user: t.user }));
         if (form.password !== form.password2) return send200(res, V.invitePage({ token: jeton, user: t.user, flash: { error: 'Les deux mots de passe ne sont pas identiques.' } }), 422);
         try {
           const user = acc.acceptInvite(jeton, form.password, ip);
@@ -305,7 +307,7 @@ function createServer(options = {}) {
       }
 
       if (p === '/mot-de-passe-oublie') {
-        if (req.method === 'GET') return send200(res, V.forgotPage({ csrf: '' }));
+        if (isGet) return send200(res, V.forgotPage({ csrf: '' }));
         const r = acc.requestReset(form.email, ip);
         if (r) {
           await sendOrFail({
@@ -318,9 +320,9 @@ function createServer(options = {}) {
       }
 
       if (p === '/reinitialiser') {
-        const jeton = req.method === 'GET' ? url.searchParams.get('jeton') : form.jeton;
+        const jeton = isGet ? url.searchParams.get('jeton') : form.jeton;
         if (!acc.tokenUser(jeton, 'reset')) return send200(res, V.invalidLinkPage('Ce lien n’est plus valide. Recommencez la demande.'), 410);
-        if (req.method === 'GET') return send200(res, V.resetPage({ token: jeton }));
+        if (isGet) return send200(res, V.resetPage({ token: jeton }));
         if (form.password !== form.password2) return send200(res, V.resetPage({ token: jeton, flash: { error: 'Les deux mots de passe ne sont pas identiques.' } }), 422);
         try {
           acc.resetPassword(jeton, form.password, ip);
@@ -341,7 +343,7 @@ function createServer(options = {}) {
         const page = (flash, extra = {}) => send200(res, V.accountPage(acc.getSession(token) || s, {
           sessions: acc.listSessions(u), pendingSecret: extra.secret, pendingUri: extra.secret && C.totpUri(extra.secret, u.email), flash,
         }), extra.status || 200);
-        if (p === '/compte' && req.method === 'GET') {
+        if (p === '/compte' && isGet) {
           return page(flashOf(url), { secret: s.pending_totp && !u.totp_enabled ? s.pending_totp : undefined });
         }
         if (req.method !== 'POST') return send200(res, V.errorPage(404, 'Cette page n’existe pas.'), 404);
@@ -392,8 +394,8 @@ function createServer(options = {}) {
         const clients = () => visibleClients(db, u);
         const page = (flash, status = 200) => send200(res, V.adminPage(s, { users: users(), clients: clients(), flash }), status);
 
-        if (p === '/admin' && req.method === 'GET') return page(flashOf(url));
-        if (p === '/admin/journal' && req.method === 'GET') {
+        if (p === '/admin' && isGet) return page(flashOf(url));
+        if (p === '/admin/journal' && isGet) {
           if (!can(u, 'audit.view')) return send200(res, V.errorPage(403, 'Accès refusé.'), 403);
           const rows = db.prepare('SELECT * FROM audit_logs ORDER BY id DESC LIMIT 200').all();
           const names = Object.fromEntries(db.prepare('SELECT id, name FROM users').all().map((x) => [x.id, x.name]));
@@ -417,7 +419,7 @@ function createServer(options = {}) {
             const target = acc.userById(Number(m[1]));
             if (!target) return send200(res, V.errorPage(404, 'Utilisateur introuvable.'), 404);
             const back = (msg) => redirect(res, `/admin/utilisateurs/${target.id}?ok=${encodeURIComponent(msg)}`);
-            if (!m[2] && req.method === 'GET') {
+            if (!m[2] && isGet) {
               const assigned = new Set(db.prepare('SELECT client_id FROM client_assignments WHERE user_id = ?').all(target.id).map((r) => r.client_id));
               return send200(res, V.adminUserPage(s, { target, clients: clients(), assigned, flash: flashOf(url) }));
             }

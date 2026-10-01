@@ -296,3 +296,20 @@ test('déploiement : les modèles nginx du portail refusent la même liste de ro
     assert.strictEqual((conf.match(/if \(\$bvy_portail_robot\) \{ return 403; \}/g) || []).length, 2, f);
   }
 });
+
+test('HEAD = GET : jamais traité comme une tentative de connexion ou de code', async () => {
+  const ctx = await start();
+  bootstrapAdmin(ctx);
+  try {
+    const a = ctx.agent();
+    const head = await a.req('HEAD', '/connexion');
+    assert.strictEqual(head.status, 200);
+    assert.strictEqual(head.body, '');
+    assert.ok(!ctx.db.prepare("SELECT 1 FROM audit_logs WHERE action = 'login.fail'").get(), 'aucun échec de connexion inscrit');
+    await a.req('POST', '/connexion', { email: 'owner@bvy.ca', password: PW });
+    for (let i = 0; i < 6; i++) assert.strictEqual((await a.req('HEAD', '/verification')).status, 200);
+    const v = await a.req('GET', '/verification');
+    const ok = await a.req('POST', '/verification', { method: 'email', code: lastCode(ctx.mails), _csrf: a.csrf(v.body) });
+    assert.strictEqual(ok.headers.location, '/accueil', 'les HEAD n’ont pas consommé les essais du code');
+  } finally { ctx.app.close(); }
+});

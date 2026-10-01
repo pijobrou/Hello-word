@@ -61,3 +61,7 @@ rollback, `bvy-portail` systemd service (port 3100, user `bvy`, hardened), night
 test), automatic Let's Encrypt certificate once the `portail` DNS record points to the server, and the
 `sudo bvy-portail` admin command (runs the CLI as `bvy`). Guide: `DEPLOIEMENT.md` §9 bis. The website login pages
 now link to the portal.
+- 2026-10-01 — First production install on the OVH server. Found and fixed: an old nginx file (`bvy`, serving
+  the old portal, dashboard and api) still claimed `portail.*` and shadowed the new vhost (owner removed only its
+  portal blocks, dashboard/api kept, backup in `/home/ubuntu/nginx-ancien/`); HEAD requests were handled as form
+  submissions (now treated as GET, regression test added). Portal answers over HTTPS.

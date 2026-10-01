@@ -26,7 +26,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam }) {
   async function handle(ctx) {
     const { req, res, p, s, form, ip, send200, redirect, flashOf, url } = ctx;
     const u = s.user;
-    const GET = req.method === 'GET';
+    const GET = req.method === 'GET' || req.method === 'HEAD';
     const POST = req.method === 'POST';
     const ok = (path, msg) => redirect(res, `${path}${path.includes('?') ? '&' : '?'}ok=${encodeURIComponent(msg)}`);
 
