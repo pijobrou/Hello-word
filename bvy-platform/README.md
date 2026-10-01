@@ -2,7 +2,7 @@
 
 Projet BVY organisé selon le cadre WAT (Workflows, Agents, Tools) décrit dans `CLAUDE.md`.
 
-**Phase actuelle : 3 — portail client `STATUS: APPROVED` (1er octobre 2026) ; prochaine étape : mise en ligne sur portail.bvyaccountingtax.ca, puis phase 4 (QuickBooks).** Site public et design system : `STATUS: APPROVED`.
+**Phase actuelle : 3 — portail client en ligne (https://portail.bvyaccountingtax.ca, 1er octobre 2026).** Prochaine phase : 4 — connexion QuickBooks Online. Site public, design system et portail : `STATUS: APPROVED`.
 Rien d'autre (portail, QuickBooks, IA) n'est construit avant l'approbation du site par la propriétaire ou le propriétaire.
 
 | Dossier | Contenu |

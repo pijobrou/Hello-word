@@ -65,3 +65,5 @@ now link to the portal.
   the old portal, dashboard and api) still claimed `portail.*` and shadowed the new vhost (owner removed only its
   portal blocks, dashboard/api kept, backup in `/home/ubuntu/nginx-ancien/`); HEAD requests were handled as form
   submissions (now treated as GET, regression test added). Portal answers over HTTPS.
+- 2026-10-01 — Owner's administrator account created on production (`sudo bvy-portail create-admin`); owner
+  confirmed a successful two-step login on https://portail.bvyaccountingtax.ca.
