@@ -569,7 +569,9 @@ install_nginx() {
   shopt -s nullglob
   for f in /etc/nginx/sites-enabled/* /etc/nginx/conf.d/*.conf; do
     case "$(basename "$f")" in bvy-website.conf) continue ;; esac
-    if grep -qs "bvyaccountingtax\.ca" "$f"; then candidates+=("$f"); fi
+    # seulement les fichiers dont un server_name vise EXACTEMENT le domaine ou www. (pas api., portail., …)
+    if grep -v '^[[:space:]]*#' "$f" 2>/dev/null | sed -nE 's/^[[:space:]]*server_name[[:space:]]+([^;]+);.*/\1/p' \
+         | tr -s '[:space:]' '\n' | grep -Eqx "(www\.)?${DOMAIN//./\\.}"; then candidates+=("$f"); fi
   done
   shopt -u nullglob
 
