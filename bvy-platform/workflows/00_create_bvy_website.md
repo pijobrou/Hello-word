@@ -101,3 +101,6 @@ On `STATUS: REJECTED`: stop.
   `/etc/nginx/sites-enabled/bvy` (apex + api., portail., dashboard. subdomains) was removed by the owner;
   backup at `/home/ubuntu/nginx-ancien/bvy.conf`. Verified live: https://bvyaccountingtax.ca/secteurs/ (200),
   `/api/health` → `{"ok":true}`. The subdomains are no longer served (owner's decision).
+- 2026-10-01 — v3 deployed. Contact-form email notification active: sent through Gmail SMTP from the owner's
+  Gmail account (app password stored only in `/var/www/bvy-website/shared/.env` on the server) to
+  bvypjb@protonmail.com. Owner confirmed receipt of a test request.
