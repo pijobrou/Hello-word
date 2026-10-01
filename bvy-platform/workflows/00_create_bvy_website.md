@@ -94,3 +94,10 @@ On `STATUS: REJECTED`: stop.
 - New pages: `/a-propos/` (founder biography to be supplied by the owner), `/rendez-vous/`.
 - Footer on every page: no audit, review or compilation engagements; certification work is referred to an
   independent licensed CPA. BVY Accounting & Tax Services Inc. is incorporated (owner, 2026-09-30).
+
+## Deployment log
+
+- 2026-10-01 — Owner deployed revision 2 to the OVH VPS with `deploy.cmd --nginx`. The old nginx file
+  `/etc/nginx/sites-enabled/bvy` (apex + api., portail., dashboard. subdomains) was removed by the owner;
+  backup at `/home/ubuntu/nginx-ancien/bvy.conf`. Verified live: https://bvyaccountingtax.ca/secteurs/ (200),
+  `/api/health` → `{"ok":true}`. The subdomains are no longer served (owner's decision).
