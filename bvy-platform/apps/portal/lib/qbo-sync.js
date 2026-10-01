@@ -204,7 +204,7 @@ function createQboService(db, { qbo, portal, audit, now = () => Date.now() }) {
       audit({ userId: actor ? actor.id : null, action: 'qbo.sync', target: `client:${id}`, clientId: id, details: { trigger, ...stats } });
       return stats;
     } catch (err) {
-      const msg = String(err && err.message || err).slice(0, 300);
+      const msg = String(err && err.message || err).slice(0, 600);
       db.prepare("UPDATE sync_jobs SET status = 'failed', finished_at = ?, error = ? WHERE id = ?").run(iso(), msg, job);
       db.prepare("UPDATE qbo_connections SET last_sync_status = 'failed', last_error = ? WHERE client_id = ?").run(msg, id);
       throw err instanceof PortalError ? err : new PortalError(`Synchronisation en échec : ${msg}`);

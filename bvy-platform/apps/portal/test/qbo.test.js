@@ -32,7 +32,7 @@ test('chiffrement des jetons (AES-256-GCM) et rapport de résultats', () => {
 // Faux Intuit : jetons, API comptable et révocation.
 function fakeIntuit(clock) {
   const st = { tokens: 0, refreshes: 0, revoked: [], failRefresh: false, uncategorizedLine: true, issued: [] };
-  const json = (status, body) => ({ ok: status < 300, status, json: async () => body });
+  const json = (status, body, headers = {}) => ({ ok: status < 300, status, json: async () => body, text: async () => JSON.stringify(body), headers: new Headers(headers) });
   const fetchImpl = async (url, opts = {}) => {
     if (url === TOKEN_URL) {
       const p = new URLSearchParams(opts.body);
@@ -52,6 +52,7 @@ function fakeIntuit(clock) {
     }
     if (url === REVOKE_URL) { st.revoked.push(JSON.parse(opts.body).token); return json(200, {}); }
     const u = new URL(url);
+    if (st.forbid) return json(403, { fault: { error: [{ message: 'message=ApplicationAuthorizationFailed; errorCode=003100; statusCode=403', detail: 'SignatureAuthorizationFailed', code: '3100' }], type: 'SERVICE' } }, { intuit_tid: '1-abc' });
     assert.strictEqual(u.searchParams.get('minorversion'), '75');
     assert.strictEqual(opts.headers.Authorization, `Bearer ${st.issued[st.issued.length - 1].access}`);
     if (u.pathname.endsWith('/companyinfo/9130')) return json(200, { CompanyInfo: { CompanyName: 'Atelier Boréal (QBO)' } });
@@ -298,4 +299,21 @@ test('sans application Intuit configurée : le dossier l’explique, rien ne cas
     assert.strictEqual(app.qboService.enabled, false);
     await assert.rejects(app.qboService.sync(1), /pas encore configuré/);
   } finally { app.close(); }
+});
+
+test('403 d’Intuit (ApplicationAuthorizationFailed, format « fault » minuscule) : message clair, référence Intuit, rien n’est effacé', async () => {
+  const t = await setup();
+  try {
+    const staff = await t.login('owner@bvy.ca');
+    t.fake.st.forbid = true;
+    const state = await connect(t, staff, t.boreal.id);
+    const back = await staff.get(`/quickbooks/retour?code=code-intuit&state=${encodeURIComponent(state)}&realmId=9130`);
+    const msg = decodeURIComponent(back.headers.location);
+    assert.match(msg, /QuickBooks est connecté\. La première synchronisation a échoué : Synchronisation en échec : QuickBooks 403 : Intuit refuse l’accès/);
+    assert.match(msg, /entreprise d’essai \(sandbox\)/);
+    assert.match(msg, /réf\. Intuit 1-abc/);
+    assert.ok(!/: erreur/.test(msg), 'plus de « erreur » sans explication');
+    const conn = t.db.prepare('SELECT status, last_sync_status FROM qbo_connections').get();
+    assert.strictEqual(conn.last_sync_status, 'failed');
+  } finally { t.app.close(); }
 });

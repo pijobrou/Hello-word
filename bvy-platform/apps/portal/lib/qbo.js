@@ -43,6 +43,24 @@ function qboConfigFromEnv(env = process.env, publicUrl = '') {
   };
 }
 
+/* ------------------------------------------------- erreurs de l'API Intuit */
+// Intuit répond « Fault.Error » (API comptable) ou « fault.error » (passerelle, ex. 403 ApplicationAuthorizationFailed).
+function faultMessage(status, body, text) {
+  const f = (body && (body.Fault || body.fault)) || {};
+  const e = ((f.Error || f.error) || [])[0] || {};
+  const raw = [e.Message || e.message, e.Detail || e.detail].filter(Boolean).join(' — ');
+  const all = `${raw} ${e.code || ''} ${typeof text === 'string' ? text.slice(0, 400) : ''}`;
+  if (status === 403 && /003100|ApplicationAuthorizationFailed/i.test(all)) {
+    return 'Intuit refuse l’accès de l’application à cette entreprise (ApplicationAuthorizationFailed). '
+      + 'Avec les clés « Development » (QBO_ENV=sandbox), seule une entreprise d’essai (sandbox) est permise : déconnectez, puis reconnectez en choisissant l’entreprise sandbox. '
+      + 'Une vraie entreprise exige les clés « Production » et QBO_ENV=production.';
+  }
+  if (raw) return raw.slice(0, 300);
+  const plain = String(text || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  return plain ? plain.slice(0, 200) : 'erreur sans détail';
+}
+const tid = (res) => { const t = res.headers && res.headers.get && res.headers.get('intuit_tid'); return t ? ` (réf. Intuit ${String(t).slice(0, 64)})` : ''; };
+
 /* ------------------------------------------------- chiffrement AES-256-GCM */
 function encrypt(key, text) {
   const iv = crypto.randomBytes(12);
@@ -117,10 +135,11 @@ function createQbo(cfg, { fetchImpl = globalThis.fetch, now = () => Date.now() }
     } catch (err) {
       throw new QboError(`QuickBooks injoignable : ${err.message}`, { code: 'network' });
     }
-    const body = await res.json().catch(() => ({}));
+    const text = await res.text().catch(() => '');
+    let body = {};
+    try { body = JSON.parse(text); } catch { /* réponse non JSON (passerelle d'Intuit) */ }
     if (!res.ok) {
-      const fault = body.Fault && body.Fault.Error && body.Fault.Error[0];
-      throw new QboError(`QuickBooks ${res.status} : ${fault ? fault.Message || fault.Detail : 'erreur'}`, { status: res.status, code: res.status === 401 ? 'unauthorized' : 'api_error' });
+      throw new QboError(`QuickBooks ${res.status} : ${faultMessage(res.status, body, text)}${tid(res)}`, { status: res.status, code: res.status === 401 ? 'unauthorized' : 'api_error' });
     }
     return body;
   }
