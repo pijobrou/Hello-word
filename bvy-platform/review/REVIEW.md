@@ -1,6 +1,6 @@
 # Dossier de revue — site public BVY, version 1
 
-`STATUS: WAITING_FOR_OWNER_APPROVAL`
+`STATUS: APPROVED` (propriétaire, 1er octobre 2026)
 
 Date : 26 septembre 2026. Branche : `claude/competence-marketing-pro-hvz21k`.
 

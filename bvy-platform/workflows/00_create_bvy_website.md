@@ -1,6 +1,6 @@
 # Workflow 00 — Build the BVY public website
 
-**Status:** `WAITING_FOR_OWNER_APPROVAL` (v1 delivered 2026-09-26)
+**Status:** `APPROVED` by the owner on 2026-10-01. Next: workflow 01 (design system).
 **Owner approval required:** yes, before any work on workflow 01 and later.
 
 ## Objective
