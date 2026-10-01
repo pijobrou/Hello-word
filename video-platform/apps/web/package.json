@@ -1,0 +1,44 @@
+{
+  "name": "videogen-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "next": "^14.0.0",
+    "@clerk/nextjs": "^4.27.0",
+    "zustand": "^4.4.1",
+    "@tanstack/react-query": "^5.28.0",
+    "axios": "^1.6.0",
+    "@shadcn/ui": "latest",
+    "tailwindcss": "^3.3.6",
+    "framer-motion": "^10.16.4",
+    "react-hot-toast": "^2.4.1",
+    "ffmpeg.wasm": "^0.12.6",
+    "zustand-persist": "^1.2.0",
+    "socket.io-client": "^4.7.2",
+    "stripe": "^14.0.0",
+    "react-dropzone": "^14.2.3",
+    "date-fns": "^2.30.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.55.0",
+    "eslint-config-next": "^14.0.0",
+    "postcss": "^8.4.32",
+    "autoprefixer": "^10.4.16"
+  }
+}
