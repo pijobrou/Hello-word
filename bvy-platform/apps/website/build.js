@@ -7,6 +7,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const niche = require('./src/niche-template.js');
+const bots = require('./bots.js');
 
 const SITE = 'https://bvyaccountingtax.ca';
 const SRC = path.join(__dirname, 'src');
@@ -89,8 +90,9 @@ function build() {
     '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
     sitemap.map((p) => `  <url><loc>${SITE}${p}</loc><lastmod>${today}</lastmod></url>`).join('\n') +
     '\n</urlset>\n');
-  fs.writeFileSync(path.join(PUBLIC, 'robots.txt'),
-    `User-agent: *\nDisallow: /portail-comptable/\nDisallow: /api/\n\nSitemap: ${SITE}/sitemap.xml\n`);
+  fs.writeFileSync(path.join(PUBLIC, 'robots.txt'), bots.robotsTxt(SITE));
+  fs.mkdirSync(path.join(PUBLIC, '.well-known'), { recursive: true });
+  fs.writeFileSync(path.join(PUBLIC, '.well-known', 'tdmrep.json'), bots.tdmrepJson());
   console.log(`✔ sitemap.xml (${sitemap.length} pages), robots.txt — version ${version}`);
 }
 

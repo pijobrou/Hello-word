@@ -117,3 +117,10 @@ On `STATUS: REJECTED`: stop.
   - Privacy policy: new section 10 (Jessica) and the email providers (Gmail, ProtonMail) in section 6.
   - Deployment: `remote-install.sh` now runs `npm ci --omit=dev` for the Anthropic SDK; failure leaves the site up
     with Jessica disabled. Guide: `DEPLOIEMENT.md` §9.3–9.4. Review screenshots: `review/jessica/`.
+- 2026-10-01 — v5 (owner request: block AI and scrapers), built and tested, not yet deployed. `apps/website/bots.js`
+  holds one list used by `robots.txt` (AI crawlers: `Disallow: /`; search engines allowed), by `server.js`
+  (403 on `/api/`) and by the nginx templates (403 site-wide, empty User-Agent refused, rate limits 10 req/s per
+  IP with bursts, 429 above). Pages carry `noai, noimageai` and `tdm-reservation: 1`; `/.well-known/tdmrep.json`
+  reserves text-and-data-mining rights. Tested against a real nginx (browser 200, Googlebot 200, GPTBot 403,
+  robots.txt readable). Requires deploying with `--nginx`. Trade-off accepted by the owner's request: the site
+  will not be read by AI search assistants (ChatGPT search, Perplexity, Claude). Guide: `DEPLOIEMENT.md` §9.5.

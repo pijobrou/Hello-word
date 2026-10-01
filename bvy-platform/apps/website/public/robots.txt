@@ -1,5 +1,46 @@
+# BVY Accounting & Tax Services — règles pour les robots
+# Moteurs de recherche : bienvenus. Robots d’intelligence artificielle : interdits.
+# Le contenu de ce site ne peut pas servir à entraîner ou alimenter un système d’IA
+# (réservation des droits de fouille de textes et de données : /.well-known/tdmrep.json).
+
 User-agent: *
+Content-Signal: search=yes, ai-train=no, ai-input=no
 Disallow: /portail-comptable/
 Disallow: /api/
+
+User-agent: GPTBot
+User-agent: ChatGPT-User
+User-agent: OAI-SearchBot
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: Claude-SearchBot
+User-agent: Claude-Web
+User-agent: anthropic-ai
+User-agent: CCBot
+User-agent: Google-Extended
+User-agent: GoogleOther
+User-agent: Applebot-Extended
+User-agent: Bytespider
+User-agent: meta-externalagent
+User-agent: meta-externalfetcher
+User-agent: FacebookBot
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Amazonbot
+User-agent: cohere-ai
+User-agent: cohere-training-data-crawler
+User-agent: Diffbot
+User-agent: ImagesiftBot
+User-agent: Omgilibot
+User-agent: Timpibot
+User-agent: YouBot
+User-agent: AI2Bot
+User-agent: DuckAssistBot
+User-agent: MistralAI-User
+User-agent: PanguBot
+User-agent: img2dataset
+User-agent: FirecrawlAgent
+User-agent: Crawl4AI
+Disallow: /
 
 Sitemap: https://bvyaccountingtax.ca/sitemap.xml

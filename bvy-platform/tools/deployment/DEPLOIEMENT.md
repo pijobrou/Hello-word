@@ -660,6 +660,38 @@ Garde-fous : 20 messages par visiteur toutes les 10 minutes, 150 messages par jo
 
 ---
 
+### 9.5 Protection contre les robots d'IA et l'aspiration du site
+
+La liste des robots refusés est dans `apps/website/bots.js` (une seule liste pour tout le site).
+
+- `robots.txt` interdit tout le site aux robots d'IA (GPTBot, ClaudeBot, PerplexityBot, CCBot, etc.).
+  Google, Bing et les autres moteurs de recherche restent permis.
+- nginx refuse (erreur 403) ces robots, les outils d'aspiration (Scrapy, HTTrack, python-requests…) et les
+  visites sans « User-Agent ». Il limite aussi la vitesse par adresse IP : au-delà d'environ 10 pages par
+  seconde, il répond 429. Un humain n'atteint jamais cette limite.
+- Chaque page porte `noai, noimageai` et `tdm-reservation: 1`. Le fichier `/.well-known/tdmrep.json` réserve
+  officiellement vos droits de fouille de textes et de données (droit européen).
+
+**Pour l'activer, publiez avec `--nginx`** : la protection est dans la configuration nginx. Le script
+vérifie la configuration (`nginx -t`) et remet l'ancienne si elle échoue.
+
+Vérification, sur le serveur, une ligne à la fois :
+
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" -A "GPTBot/1.2" https://bvyaccountingtax.ca/
+```
+```bash
+curl -s -o /dev/null -w "%{http_code}\n" -A "Mozilla/5.0" https://bvyaccountingtax.ca/
+```
+
+La première doit afficher `403`, la seconde `200`.
+
+Limites : un robot qui ment sur son identité et imite un vrai navigateur, lentement, ne peut pas être
+distingué d'un visiteur par ces règles. Pour aller plus loin (comme les grands sites marchands), il faut un
+service anti-robots payant ou Cloudflare devant le site (option « Block AI bots », défis automatiques).
+
+---
+
 ## 10. Mettre à jour, revenir en arrière, remettre l'ancien site
 
 ### 10.1 Publier une nouvelle version

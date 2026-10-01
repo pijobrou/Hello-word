@@ -7,6 +7,7 @@
 
 const { smtpConfigFromEnv, sendMail, leadMessage, confirmationMessage } = require('./mailer.js');
 const { createChat, chatConfigFromEnv } = require('./chat.js');
+const { isBlockedAgent } = require('./bots.js');
 const http = require('node:http');
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
@@ -27,6 +28,9 @@ const SECURITY_HEADERS = Object.freeze({
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'X-Frame-Options': 'DENY',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  // Refus de l'utilisation du contenu par les systèmes d'IA (voir bots.js et /.well-known/tdmrep.json)
+  'X-Robots-Tag': 'noai, noimageai',
+  'tdm-reservation': '1',
 });
 
 const MIME_TYPES = Object.freeze({
@@ -447,6 +451,11 @@ function createServer(options = {}) {
   const server = http.createServer(async (req, res) => {
     try {
       const pathname = (req.url || '/').split('?')[0];
+      // Robots d'IA et outils d'aspiration : aucun accès à l'API (Jessica, formulaire).
+      if ((pathname === '/api' || pathname.startsWith('/api/')) && isBlockedAgent(req.headers['user-agent'])) {
+        req.resume();
+        return sendJson(res, 403, { ok: false, error: 'Accès refusé aux robots automatisés.' });
+      }
       if (pathname === '/api/health') {
         if (req.method !== 'GET' && req.method !== 'HEAD') {
           return sendJson(res, 405, { ok: false, error: 'Méthode non autorisée.' }, { Allow: 'GET, HEAD' });
