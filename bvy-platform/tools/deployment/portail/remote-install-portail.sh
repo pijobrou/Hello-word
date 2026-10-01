@@ -140,6 +140,19 @@ command -v nginx >/dev/null 2>&1 || die "nginx est absent (le site public doit �
 if [ -d /etc/nginx/sites-enabled ]; then NGX="/etc/nginx/sites-available/bvy-portail.conf"; LINK="/etc/nginx/sites-enabled/bvy-portail.conf"
 else NGX="/etc/nginx/conf.d/bvy-portail.conf"; LINK=""; fi
 
+# Une autre configuration qui réclame déjà portail.bvyaccountingtax.ca prendrait le dessus (nginx l'ignore en silence).
+conflicts=""
+for f in /etc/nginx/sites-enabled/* /etc/nginx/conf.d/*.conf; do
+  [ -e "$f" ] || continue
+  case "$(readlink -f "$f")" in "$(readlink -f "$NGX" 2>/dev/null || echo "$NGX")") continue ;; esac
+  if grep -v '^[[:space:]]*#' "$f" 2>/dev/null | grep -Eq "server_name[^;]*[[:space:]]$DOMAIN([[:space:]]|;)"; then conflicts="$conflicts $f"; fi
+done
+if [ -n "$conflicts" ]; then
+  warn "Une ancienne configuration nginx réclame déjà $DOMAIN :$conflicts"
+  warn "Elle passerait avant le portail (réponse 404). Rien n'est modifié automatiquement : ce fichier sert peut-être"
+  warn "d'autres services. Retirez seulement ses blocs « server » de $DOMAIN (voir DEPLOIEMENT.md, section 9 bis)."
+fi
+
 render() { # adapte le modèle : http2 si nginx < 1.25.1, IPv6 absent
   local ver; ver="$(nginx -v 2>&1 | sed -nE 's|.*nginx/([0-9.]+).*|\1|p')"
   local -a ed=(-e 's/\r$//')

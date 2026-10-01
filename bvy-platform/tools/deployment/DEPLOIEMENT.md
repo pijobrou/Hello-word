@@ -811,6 +811,19 @@ sudo bvy-portail create-admin bvypjb@protonmail.com "Votre Prénom Nom"
 Le lien affiché est valable 72 heures : ouvrez-le, choisissez votre mot de passe, puis activez l'application
 d'authentification (Mon compte). Ensuite, invitez vos clients et votre équipe depuis **Administration**.
 
+**Si le portail répond « 404 » alors que `curl -s http://127.0.0.1:3100/sante` répond `ok`** : une ancienne
+configuration nginx réclame encore `portail.bvyaccountingtax.ca` (`sudo nginx -t` affiche « conflicting server
+name »). Le script d'installation le signale. Sauvegardez ce fichier, puis retirez seulement ses blocs `server`
+dont le `server_name` est `portail.bvyaccountingtax.ca` (cas réel du 1er octobre 2026 : fichier `bvy`, qui sert
+aussi les anciens `dashboard` et `api`, conservés) :
+
+```bash
+sudo awk 'd==0&&/^[[:space:]]*server[[:space:]]*\{/{b="";k=0;i=1} i{b=b $0 "\n"; if($0~/server_name[[:space:]]+portail\.bvyaccountingtax\.ca;/)k=1; t=$0; d+=gsub(/\{/,"",t)-gsub(/\}/,"",t); if(d==0){if(!k)printf "%s",b; i=0}; next} {print}' /etc/nginx/sites-available/bvy > /tmp/bvy.nouveau
+```
+
+Vérifiez `grep -n server_name /tmp/bvy.nouveau`, puis copiez-le à la place de l'ancien, `sudo nginx -t` et
+`sudo systemctl reload nginx`.
+
 Autres commandes : `sudo bvy-portail list-users` · `sudo bvy-portail unlock <courriel>` ·
 `sudo bvy-portail backup` · journal : `sudo journalctl -u bvy-portail -n 50` · version précédente :
 `deploy-portail.cmd --rollback`.
