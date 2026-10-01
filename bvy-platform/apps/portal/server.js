@@ -19,6 +19,9 @@ const { can, canAccessClient, visibleClients, STAFF_ROLES } = require('./lib/rba
 const C = require('./lib/crypto.js');
 const V = require('./lib/views.js');
 const mailer = require('./lib/mailer.js');
+const { createPortal, MAX_UPLOAD } = require('./lib/portal.js');
+const { createPortalRoutes } = require('./lib/routes-portal.js');
+const multipart = require('./lib/multipart.js');
 
 const COOKIE = '__Host-bvy_session';
 const MAX_BODY = 16 * 1024;
@@ -150,7 +153,23 @@ function createServer(options = {}) {
   const setCookie = (token) => ({ 'Set-Cookie': `${cookieName}=${token}; ${attrs}; Max-Age=${12 * 3600}` });
   const clearCookie = { 'Set-Cookie': `${cookieName}=; ${attrs}; Max-Age=0` };
 
-  const flashOf = (url) => ({ notice: url.searchParams.get('ok') || undefined });
+  const flashOf = (url) => ({ notice: url.searchParams.get('ok') || undefined, error: url.searchParams.get('erreur') || undefined });
+
+  /* ------------------------------------------------- portail client (phase 3) */
+  const portal = createPortal(db, { dataDir: cfg.dataDir, audit: acc.audit, now: options.now });
+  const notifyTo = options.notifyTo || (cfg.smtp && cfg.smtp.to) || [];
+  // Avis par courriel : jamais de détail financier, seulement une invitation à se connecter.
+  function notifyClient(clientId, exceptUserId, subject) {
+    for (const r of portal.clientRecipients(clientId, exceptUserId)) {
+      sendOrFail({ to: [r.email], subject, text: `Bonjour ${r.name.split(' ')[0]},\n\n${subject}.\n\nConnectez-vous pour le voir : ${cfg.publicUrl}/accueil\n\nL’équipe BVY` });
+    }
+  }
+  function notifyTeam(clientId, subject) {
+    if (!notifyTo.length) return;
+    const c = portal.client(clientId);
+    sendOrFail({ to: notifyTo, subject: `${subject} — ${c ? c.name : `client ${clientId}`}`, text: `${subject} (${c ? c.name : ''}).\n\nDossier : ${cfg.publicUrl}/clients/${clientId}\n` });
+  }
+  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam });
 
   async function serveAsset(req, res, pathname) {
     const name = path.basename(pathname);
@@ -186,7 +205,22 @@ function createServer(options = {}) {
         // Toute soumission doit venir du portail lui-même (contre la falsification de requête).
         const from = req.headers.origin || (req.headers.referer ? new URL(req.headers.referer).origin : '');
         if (from !== origin) { req.resume(); return send200(res, V.errorPage(403, 'Requête refusée.'), 403); }
-        try { form = await readForm(req); } catch (err) { return send200(res, V.errorPage(err.status || 400, 'Requête invalide.'), err.status || 400); }
+        const ctype = String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+        try {
+          if (ctype === 'multipart/form-data') {
+            // Téléversement : seulement pour une personne connectée, sur les routes de documents.
+            if (!s || !s.mfa_done || !/^\/(documents|clients\/\d+\/documents)$/.test(p)) { req.resume(); return send200(res, V.errorPage(415, 'Requête invalide.'), 415); }
+            const boundary = multipart.boundaryOf(req.headers['content-type']);
+            if (!boundary) throw Object.assign(new Error('multipart'), { status: 400 });
+            const parsed = multipart.parseMultipart(await multipart.readBody(req, MAX_UPLOAD + 64 * 1024), boundary);
+            form = { ...parsed.fields, _files: parsed.files };
+          } else {
+            form = await readForm(req);
+          }
+        } catch (err) {
+          const st = err.status || 400;
+          return send200(res, V.errorPage(st, st === 413 ? 'Fichier trop volumineux (20 Mo au maximum).' : 'Requête invalide.'), st);
+        }
         if (s && !C.safeEqual(form._csrf || '', s.csrf) && !['/connexion', '/mot-de-passe-oublie', '/invitation', '/reinitialiser'].includes(p)) {
           return send200(res, V.errorPage(403, 'Votre session a changé. Rechargez la page et réessayez.'), 403);
         }
@@ -301,9 +335,7 @@ function createServer(options = {}) {
       if (!s || !s.mfa_done) return redirect(res, s ? '/verification' : '/connexion');
       const u = s.user;
 
-      if (p === '/accueil' && req.method === 'GET') {
-        return send200(res, V.homePage(s, { clients: visibleClients(db, u), flash: flashOf(url) }));
-      }
+      if (await portalRoutes.handle({ req, res, p, url, s, form, ip, send200, redirect, flashOf, audit: acc.audit, securityHeaders: SECURITY_HEADERS })) return;
 
       if (p === '/compte' || p.startsWith('/compte/')) {
         const page = (flash, extra = {}) => send200(res, V.accountPage(acc.getSession(token) || s, {

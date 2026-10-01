@@ -32,3 +32,20 @@
 /* Les grilles ne doivent jamais s'élargir à la taille d'un tableau : le tableau défile dans son cadre. */
 .content>*,.cols-2>*,.card{min-width:0}
 html{scroll-padding-top:calc(var(--bvy-topbar-h) + var(--bvy-space-4))}
+/* Barres de progression sans style en ligne (CSP) : largeur par pas de 5 % */
+.progress>span.p0{width:0%}.progress>span.p5{width:5%}.progress>span.p10{width:10%}.progress>span.p15{width:15%}.progress>span.p20{width:20%}.progress>span.p25{width:25%}.progress>span.p30{width:30%}.progress>span.p35{width:35%}.progress>span.p40{width:40%}.progress>span.p45{width:45%}.progress>span.p50{width:50%}.progress>span.p55{width:55%}.progress>span.p60{width:60%}.progress>span.p65{width:65%}.progress>span.p70{width:70%}.progress>span.p75{width:75%}.progress>span.p80{width:80%}.progress>span.p85{width:85%}.progress>span.p90{width:90%}.progress>span.p95{width:95%}.progress>span.p100{width:100%}
+/* Fil de messages */
+.thread{display:grid;gap:var(--bvy-space-4)}
+.msg{max-width:min(640px,92%);padding:var(--bvy-space-3) var(--bvy-space-4);border-radius:var(--bvy-radius-lg);background:var(--bvy-surface);border:1px solid var(--bvy-border);white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.mine{justify-self:end;background:var(--bvy-bg-app);border-color:var(--bvy-border-input)}
+.msg-meta{display:block;margin-bottom:4px;font-size:var(--bvy-fs-meta);color:var(--bvy-text-subtle);white-space:normal}
+.subnav{display:flex;flex-wrap:wrap;gap:var(--bvy-space-2);margin-bottom:var(--bvy-space-2)}
+.subnav a{padding:8px 14px;border-radius:var(--bvy-radius-pill);border:1px solid var(--bvy-border);text-decoration:none;color:var(--bvy-text);font-size:var(--bvy-fs-small);font-weight:500;background:var(--bvy-surface)}
+.subnav a[aria-current=page]{background:var(--bvy-nav-bg);color:var(--bvy-white);border-color:var(--bvy-nav-bg)}
+.answer{margin-top:6px;font-size:var(--bvy-fs-small);color:var(--bvy-text)}
+.task-form{display:grid;gap:var(--bvy-space-3);margin-top:var(--bvy-space-3)}
+.task-done .todo-title{color:var(--bvy-text-muted)}
+.kpi .t-amount.empty{color:var(--bvy-text-subtle)}
+textarea.input{min-height:110px}
+.sheet .link-btn.nav-item{width:100%;text-decoration:none;text-align:left;color:var(--bvy-nav-text);font-size:var(--bvy-fs-ui);font-weight:500;padding:8px var(--bvy-space-3)}
+.topbar .btn-qbo{white-space:nowrap}

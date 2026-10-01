@@ -136,18 +136,44 @@ function resetPage({ token, flash }) {
 
 /* ------------------------------------------------ coquille de l'application */
 
-function navItems(user) {
-  const items = [{ href: '/accueil', label: 'Accueil', icon: 'i-home' }];
-  if (can(user, 'audit.view') || can(user, 'users.invite_client')) items.push({ href: '/admin', label: 'Administration', icon: 'i-users' });
-  items.push({ href: '/compte', label: 'Mon compte', icon: 'i-lock' });
+// Navigation : client (portail) ou équipe (espace BVY). nav = { tasks, messages, qboUrl } pour un client.
+function navItems(user, nav = {}) {
+  if (user.role === 'client') {
+    const items = [
+      { href: '/accueil', label: 'Accueil', icon: 'i-home', tab: true },
+      { href: '/a-faire', label: 'À faire', icon: 'i-check', count: nav.tasks, tab: true },
+      { href: '/documents', label: 'Documents', icon: 'i-folder', tab: true },
+      { href: '/messages', label: 'Messages', icon: 'i-message', count: nav.messages, tab: true },
+      { href: '/rapports', label: 'Rapports', icon: 'i-clip' },
+      { href: '/compte', label: 'Mon compte', icon: 'i-lock' },
+    ];
+    if (nav.qboUrl) items.push({ href: nav.qboUrl, label: 'QuickBooks', icon: 'i-book', qbo: true });
+    return items;
+  }
+  const items = [{ href: '/accueil', label: 'Clients', icon: 'i-users', tab: true }];
+  if (can(user, 'audit.view') || can(user, 'users.invite_client')) items.push({ href: '/admin', label: 'Administration', icon: 'i-lock', tab: true, short: 'Admin' });
+  items.push({ href: '/compte', label: 'Mon compte', icon: 'i-lock', tab: true });
   return items;
 }
 
-function appPage(s, { title, current, body, flash }) {
+const countBadge = (n, what) => (n ? `<span class="count" aria-label="${n} ${esc(what)}">${n}</span>` : '');
+
+function appPage(s, { title, current, body, flash, nav = {} }) {
   const user = s.user;
-  const items = navItems(user);
-  const nav = items.map((it) => `<li><a class="nav-item" href="${it.href}"${it.href === current ? ' aria-current="page"' : ''}>${icon(it.icon)}${esc(it.label)}</a></li>`).join('');
-  const tabs = items.map((it) => `<a class="tab" href="${it.href}"${it.href === current ? ' aria-current="page"' : ''}>${icon(it.icon)}${esc(it.label === 'Administration' ? 'Admin' : it.label)}</a>`).join('');
+  const items = navItems(user, nav);
+  const link = (it, cls) => {
+    const cur = it.href === current || (current && current.startsWith(it.href + '/')) ? ' aria-current="page"' : '';
+    if (it.qbo) return `<a class="${cls} nav-qbo" href="${esc(it.href)}" target="_blank" rel="noopener">${icon(it.icon)}${esc(it.label)}<span class="ext" aria-hidden="true">↗</span><span class="sr-only">(s’ouvre dans un nouvel onglet)</span></a>`;
+    return `<a class="${cls}" href="${it.href}"${cur}>${icon(it.icon)}${esc(cls === 'tab' && it.short ? it.short : it.label)}${countBadge(it.count, it.href === '/messages' ? 'nouveaux messages' : 'tâches')}</a>`;
+  };
+  const navHtml = items.map((it) => `<li>${link(it, 'nav-item')}</li>`).join('');
+  const tabItems = items.filter((it) => it.tab);
+  const more = items.filter((it) => !it.tab);
+  const tabs = tabItems.map((it) => link(it, 'tab')).join('') + (more.length
+    ? `<button class="tab" type="button" aria-expanded="false" aria-controls="plus" data-sheet>${icon('i-dots')}Plus</button>` : '');
+  const sheetLogout = `<form method="post" action="/deconnexion">${csrfField(s)}<button class="nav-item link-btn" type="submit">${icon('i-unlink')}Se déconnecter</button></form>`;
+  const sheet = more.length ? `<div class="sheet" id="plus"><p class="nav-group">Plus</p><ul class="nav-list">${more.map((it) => `<li>${link(it, 'nav-item')}</li>`).join('')}<li>${sheetLogout}</li></ul></div>` : '';
+  const tabCount = tabItems.length + (more.length ? 1 : 0);
   const logout = `<form method="post" action="/deconnexion">${csrfField(s)}<button class="link-btn" type="submit">Se déconnecter</button></form>`;
   return `${head(title)}
 <body>
@@ -155,23 +181,25 @@ function appPage(s, { title, current, body, flash }) {
 <div class="app">
   <aside class="sidebar" aria-label="Menu du portail">
     <a class="sb-brand" href="/accueil"><img src="/assets/bvy-logo-96.png" alt="" width="36" height="36"><span><b>BVY</b><small>${user.role === 'client' ? 'Portail client' : 'Espace BVY'}</small></span></a>
-    <nav aria-label="Navigation principale"><ul class="nav-list">${nav}</ul></nav>
+    <nav aria-label="Navigation principale"><ul class="nav-list">${navHtml}</ul></nav>
     <div class="sb-foot"><p class="sb-user"><b>${esc(user.name)}</b>${esc(ROLES[user.role])}</p>${logout}</div>
   </aside>
   <div class="main">
     <header class="topbar">
       <a class="topbar-brand" href="/accueil"><img src="/assets/bvy-logo-96.png" alt="" width="32" height="32"><b>BVY</b></a>
       <span class="topbar-spacer"></span>
-      <span class="show-m">${logout}</span>
+      ${nav.qboUrl ? `<a class="btn btn-qbo btn-sm" href="${esc(nav.qboUrl)}" target="_blank" rel="noopener"><span class="hide-m">Ouvrir&nbsp;</span>QuickBooks <span aria-hidden="true">↗</span><span class="sr-only">(nouvel onglet)</span></a>` : ''}
+      ${more.length ? '' : `<span class="show-m">${logout}</span>`}
       <span class="avatar hide-m" aria-label="${esc(user.name)}">${esc(initials(user.name))}</span>
     </header>
     <main class="content" id="contenu">
       ${alerts(flash)}
       ${body}
     </main>
-    <div class="mnav"><nav class="tabbar tabs-${items.length}" aria-label="Navigation principale (mobile)">${tabs}</nav></div>
+    <div class="mnav">${sheet}<nav class="tabbar tabs-${tabCount}" aria-label="Navigation principale (mobile)">${tabs}</nav></div>
   </div>
 </div>
+<script src="/assets/portal.js" defer></script>
 </body>
 </html>`;
 }
@@ -336,4 +364,5 @@ function errorPage(status, message) {
 module.exports = {
   esc, loginPage, verifyPage, invitePage, invalidLinkPage, forgotPage, resetPage,
   homePage, accountPage, adminPage, adminUserPage, auditPage, errorPage, csrfField,
+  appPage, pageHead, field, icon, alerts,
 };

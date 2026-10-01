@@ -84,6 +84,63 @@ const MIGRATIONS = [
   CREATE TRIGGER audit_no_update BEFORE UPDATE ON audit_logs BEGIN SELECT RAISE(ABORT, 'audit_logs est en ajout seulement'); END;
   CREATE TRIGGER audit_no_delete BEFORE DELETE ON audit_logs BEGIN SELECT RAISE(ABORT, 'audit_logs est en ajout seulement'); END;
   `,
+  // 2 — portail client : tableau de bord, tâches, documents, messages
+  `
+  ALTER TABLE clients ADD COLUMN qbo_url TEXT;
+  CREATE TABLE client_snapshots (
+    client_id   INTEGER PRIMARY KEY REFERENCES clients(id),
+    data        TEXT NOT NULL,
+    updated_at  TEXT NOT NULL,
+    updated_by  INTEGER REFERENCES users(id)
+  );
+  CREATE TABLE tasks (
+    id           INTEGER PRIMARY KEY,
+    client_id    INTEGER NOT NULL REFERENCES clients(id),
+    kind         TEXT NOT NULL CHECK (kind IN ('question','document','approval','info')),
+    title        TEXT NOT NULL,
+    detail       TEXT,
+    choices      TEXT,
+    due_date     TEXT,
+    qbo_url      TEXT,
+    status       TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','answered','done','cancelled')),
+    answer       TEXT,
+    answered_by  INTEGER REFERENCES users(id),
+    answered_at  TEXT,
+    created_by   INTEGER REFERENCES users(id),
+    created_at   TEXT NOT NULL
+  );
+  CREATE INDEX tasks_client ON tasks(client_id, status);
+  CREATE TABLE documents (
+    id           INTEGER PRIMARY KEY,
+    client_id    INTEGER NOT NULL REFERENCES clients(id),
+    origin       TEXT NOT NULL CHECK (origin IN ('client','bvy')),
+    category     TEXT NOT NULL DEFAULT 'document' CHECK (category IN ('document','report')),
+    name         TEXT NOT NULL,
+    stored       TEXT NOT NULL UNIQUE,
+    mime         TEXT NOT NULL,
+    size         INTEGER NOT NULL,
+    sha256       TEXT NOT NULL,
+    note         TEXT,
+    task_id      INTEGER REFERENCES tasks(id),
+    uploaded_by  INTEGER REFERENCES users(id),
+    created_at   TEXT NOT NULL
+  );
+  CREATE INDEX documents_client ON documents(client_id, category);
+  CREATE TABLE messages (
+    id          INTEGER PRIMARY KEY,
+    client_id   INTEGER NOT NULL REFERENCES clients(id),
+    author_id   INTEGER NOT NULL REFERENCES users(id),
+    body        TEXT NOT NULL,
+    created_at  TEXT NOT NULL
+  );
+  CREATE INDEX messages_client ON messages(client_id, id);
+  CREATE TABLE message_reads (
+    user_id      INTEGER NOT NULL REFERENCES users(id),
+    client_id    INTEGER NOT NULL REFERENCES clients(id),
+    last_read_id INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (user_id, client_id)
+  );
+  `,
 ];
 
 function openDb(file) {
