@@ -89,7 +89,7 @@ a:hover{color:var(--bvy-plum-900)}
 .card-accent::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--bvy-accent),var(--bvy-gold-300))}
 .card-qbo{background:var(--bvy-surface-qbo);border-color:var(--bvy-gold-line)}
 .card-dark{background:linear-gradient(135deg,var(--bvy-plum-800),var(--bvy-plum-900));border-color:rgba(196,160,64,.25);color:var(--bvy-nav-text-strong)}
-.card-dark .t-h3,.card-dark .t-h2{color:#fff}
+.card-dark .t-h3,.card-dark .t-h2{color:var(--bvy-white)}
 .card-dark .card-sub,.card-dark p{color:var(--bvy-nav-text)}
 
 /* KPI : niveau 1 (montant) → 2 (explication) → 3 (détail) → 4 (QuickBooks) */
@@ -133,9 +133,9 @@ a:hover{color:var(--bvy-plum-900)}
 .toasts{position:fixed;right:var(--bvy-space-6);bottom:var(--bvy-space-6);z-index:var(--bvy-z-toast);display:grid;gap:var(--bvy-space-3);width:min(380px,calc(100vw - 32px));pointer-events:none}
 .toast{pointer-events:auto;display:grid;grid-template-columns:auto 1fr auto;gap:var(--bvy-space-3);align-items:start;padding:var(--bvy-space-4);border-radius:var(--bvy-radius-md);background:var(--bvy-nav-bg-hover);color:var(--bvy-nav-text-strong);box-shadow:var(--bvy-shadow-md);border-left:4px solid var(--bvy-accent);font-size:var(--bvy-fs-small);animation:bvy-rise var(--bvy-motion-base) var(--bvy-motion-ease)}
 .toast .i{color:var(--bvy-gold-300)}
-.toast b{display:block;color:#fff;font-size:var(--bvy-fs-ui)}
+.toast b{display:block;color:var(--bvy-white);font-size:var(--bvy-fs-ui)}
 .toast-close{background:none;border:0;color:var(--bvy-nav-text);cursor:pointer;width:32px;height:32px;display:grid;place-items:center;border-radius:var(--bvy-radius-sm);margin:-6px -6px 0 0}
-.toast-close:hover{color:#fff;background:rgba(255,255,255,.08)}
+.toast-close:hover{color:var(--bvy-white);background:rgba(255,255,255,.08)}
 
 /* ── FORMULAIRES ──────────────────────────────────────────────────────── */
 .form{display:grid;gap:var(--bvy-space-5)}
@@ -241,7 +241,7 @@ select.input{appearance:none;padding-right:40px;background-image:url("data:image
 .sidebar{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--bvy-nav-bg);color:var(--bvy-nav-text);display:flex;flex-direction:column;padding:var(--bvy-space-5) var(--bvy-space-3);border-right:1px solid rgba(196,160,64,.18)}
 .sb-brand{display:flex;align-items:center;gap:10px;padding:0 var(--bvy-space-3) var(--bvy-space-5);text-decoration:none;border-bottom:1px solid rgba(196,160,64,.16);margin-bottom:var(--bvy-space-4)}
 .sb-brand img{width:36px;height:36px;border-radius:6px}
-.sb-brand b{display:block;font-family:var(--bvy-font-display);font-size:17px;font-weight:600;color:#fff;line-height:1.1}
+.sb-brand b{display:block;font-family:var(--bvy-font-display);font-size:17px;font-weight:600;color:var(--bvy-white);line-height:1.1}
 .sb-brand small{display:block;font-size:12px;color:var(--bvy-nav-text);margin-top:2px}
 .nav-group{font-size:var(--bvy-fs-label);font-weight:600;text-transform:uppercase;letter-spacing:1.6px;color:var(--bvy-nav-text-subtle);padding:var(--bvy-space-4) var(--bvy-space-3) var(--bvy-space-2)}
 .nav-list{display:grid;gap:2px}
@@ -266,7 +266,7 @@ select.input{appearance:none;padding-right:40px;background-image:url("data:image
 .dot.watch{background:var(--bvy-watch);box-shadow:0 0 0 3px var(--bvy-watch-bg)}
 .dot.act{background:var(--bvy-act);box-shadow:0 0 0 3px var(--bvy-act-bg)}
 .dot.busy{background:var(--bvy-plum-600);box-shadow:0 0 0 3px var(--bvy-info-bg);animation:bvy-pulse 1.4s ease-in-out infinite}
-.avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--bvy-plum-700);color:#fff;font-size:13px;font-weight:600;flex-shrink:0}
+.avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--bvy-plum-700);color:var(--bvy-white);font-size:13px;font-weight:600;flex-shrink:0}
 .content{width:100%;max-width:var(--bvy-content-max);margin:0 auto;padding:var(--bvy-space-8);display:grid;gap:var(--bvy-space-6)}
 .page-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:var(--bvy-space-4)}
 .page-head p{color:var(--bvy-text-muted);margin-top:6px}
