@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="fr-CA">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design system du portail — BVY Accounting &amp; Tax Services</title>
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#1E0820">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Jost:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="components.css">
+<style>
+/* Styles propres à la galerie (préfixe g-) — ne font pas partie du design system */
+.g-head{background:linear-gradient(135deg,var(--bvy-plum-800),var(--bvy-plum-900));color:var(--bvy-nav-text);padding:48px 24px 40px;border-bottom:1px solid rgba(196,160,64,.25)}
+.g-wrap{max-width:1240px;margin:0 auto}
+.g-head .g-wrap{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center}
+.g-head img{width:72px;height:72px;border-radius:10px}
+.g-head h1{font-family:var(--bvy-font-display);font-weight:500;font-size:44px;line-height:1.05;color:#fff}
+.g-head h1 em{color:var(--bvy-gold-300)}
+.g-head p{margin-top:10px;max-width:760px;color:var(--bvy-nav-text)}
+.g-status{display:inline-flex;align-items:center;gap:8px;margin-top:14px;font-family:var(--bvy-font-mono);font-size:12px;color:var(--bvy-gold-300);border:1px solid rgba(196,160,64,.45);border-radius:4px;padding:4px 10px}
+.g-toc{background:var(--bvy-surface);border-bottom:1px solid var(--bvy-border)}
+.g-toc ol{display:flex;flex-wrap:wrap;gap:4px 6px;padding:12px 24px;max-width:1240px;margin:0 auto;counter-reset:t}
+.g-toc a{display:inline-flex;align-items:center;min-height:36px;padding:4px 10px;border-radius:4px;font-size:14px;font-weight:500;text-decoration:none;color:var(--bvy-text-muted)}
+.g-toc a:hover{background:var(--bvy-bg-app);color:var(--bvy-text-heading)}
+.g-main{padding:40px 24px 80px;display:grid;gap:56px}
+.g-sec{display:grid;gap:20px;scroll-margin-top:16px}
+.g-sec>header{display:grid;gap:6px;max-width:820px}
+.g-sec>header .t-h1{font-size:34px}
+.g-sec>header p{color:var(--bvy-text-muted)}
+.g-panel{background:var(--bvy-surface);border:1px solid var(--bvy-border);border-radius:var(--bvy-radius-lg);padding:28px;display:grid;gap:20px;min-width:0;align-content:start}
+.g-panel>h3{font-size:var(--bvy-fs-label);font-weight:600;text-transform:uppercase;letter-spacing:1.4px;color:var(--bvy-text-subtle)}
+.g-grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.g-grid.wide{grid-template-columns:repeat(auto-fill,minmax(min(340px,100%),1fr))}
+.g-grid-2{display:grid;gap:20px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.g-rules{display:grid;gap:8px;padding-left:20px;color:var(--bvy-text-muted);font-size:15px}
+.g-rules b{color:var(--bvy-text)}
+.g-code{font-family:var(--bvy-font-mono);font-size:12px;color:var(--bvy-text-link);background:var(--bvy-bg-app);padding:1px 5px;border-radius:3px;word-break:break-word}
+/* Pastilles de couleur */
+.g-swatches{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+.g-sw{border:1px solid var(--bvy-border);border-radius:var(--bvy-radius-md);overflow:hidden;background:var(--bvy-surface)}
+.g-sw i{display:block;height:64px;border-bottom:1px solid var(--bvy-border)}
+.g-sw div{padding:10px 12px;display:grid;gap:2px}
+.g-sw b{font-size:14px;color:var(--bvy-text-heading)}
+.g-sw span{font-family:var(--bvy-font-mono);font-size:12px;color:var(--bvy-text-subtle)}
+.g-sw small{font-size:12px;color:var(--bvy-text-muted);line-height:1.4}
+/* Typographie */
+.g-type{display:grid;grid-template-columns:200px 1fr;gap:12px 24px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--bvy-border)}
+.g-type:last-child{border-bottom:0}
+.g-type>span{font-family:var(--bvy-font-mono);font-size:12px;color:var(--bvy-text-subtle)}
+/* Espacements */
+.g-space{display:grid;gap:8px}
+.g-space div{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:center;font-family:var(--bvy-font-mono);font-size:12px;color:var(--bvy-text-subtle)}
+.g-space i{display:block;height:12px;background:var(--bvy-plum-600);border-radius:2px;opacity:.85}
+.g-radius{display:flex;flex-wrap:wrap;gap:16px}
+.g-radius div{width:120px;height:80px;background:var(--bvy-bg-app);border:1px solid var(--bvy-border-2);display:grid;place-items:center;font-family:var(--bvy-font-mono);font-size:12px;color:var(--bvy-text-subtle)}
+.g-shadow{display:flex;flex-wrap:wrap;gap:24px}
+.g-shadow div{width:180px;height:90px;background:var(--bvy-surface);border-radius:var(--bvy-radius-md);display:grid;place-items:center;font-family:var(--bvy-font-mono);font-size:12px;color:var(--bvy-text-subtle)}
+/* Cadre de l'exemple d'application */
+.g-frame{border:1px solid var(--bvy-border-2);border-radius:var(--bvy-radius-lg);overflow:clip;box-shadow:var(--bvy-shadow-lg);background:var(--bvy-bg-app)}
+.g-frame .app{min-height:0}
+.g-frame .sidebar{position:relative;height:auto}
+.g-frame .mnav{position:sticky}
+.g-example-tag{display:flex;justify-content:center;padding:10px;background:var(--bvy-surface-qbo);border-bottom:1px solid var(--bvy-gold-line);font-size:14px;font-weight:600;color:var(--bvy-text-gold)}
+/* Aperçus statiques (toast, modale) */
+.g-static{position:static!important;animation:none!important}
+.g-modal-preview{display:block;position:static;margin:0;width:100%;max-width:560px}
+.g-levels{display:grid;gap:8px;counter-reset:l}
+.g-levels li{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:baseline;font-size:15px;color:var(--bvy-text-muted)}
+.g-levels li::before{counter-increment:l;content:'Niveau ' counter(l);font-family:var(--bvy-font-mono);font-size:12px;color:var(--bvy-text-gold);white-space:nowrap}
+.g-hbars{display:grid;gap:12px}
+.g-hbar{display:grid;grid-template-columns:minmax(0,170px) 1fr auto;gap:12px;align-items:center;font-size:14px}
+.g-hbar .track{height:14px;background:var(--bvy-progress-track);border-radius:3px;overflow:hidden}
+.g-hbar .track i{display:block;height:100%;background:var(--bvy-chart-1);border-radius:3px}
+.g-hbar .num{color:var(--bvy-text-muted);font-weight:600}
+.g-foot{background:var(--bvy-plum-900);color:var(--bvy-nav-text);padding:28px 24px;font-size:14px}
+.g-foot .g-wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
+.g-foot code{font-family:var(--bvy-font-mono);color:var(--bvy-gold-300)}
+@media (max-width:960px){
+  .g-grid-2{grid-template-columns:1fr}
+  .g-type{grid-template-columns:1fr;gap:4px}
+}
+@media (max-width:640px){
+  .g-head{padding:32px 16px 28px}
+  .g-head .g-wrap{grid-template-columns:1fr;gap:16px}
+  .g-head img{width:56px;height:56px}
+  .g-head h1{font-size:34px}
+  .g-toc ol{padding:10px 16px;flex-wrap:nowrap;overflow-x:auto}
+  .g-toc a{white-space:nowrap}
+  .g-main{padding:28px 16px 64px;gap:44px}
+  .g-panel{padding:20px 16px}
+  .g-sec>header .t-h1{font-size:28px}
+  .g-frame{margin:0 -16px;border-radius:0;border-left:0;border-right:0}
+  .g-hbar{grid-template-columns:1fr auto}
+  .g-hbar .track{grid-column:1/-1;grid-row:2}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#contenu">Aller au contenu</a>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h5v-6h4v6h5V10"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12l3 3 5-6"/></symbol>
+  <symbol id="i-ok" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.8 2.8L16 10"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 4.2L2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0z"/><path d="M12 9v4.5M12 17v.5"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></symbol>
+  <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 21h18"/></symbol>
+  <symbol id="i-clip" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></symbol>
+  <symbol id="i-message" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5v14z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/><path d="M8 7h8M8 11h6"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16M14 6l6 6-6 6"/></symbol>
+  <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.6-4.5L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.6 4.5L20 16"/><path d="M20 20v-4h-4"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+  <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M4 7a2 2 0 0 1 2-2h12v4"/><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 13.5h2"/></symbol>
+  <symbol id="i-in" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M8 13l4 4 4-4"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 17V7M8 11l4-4 4 4"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-6 6.5-6s5.9 2.4 6.5 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.1c2.6.3 4.4 2.4 5 5.4"/></symbol>
+  <symbol id="i-question" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17v.5"/></symbol>
+  <symbol id="i-unlink" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/><path d="M3 3l18 18"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+</svg>
+
+<header class="g-head">
+  <div class="g-wrap">
+    <img src="assets/bvy-logo-192.png" alt="Logo BVY" width="72" height="72">
+    <div>
+      <p class="t-eyebrow" style="color:var(--bvy-gold-400)">Phase 1 · Design system</p>
+      <h1>Le portail client BVY, <em>en une page</em></h1>
+      <p>Couleurs, typographie, composants et un écran complet de tableau de bord. Tout vient du site public approuvé le 1<sup>er</sup> octobre 2026 : même prune, même or, mêmes polices — en plus clair et plus dense pour le travail de tous les jours.</p>
+      <p class="g-status">Version 1.0 · STATUS: WAITING_FOR_OWNER_APPROVAL</p>
+    </div>
+  </div>
+</header>
+
+<nav class="g-toc" aria-label="Sections de la galerie">
+  <ol>
+    <li><a href="#exemple">Exemple complet</a></li>
+    <li><a href="#couleurs">Couleurs</a></li>
+    <li><a href="#typo">Typographie</a></li>
+    <li><a href="#espaces">Espacements</a></li>
+    <li><a href="#boutons">Boutons</a></li>
+    <li><a href="#badges">Badges</a></li>
+    <li><a href="#cartes">Cartes</a></li>
+    <li><a href="#alertes">Alertes</a></li>
+    <li><a href="#formulaires">Formulaires</a></li>
+    <li><a href="#tableaux">Tableaux</a></li>
+    <li><a href="#navigation">Navigation</a></li>
+    <li><a href="#modale">Modale</a></li>
+    <li><a href="#etats">États</a></li>
+    <li><a href="#graphiques">Graphiques</a></li>
+    <li><a href="#validation">Question client</a></li>
+    <li><a href="#mobile">Mobile</a></li>
+    <li><a href="#accessibilite">Accessibilité</a></li>
+  </ol>
+</nav>
+
+<main id="contenu" class="g-main g-wrap">
+
+<!-- ═════════════════════ EXEMPLE COMPLET ═════════════════════ -->
+<section class="g-sec" id="exemple" aria-labelledby="h-exemple">
+  <header>
+    <h2 class="t-h1" id="h-exemple">Exemple complet : le tableau de bord client</h2>
+    <p>Ce qu'un client voit en se connectant. En 30 secondes, il sait combien il a, ce qu'on lui doit, ce qu'il doit, si quelque chose cloche, ce qu'il doit faire et ce que BVY fait pour lui.</p>
+  </header>
+
+  <div class="g-frame" role="region" aria-label="Exemple de tableau de bord — données fictives">
+    <p class="g-example-tag">Exemple — données fictives</p>
+    <div class="app">
+      <aside class="sidebar" aria-label="Menu du portail">
+        <a class="sb-brand" href="#exemple">
+          <img src="assets/bvy-logo-96.png" alt="" width="36" height="36">
+          <span><b>Atelier Boréal</b><small>Portail client BVY</small></span>
+        </a>
+        <nav aria-label="Navigation principale">
+          <ul class="nav-list">
+            <li><a class="nav-item" href="#exemple" aria-current="page"><svg class="i" aria-hidden="true"><use href="#i-home"/></svg>Accueil</a></li>
+            <li><a class="nav-item" href="#exemple"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>À faire<span class="count" aria-label="3 tâches">3</span></a></li>
+            <li><a class="nav-item" href="#exemple"><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg>Mes finances</a></li>
+            <li><a class="nav-item" href="#exemple"><svg class="i" aria-hidden="true"><use href="#i-receipt"/></svg>Factures</a></li>
+            <li><a class="nav-item" href="#exemple"><svg class="i" aria-hidden="true"><use href="#i-folder"/></svg>Documents</a></li>
+            <li><a class="nav-item" href="#exemple"><svg class="i" aria-hidden="true"><use href="#i-bank"/></svg>Taxes</a></li>
+            <li><a class="nav-item" href="#exemple"><svg class="i" aria-hidden="true"><use href="#i-clip"/></svg>Rapports</a></li>
+            <li><a class="nav-item" href="#exemple"><svg class="i" aria-hidden="true"><use href="#i-message"/></svg>Messages<span class="count" aria-label="1 nouveau message">1</span></a></li>
+            <li><a class="nav-item nav-qbo" href="https://qbo.intuit.com/" target="_blank" rel="noopener"><svg class="i" aria-hidden="true"><use href="#i-book"/></svg>QuickBooks<span class="ext" aria-hidden="true">↗</span><span class="sr-only">(s'ouvre dans un nouvel onglet)</span></a></li>
+          </ul>
+        </nav>
+        <div class="sb-foot">
+          <p>Votre comptable BVY répond en général le jour même.</p>
+          <p style="margin-top:8px"><a href="#exemple">Se déconnecter</a></p>
+        </div>
+      </aside>
+
+      <div class="main">
+        <header class="topbar">
+          <a class="topbar-brand" href="#exemple"><img src="assets/bvy-logo-96.png" alt="" width="32" height="32"><b>Atelier Boréal</b></a>
+          <p class="sync hide-m" role="status"><span class="dot" aria-hidden="true"></span><span><b>QuickBooks connecté</b> · dernière synchronisation aujourd'hui à 8 h 42</span></p>
+          <span class="topbar-spacer"></span>
+          <a class="btn btn-qbo btn-sm" href="https://qbo.intuit.com/" target="_blank" rel="noopener">Ouvrir QuickBooks <span aria-hidden="true">↗</span><span class="sr-only">(nouvel onglet)</span></a>
+          <span class="avatar hide-m" aria-label="Marie-Ève Bouchard">MB</span>
+        </header>
+
+        <div class="content">
+          <p class="sync show-m" role="status"><span class="dot" aria-hidden="true"></span><span><b>QuickBooks connecté</b> · synchronisé aujourd'hui à 8 h 42</span></p>
+          <div class="page-head">
+            <div>
+              <p class="t-eyebrow"><span>Mercredi 1<sup>er</sup> octobre 2026</span></p>
+              <h3 class="t-display" style="margin-top:6px">Bonjour Marie-Ève.</h3>
+              <p>Voici où en est Atelier Boréal aujourd'hui. <b>3 choses</b> demandent votre attention.</p>
+            </div>
+            <div class="btn-row"><a class="btn btn-plum" href="#ex-todo">Voir mes 3 tâches <svg class="i i-sm" aria-hidden="true"><use href="#i-arrow"/></svg></a></div>
+          </div>
+
+          <div class="kpis">
+            <article class="card kpi">
+              <p class="kpi-label"><svg class="i" aria-hidden="true"><use href="#i-wallet"/></svg>Argent disponible</p>
+              <p class="t-amount">48&nbsp;215,60&nbsp;$</p>
+              <p class="kpi-why">Dans vos 2 comptes bancaires. <span class="delta up"><svg class="i i-sm" aria-hidden="true"><use href="#i-up"/></svg><span>2&nbsp;750&nbsp;$ de plus qu'au 1<sup>er</sup> septembre</span></span></p>
+              <div class="card-foot"><a class="link" href="#exemple">Voir le détail</a><a class="qbo-link" href="https://qbo.intuit.com/" target="_blank" rel="noopener">Voir dans QuickBooks <span aria-hidden="true">↗</span><span class="sr-only">(nouvel onglet)</span></a></div>
+            </article>
+            <article class="card kpi">
+              <p class="kpi-label"><svg class="i" aria-hidden="true"><use href="#i-in"/></svg>Vos clients vous doivent</p>
+              <p class="t-amount">18&nbsp;430,00&nbsp;$</p>
+              <p class="kpi-why">7 factures envoyées. <span class="delta down"><svg class="i i-sm" aria-hidden="true"><use href="#i-alert"/></svg>2 en retard de plus de 30 jours (5&nbsp;120&nbsp;$)</span></p>
+              <div class="card-foot"><a class="link" href="#tableaux">Voir les factures</a><a class="qbo-link" href="https://qbo.intuit.com/" target="_blank" rel="noopener">Voir dans QuickBooks <span aria-hidden="true">↗</span><span class="sr-only">(nouvel onglet)</span></a></div>
+            </article>
+            <article class="card kpi">
+              <p class="kpi-label"><svg class="i" aria-hidden="true"><use href="#i-out"/></svg>Factures à payer</p>
+              <p class="t-amount">9&nbsp;876,45&nbsp;$</p>
+              <p class="kpi-why">5 factures de fournisseurs à payer d'ici le 31 octobre. Aucune en retard.</p>
+              <div class="card-foot"><a class="link" href="#exemple">Voir le détail</a><a class="qbo-link" href="https://qbo.intuit.com/" target="_blank" rel="noopener">Voir dans QuickBooks <span aria-hidden="true">↗</span><span class="sr-only">(nouvel onglet)</span></a></div>
+            </article>
+          </div>
+
+          <div class="dash-grid">
+            <div class="stack">
+              <article class="card" aria-labelledby="ex-health">
+                <div class="card-head"><h4 class="t-h3" id="ex-health">Santé financière</h4><span class="t-meta">Mise à jour aujourd'hui</span></div>
+                <div class="health">
+                  <div class="health-state"><span class="badge b-watch"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg>À surveiller</span></div>
+                  <div>
+                    <p class="health-why"><b>Vos dépenses ont augmenté de 12 % ce mois-ci</b>, plus vite que vos revenus (+&nbsp;8&nbsp;%). Votre encaisse reste solide : rien d'urgent, mais à suivre en octobre.</p>
+                    <details class="disclose" style="margin-top:10px">
+                      <summary>Comment BVY arrive à cet état</summary>
+                      <div>
+                        <ul class="signals">
+                          <li>Argent disponible <span class="badge b-good"><svg class="i" aria-hidden="true"><use href="#i-ok"/></svg>Bonne</span></li>
+                          <li>Dépenses par rapport aux revenus <span class="badge b-watch"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg>À surveiller</span></li>
+                          <li>Clients en retard <span class="badge b-watch"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg>À surveiller</span></li>
+                          <li>Taxes et paie <span class="badge b-good"><svg class="i" aria-hidden="true"><use href="#i-ok"/></svg>Bonne</span></li>
+                        </ul>
+                      </div>
+                    </details>
+                  </div>
+                </div>
+              </article>
+
+              <article class="card" id="ex-todo" aria-labelledby="ex-todo-h">
+                <div class="card-head"><h4 class="t-h3" id="ex-todo-h">À faire <span class="count" aria-label="3 tâches">3</span></h4><a class="link" href="#exemple">Tout voir</a></div>
+                <ul class="todo-list">
+                  <li class="todo">
+                    <span class="todo-ico urgent" aria-hidden="true"><svg class="i"><use href="#i-question"/></svg></span>
+                    <div>
+                      <p class="todo-title">Répondre à une question sur un paiement Costco</p>
+                      <p class="todo-why">Nous devons savoir si c'était une dépense d'entreprise.</p>
+                      <p class="todo-meta"><span class="badge b-act"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg>Avant le 3 octobre</span><span>Demandé par votre comptable BVY</span></p>
+                    </div>
+                    <div class="todo-actions"><a class="btn btn-plum btn-sm" href="#ex-ask">Répondre</a><a class="qbo-link" href="https://qbo.intuit.com/" target="_blank" rel="noopener">Voir dans QuickBooks <span aria-hidden="true">↗</span><span class="sr-only">(nouvel onglet)</span></a></div>
+                  </li>
+                  <li class="todo">
+                    <span class="todo-ico" aria-hidden="true"><svg class="i"><use href="#i-upload"/></svg></span>
+                    <div>
+                      <p class="todo-title">Téléverser la facture d'Hydro-Québec</p>
+                      <p class="todo-why">Pièce manquante pour le paiement du 12 septembre (214,87&nbsp;$).</p>
+                      <p class="todo-meta"><span>Avant le 10 octobre</span></p>
+                    </div>
+                    <div class="todo-actions"><a class="btn btn-outline btn-sm" href="#formulaires">Téléverser</a><a class="qbo-link" href="https://qbo.intuit.com/" target="_blank" rel="noopener">Voir dans QuickBooks <span aria-hidden="true">↗</span><span class="sr-only">(nouvel onglet)</span></a></div>
+                  </li>
+                  <li class="todo">
+                    <span class="todo-ico" aria-hidden="true"><svg class="i"><use href="#i-users"/></svg></span>
+                    <div>
+                      <p class="todo-title">Approuver les heures de paie</p>
+                      <p class="todo-why">Période du 15 au 28 septembre — 3 employés.</p>
+                      <p class="todo-meta"><span>Avant le 6 octobre</span></p>
+                    </div>
+                    <div class="todo-actions"><a class="btn btn-outline btn-sm" href="#exemple">Approuver</a></div>
+                  </li>
+                </ul>
+              </article>
+
+              <article class="card ask" id="ex-ask" aria-labelledby="ex-ask-q">
+                <p class="t-eyebrow">Question de votre comptable</p>
+                <p class="ask-q" id="ex-ask-q">Nous avons trouvé un paiement Costco de 842,37&nbsp;$. Était-ce une dépense d'entreprise&nbsp;?</p>
+                <p class="ask-facts"><span>Date : <b>18 septembre 2026</b></span><span>Compte : <b>Visa entreprise •• 4417</b></span><span>Montant : <b>842,37&nbsp;$</b></span></p>
+                <form class="ask-form" data-ask>
+                  <fieldset>
+                    <legend>Votre réponse</legend>
+                    <div class="choices">
+                      <label class="choice"><input type="radio" name="ex-costco" value="entreprise" required>Oui, dépense d'entreprise</label>
+                      <label class="choice"><input type="radio" name="ex-costco" value="personnel">Non, personnel</label>
+                      <label class="choice"><input type="radio" name="ex-costco" value="autre">Autre</label>
+                    </div>
+                    <div class="field ask-other" hidden>
+                      <label class="label" for="ex-costco-note">Expliquez en quelques mots</label>
+                      <textarea class="input" id="ex-costco-note" placeholder="Ex. : moitié pour l'atelier, moitié personnel"></textarea>
+                    </div>
+                  </fieldset>
+                  <div class="btn-row" style="margin-top:16px">
+                    <button class="btn btn-plum" type="submit">Envoyer ma réponse</button>
+                    <a class="qbo-link" href="https://qbo.intuit.com/" target="_blank" rel="noopener">Voir la transaction dans QuickBooks <span aria-hidden="true">↗</span><span class="sr-only">(nouvel onglet)</span></a>
+                  </div>
+                  <p class="t-meta" style="margin-top:10px">Pas besoin de connaître les comptes comptables : votre comptable s'occupe du classement.</p>
+                </form>
+              </article>
+            </div>
+
+            <div class="stack">
+              <article class="card" aria-labelledby="ex-work">
+                <div class="card-head"><h4 class="t-h3" id="ex-work">BVY travaille sur</h4><span class="badge b-good"><svg class="i" aria-hidden="true"><use href="#i-ok"/></svg>Dans les temps</span></div>
+                <ul class="work-list">
+                  <li class="work"><span class="work-name">Tenue de livres — septembre</span><span class="work-status">85 %</span><span class="progress" role="progressbar" aria-label="Tenue de livres" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"><span style="width:85%"></span></span></li>
+                  <li class="work"><span class="work-name">Rapprochement bancaire</span><span class="work-status">65 %</span><span class="progress" role="progressbar" aria-label="Rapprochement bancaire" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"><span style="width:65%"></span></span></li>
+                  <li class="work"><span class="work-name">TPS/TVQ</span><span class="work-status">Attend la tenue de livres</span><span class="progress wait" role="progressbar" aria-label="TPS/TVQ, en attente" aria-valuetext="En attente de la tenue de livres"><span></span></span></li>
+                  <li class="work"><span class="work-name">Paie</span><span class="work-status">À jour</span><span class="progress done" role="progressbar" aria-label="Paie" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"><span style="width:100%"></span></span></li>
+                </ul>
+                <div class="card-foot"><span class="t-meta">Prochaine étape : déclaration TPS/TVQ, avant le 31 octobre.</span></div>
+              </article>
+
+              <article class="card" aria-labelledby="ex-changes">
+                <div class="card-head"><h4 class="t-h3" id="ex-changes">Ce qui a changé</h4><span class="t-meta">Septembre comparé à août</span></div>
+                <ul class="changes">
+                  <li class="change"><span class="change-what">Revenus</span><span class="delta up"><svg class="i i-sm" aria-hidden="true"><use href="#i-up"/></svg>+&nbsp;8&nbsp;%</span><span class="change-why">Surtout grâce à 2 grosses factures payées par un même client.</span></li>
+                  <li class="change"><span class="change-what">Dépenses</span><span class="delta down"><svg class="i i-sm" aria-hidden="true"><use href="#i-up"/></svg>+&nbsp;12&nbsp;%</span><span class="change-why">Achats de matériel plus élevés que d'habitude.</span></li>
+                  <li class="change"><span class="change-what">Factures en retard</span><span class="delta down"><svg class="i i-sm" aria-hidden="true"><use href="#i-alert"/></svg>2</span><span class="change-why">5&nbsp;120&nbsp;$ attendus depuis plus de 30 jours.</span></li>
+                  <li class="change"><span class="change-what">Taxes à remettre</span><span class="num t-small" style="font-weight:600">3&nbsp;412&nbsp;$</span><span class="change-why">TPS/TVQ du 3<sup>e</sup> trimestre, à produire avant le 31 octobre.</span></li>
+                </ul>
+              </article>
+
+              <article class="card" aria-labelledby="ex-chart">
+                <div class="card-head"><h4 class="t-h3" id="ex-chart">Revenus et dépenses</h4><span class="t-meta">6 derniers mois</span></div>
+                <figure class="chart">
+                  <figcaption class="chart-summary">Vos revenus dépassent vos dépenses chaque mois. L'écart s'est réduit en septembre.</figcaption>
+                  <div class="vchart" role="img" aria-label="Diagramme à barres : revenus et dépenses d'avril à septembre 2026. Septembre : revenus 37,3 k$, dépenses 30,5 k$.">
+<span class="vaxis" aria-hidden="true"><span>40 k</span><span>30 k</span><span>20 k</span><span>10 k</span><span>0</span></span>
+<span class="vplot" aria-hidden="true"><span class="vcol"><span class="vbar s1" style="--v:78.0%"></span><span class="vbar s2" style="--v:60.0%"></span><span class="vx">avr.</span></span><span class="vcol"><span class="vbar s1" style="--v:71.0%"></span><span class="vbar s2" style="--v:63.3%"></span><span class="vx">mai</span></span><span class="vcol"><span class="vbar s1" style="--v:84.7%"></span><span class="vbar s2" style="--v:65.3%"></span><span class="vx">juin</span></span><span class="vcol"><span class="vbar s1" style="--v:75.2%"></span><span class="vbar s2" style="--v:62.0%"></span><span class="vx">juil.</span></span><span class="vcol"><span class="vbar s1" style="--v:86.2%"></span><span class="vbar s2" style="--v:68.0%"></span><span class="vx">août</span></span><span class="vcol"><span class="vbar s1" style="--v:93.2%" data-v="37,3"></span><span class="vbar s2" style="--v:76.2%" data-v="30,5"></span><span class="vx">sept.</span></span></span></div>
+                  <p class="legend"><span><i class="k1"></i>Revenus</span><span><i class="k2"></i>Dépenses</span><span>en milliers de dollars</span></p>
+                  <details class="disclose">
+                    <summary>Voir les chiffres</summary>
+                    <div class="table-wrap" style="margin-top:8px">
+                      <table class="table">
+                        <thead><tr><th scope="col">Mois</th><th scope="col" class="r">Revenus</th><th scope="col" class="r">Dépenses</th></tr></thead>
+                        <tbody>
+                          <tr><td>Avril</td><td class="r">31&nbsp;200&nbsp;$</td><td class="r">24&nbsp;000&nbsp;$</td></tr>
+                          <tr><td>Mai</td><td class="r">28&nbsp;400&nbsp;$</td><td class="r">25&nbsp;300&nbsp;$</td></tr>
+                          <tr><td>Juin</td><td class="r">33&nbsp;900&nbsp;$</td><td class="r">26&nbsp;100&nbsp;$</td></tr>
+                          <tr><td>Juillet</td><td class="r">30&nbsp;100&nbsp;$</td><td class="r">24&nbsp;800&nbsp;$</td></tr>
+                          <tr><td>Août</td><td class="r">34&nbsp;500&nbsp;$</td><td class="r">27&nbsp;200&nbsp;$</td></tr>
+                          <tr><td>Septembre</td><td class="r">37&nbsp;300&nbsp;$</td><td class="r">30&nbsp;500&nbsp;$</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </details>
+                </figure>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mnav">
+        <div class="sheet" id="ex-sheet">
+          <p class="nav-group" style="padding-top:0">Plus</p>
+          <ul class="nav-list">
+            <li><a class="nav-item" href="#exemple"><svg class="i" aria-hidden="true"><use href="#i-receipt"/></svg>Factures</a></li>
+            <li><a class="nav-item" href="#exemple"><svg class="i" aria-hidden="true"><use href="#i-folder"/></svg>Documents</a></li>
+            <li><a class="nav-item" href="#exemple"><svg class="i" aria-hidden="true"><use href="#i-bank"/></svg>Taxes</a></li>
+            <li><a class="nav-item" href="#exemple"><svg class="i" aria-hidden="true"><use href="#i-clip"/></svg>Rapports</a></li>
+            <li><a class="nav-item nav-qbo" href="https://qbo.intuit.com/" target="_blank" rel="noopener"><svg class="i" aria-hidden="true"><use href="#i-book"/></svg>QuickBooks<span class="ext" aria-hidden="true">↗</span><span class="sr-only">(s'ouvre dans un nouvel onglet)</span></a></li>
+          </ul>
+        </div>
+        <nav class="tabbar" aria-label="Navigation principale (mobile)">
+          <a class="tab" href="#exemple" aria-current="page"><svg class="i" aria-hidden="true"><use href="#i-home"/></svg>Accueil</a>
+          <a class="tab" href="#ex-todo"><svg class="i" aria-hidden="true"><use href="#i-check"/></svg>À faire<span class="count" aria-label="3 tâches">3</span></a>
+          <a class="tab" href="#exemple"><svg class="i" aria-hidden="true"><use href="#i-chart"/></svg>Finances</a>
+          <a class="tab" href="#exemple"><svg class="i" aria-hidden="true"><use href="#i-message"/></svg>Messages<span class="count" aria-label="1 nouveau message">1</span></a>
+          <button class="tab" type="button" aria-expanded="false" aria-controls="ex-sheet" data-sheet><svg class="i" aria-hidden="true"><use href="#i-dots"/></svg>Plus</button>
+        </nav>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════ 1. COULEURS ═════════════════════ -->
+<section class="g-sec" id="couleurs" aria-labelledby="h-couleurs">
+  <header>
+    <p class="t-eyebrow">1 · Couleurs</p>
+    <h2 class="t-h1" id="h-couleurs">Prune et or, sur fond clair</h2>
+    <p>Les mêmes couleurs que le site. Le portail inverse les proportions : la prune encadre (navigation), le contenu est clair pour être lu longtemps, l'or souligne ce qui compte.</p>
+  </header>
+  <div class="g-panel">
+    <h3>Marque — prune</h3>
+    <div class="g-swatches">
+      <div class="g-sw"><i style="background:var(--bvy-plum-900)"></i><div><b>Prune 900</b><span>#1E0820 · --bvy-plum-900</span><small>Navigation, bouton principal, titres</small></div></div>
+      <div class="g-sw"><i style="background:var(--bvy-plum-800)"></i><div><b>Prune 800</b><span>#3A0F3E · --bvy-plum-800</span><small>Survol navigation, toasts</small></div></div>
+      <div class="g-sw"><i style="background:var(--bvy-plum-700)"></i><div><b>Prune 700</b><span>#5C1F60 · --bvy-plum-700</span><small>Liens, graphiques série 1</small></div></div>
+      <div class="g-sw"><i style="background:var(--bvy-plum-600)"></i><div><b>Prune 600</b><span>#7A3080 · --bvy-plum-600</span><small>Anneau de focus, accents</small></div></div>
+    </div>
+    <h3>Marque — or</h3>
+    <div class="g-swatches">
+      <div class="g-sw"><i style="background:var(--bvy-gold-500)"></i><div><b>Or 500</b><span>#C4A040 · --bvy-gold-500</span><small>Bouton d'accent, filets. Jamais du texte sur blanc.</small></div></div>
+      <div class="g-sw"><i style="background:var(--bvy-gold-400)"></i><div><b>Or 400</b><span>#D4B860 · --bvy-gold-400</span><small>Survol, QuickBooks ↗ sur prune</small></div></div>
+      <div class="g-sw"><i style="background:var(--bvy-gold-300)"></i><div><b>Or 300</b><span>#E8D080 · --bvy-gold-300</span><small>Élément actif sur prune</small></div></div>
+      <div class="g-sw"><i style="background:var(--bvy-gold-ink)"></i><div><b>Or encre</b><span>#7A5F12 · --bvy-gold-ink</span><small>Texte or sur fond clair (6,05:1)</small></div></div>
+      <div class="g-sw"><i style="background:var(--bvy-gold-50)"></i><div><b>Or 50</b><span>#FBF5E0 · --bvy-gold-50</span><small>Zones QuickBooks</small></div></div>
+    </div>
+    <h3>Neutres (lisibilité)</h3>
+    <div class="g-swatches">
+      <div class="g-sw"><i style="background:var(--bvy-white)"></i><div><b>Blanc</b><span>#FFFFFF · --bvy-surface</span><small>Cartes, tableaux, modales</small></div></div>
+      <div class="g-sw"><i style="background:var(--bvy-cream-2)"></i><div><b>Crème</b><span>#F8F4FF · --bvy-bg-app</span><small>Fond du portail</small></div></div>
+      <div class="g-sw"><i style="background:var(--bvy-line)"></i><div><b>Bordure</b><span>#EDE5F4 · --bvy-border</span><small>Séparateurs (décoratif)</small></div></div>
+      <div class="g-sw"><i style="background:var(--bvy-line-strong)"></i><div><b>Contour de champ</b><span>#8C7A99 · --bvy-border-input</span><small>Ajout accessibilité : 3,92:1</small></div></div>
+      <div class="g-sw"><i style="background:var(--bvy-ink)"></i><div><b>Texte</b><span>#1A0A1E · --bvy-text</span><small>18,99:1 sur blanc</small></div></div>
+      <div class="g-sw"><i style="background:var(--bvy-ink-2)"></i><div><b>Texte secondaire</b><span>#4A3555 · --bvy-text-muted</span><small>10,87:1 sur blanc</small></div></div>
+      <div class="g-sw"><i style="background:var(--bvy-ink-3)"></i><div><b>Texte discret</b><span>#6B5A7A · --bvy-text-subtle</span><small>6,23:1 sur blanc</small></div></div>
+    </div>
+    <h3>États (« Bonne », « À surveiller », « Action requise »)</h3>
+    <div class="g-swatches">
+      <div class="g-sw"><i style="background:linear-gradient(90deg,var(--bvy-good) 50%,var(--bvy-good-bg) 50%)"></i><div><b>Bonne</b><span>#1B6B45 / #E8F5EE</span><small>5,79:1</small></div></div>
+      <div class="g-sw"><i style="background:linear-gradient(90deg,var(--bvy-watch) 50%,var(--bvy-watch-bg) 50%)"></i><div><b>À surveiller</b><span>#8A5A00 / #FFF4DC</span><small>5,43:1</small></div></div>
+      <div class="g-sw"><i style="background:linear-gradient(90deg,var(--bvy-act) 50%,var(--bvy-act-bg) 50%)"></i><div><b>Action requise</b><span>#A12C2C / #FCEAEA</span><small>6,21:1 — aussi pour les erreurs</small></div></div>
+    </div>
+    <ul class="g-rules">
+      <li><b>L'or n'est jamais du texte sur fond clair</b> (2,49:1). Pour un texte doré, utiliser l'or encre <span class="g-code">--bvy-text-gold</span>.</li>
+      <li><b>Une couleur n'est jamais seule à porter un sens</b> : chaque état a aussi un mot et une icône.</li>
+      <li><b>Un seul bouton or par écran</b>, pour l'action la plus importante (le reste en prune ou en contour).</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═════════════════════ 2. TYPOGRAPHIE ═════════════════════ -->
+<section class="g-sec" id="typo" aria-labelledby="h-typo">
+  <header>
+    <p class="t-eyebrow">2 · Typographie</p>
+    <h2 class="t-h1" id="h-typo">Cormorant pour l'émotion, Jost pour le travail</h2>
+    <p>Les trois polices du site. Cormorant Garamond pour les titres et les montants clés, Jost pour tout le reste, IBM Plex Mono pour les références. Rien sous 12 px.</p>
+  </header>
+  <div class="g-panel">
+    <div class="g-type"><span>Display · 40 px · Cormorant 500</span><p class="t-display">Bonjour Marie-Ève.</p></div>
+    <div class="g-type"><span>H1 · 32 px · Cormorant 500</span><p class="t-h1">Mes finances <em>en clair</em></p></div>
+    <div class="g-type"><span>H2 · 24 px · Cormorant 600</span><p class="t-h2">Ce qui a changé ce mois-ci</p></div>
+    <div class="g-type"><span>H3 · 18 px · Jost 600</span><p class="t-h3">Factures à payer</p></div>
+    <div class="g-type"><span>Montant · 34 px · Cormorant 600, chiffres alignés</span><p class="t-amount">48&nbsp;215,60&nbsp;$</p></div>
+    <div class="g-type"><span>Texte · 16 px · Jost 400</span><p class="t-body">Vos dépenses ont augmenté plus vite que vos revenus. Rien d'urgent, mais à suivre.</p></div>
+    <div class="g-type"><span>Petit · 14 px · tableaux</span><p class="t-small">7 factures envoyées, dont 2 en retard.</p></div>
+    <div class="g-type"><span>Méta · 13 px · dates</span><p class="t-meta">Dernière synchronisation aujourd'hui à 8 h 42</p></div>
+    <div class="g-type"><span>Surtitre · 12 px · majuscules</span><p><span class="t-eyebrow">Question de votre comptable</span></p></div>
+    <div class="g-type"><span>Mono · 13 px · références</span><p class="t-mono">Réf. FAC-2026-0412</p></div>
+  </div>
+</section>
+
+<!-- ═════════════════════ 3. ESPACEMENTS ═════════════════════ -->
+<section class="g-sec" id="espaces" aria-labelledby="h-espaces">
+  <header>
+    <p class="t-eyebrow">3 · Espacements, rayons, ombres</p>
+    <h2 class="t-h1" id="h-espaces">De l'air, sur une grille de 4 px</h2>
+    <p>Cartes : 24 px de marge intérieure (20 px sur mobile). Entre les cartes : 24 px. Contenu limité à 1200 px de large.</p>
+  </header>
+  <div class="g-grid-2">
+    <div class="g-panel">
+      <h3>Espacements</h3>
+      <div class="g-space">
+        <div>space-1 · 4 px<i style="width:4px"></i></div>
+        <div>space-2 · 8 px<i style="width:8px"></i></div>
+        <div>space-3 · 12 px<i style="width:12px"></i></div>
+        <div>space-4 · 16 px<i style="width:16px"></i></div>
+        <div>space-5 · 20 px<i style="width:20px"></i></div>
+        <div>space-6 · 24 px<i style="width:24px"></i></div>
+        <div>space-8 · 32 px<i style="width:32px"></i></div>
+        <div>space-10 · 40 px<i style="width:40px"></i></div>
+        <div>space-12 · 48 px<i style="width:48px"></i></div>
+        <div>space-16 · 64 px<i style="width:64px"></i></div>
+      </div>
+    </div>
+    <div class="g-panel">
+      <h3>Rayons</h3>
+      <div class="g-radius">
+        <div style="border-radius:var(--bvy-radius-sm)">sm · 4 px</div>
+        <div style="border-radius:var(--bvy-radius-md)">md · 8 px</div>
+        <div style="border-radius:var(--bvy-radius-lg)">lg · 14 px</div>
+        <div style="border-radius:var(--bvy-radius-pill);height:44px">pill</div>
+      </div>
+      <h3>Ombres</h3>
+      <div class="g-shadow">
+        <div style="box-shadow:var(--bvy-shadow-sm)">shadow-sm · cartes</div>
+        <div style="box-shadow:var(--bvy-shadow-md)">shadow-md · toasts</div>
+        <div style="box-shadow:var(--bvy-shadow-lg)">shadow-lg · modales</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════ 4. BOUTONS ═════════════════════ -->
+<section class="g-sec" id="boutons" aria-labelledby="h-boutons">
+  <header>
+    <p class="t-eyebrow">4 · Boutons et liens</p>
+    <h2 class="t-h1" id="h-boutons">Un verbe clair, une hiérarchie évidente</h2>
+    <p>Libellé = ce qui va se passer (« Envoyer ma réponse », pas « OK »). Hauteur minimale 44 px. Dans le portail, les boutons sont en casse normale : plus lisibles que les majuscules du site quand ils sont nombreux.</p>
+  </header>
+  <div class="g-panel">
+    <h3>Hiérarchie</h3>
+    <div class="btn-row">
+      <button class="btn btn-gold" type="button">Accent — 1 par écran</button>
+      <button class="btn btn-plum" type="button">Principal</button>
+      <button class="btn btn-outline" type="button">Secondaire</button>
+      <button class="btn btn-ghost" type="button">Tertiaire</button>
+      <a class="btn btn-qbo" href="https://qbo.intuit.com/" target="_blank" rel="noopener">Ouvrir QuickBooks <span aria-hidden="true">↗</span><span class="sr-only">(nouvel onglet)</span></a>
+      <button class="btn btn-danger" type="button">Retirer le document</button>
+    </div>
+    <h3>Tailles et états</h3>
+    <div class="btn-row">
+      <button class="btn btn-plum btn-lg" type="button">Grand · 52 px</button>
+      <button class="btn btn-plum" type="button">Normal · 44 px</button>
+      <button class="btn btn-plum btn-sm" type="button">Compact · 36 px</button>
+      <button class="btn btn-plum" type="button" disabled>Désactivé</button>
+      <button class="btn btn-plum" type="button" data-busy>Envoyer (cliquer : en cours)</button>
+      <button class="btn btn-outline btn-icon" type="button" aria-label="Actualiser"><svg class="i" aria-hidden="true"><use href="#i-refresh"/></svg></button>
+    </div>
+    <h3>Liens</h3>
+    <div class="btn-row">
+      <a class="link" href="#boutons">Voir le détail <svg class="i i-sm" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      <a class="qbo-link" href="https://qbo.intuit.com/" target="_blank" rel="noopener">Voir dans QuickBooks <span aria-hidden="true">↗</span><span class="sr-only">(nouvel onglet)</span></a>
+    </div>
+    <ul class="g-rules">
+      <li><b>« ↗ » signifie toujours « ouvre QuickBooks dans un nouvel onglet »</b>, annoncé aussi aux lecteurs d'écran.</li>
+      <li>Les actions destructrices demandent une confirmation (modale) et ne sont jamais en or.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═════════════════════ 5. BADGES ═════════════════════ -->
+<section class="g-sec" id="badges" aria-labelledby="h-badges">
+  <header>
+    <p class="t-eyebrow">5 · Badges et états</p>
+    <h2 class="t-h1" id="h-badges">Trois états de santé, toujours expliqués</h2>
+    <p>« Bonne », « À surveiller », « Action requise » : jamais de note sur 100. Chaque badge d'état est suivi d'une phrase qui dit pourquoi.</p>
+  </header>
+  <div class="g-grid-2">
+    <div class="g-panel">
+      <h3>Santé financière</h3>
+      <div class="btn-row">
+        <span class="badge b-good"><svg class="i" aria-hidden="true"><use href="#i-ok"/></svg>Bonne</span>
+        <span class="badge b-watch"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg>À surveiller</span>
+        <span class="badge b-act"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg>Action requise</span>
+      </div>
+      <h3>Autres badges</h3>
+      <div class="btn-row">
+        <span class="badge b-info"><svg class="i" aria-hidden="true"><use href="#i-info"/></svg>En cours chez BVY</span>
+        <span class="badge b-neutral">Brouillon</span>
+        <span class="badge b-gold"><svg class="i" aria-hidden="true"><use href="#i-book"/></svg>QuickBooks</span>
+        <span class="count">3</span>
+      </div>
+    </div>
+    <div class="g-panel">
+      <h3>Connexion QuickBooks</h3>
+      <p class="sync"><span class="dot" aria-hidden="true"></span><span><b>Connecté</b> · synchronisé aujourd'hui à 8 h 42</span></p>
+      <p class="sync"><span class="dot busy" aria-hidden="true"></span><span><b>Synchronisation en cours…</b></span></p>
+      <p class="sync"><span class="dot watch" aria-hidden="true"></span><span><b>Synchronisation en retard</b> · dernière il y a 26 h</span></p>
+      <p class="sync"><span class="dot act" aria-hidden="true"></span><span><b>Déconnecté</b> · reconnexion nécessaire</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════ 6. CARTES ═════════════════════ -->
+<section class="g-sec" id="cartes" aria-labelledby="h-cartes">
+  <header>
+    <p class="t-eyebrow">6 · Cartes</p>
+    <h2 class="t-h1" id="h-cartes">Une carte = une question du client</h2>
+    <p>Chaque carte répond aux quatre questions : qu'est-ce que je regarde, pourquoi c'est important, dois-je faire quelque chose, où cliquer ensuite.</p>
+  </header>
+  <div class="g-grid">
+    <article class="card kpi">
+      <p class="kpi-label"><svg class="i" aria-hidden="true"><use href="#i-wallet"/></svg>Argent disponible</p>
+      <p class="t-amount">48&nbsp;215,60&nbsp;$</p>
+      <p class="kpi-why">Dans vos 2 comptes bancaires.</p>
+      <div class="card-foot"><a class="link" href="#cartes">Voir le détail</a><a class="qbo-link" href="https://qbo.intuit.com/" target="_blank" rel="noopener">Voir dans QuickBooks <span aria-hidden="true">↗</span><span class="sr-only">(nouvel onglet)</span></a></div>
+    </article>
+    <div class="card">
+      <h3 class="t-h3">Divulgation progressive</h3>
+      <ol class="g-levels">
+        <li>Le montant (résumé)</li>
+        <li>La phrase qui explique</li>
+        <li>« Voir le détail » : listes, rapports</li>
+        <li>« Voir dans QuickBooks ↗ » : la source</li>
+      </ol>
+    </div>
+    <article class="card card-accent">
+      <div class="card-head"><div><h3 class="t-h3">Rapport de septembre</h3><p class="card-sub">Prêt depuis le 30 septembre</p></div><span class="badge b-good"><svg class="i" aria-hidden="true"><use href="#i-ok"/></svg>Nouveau</span></div>
+      <p class="t-small t-muted">Carte avec filet or : met en valeur un élément nouveau ou important.</p>
+      <div class="card-foot"><a class="link" href="#cartes">Lire le résumé</a></div>
+    </article>
+    <article class="card card-qbo">
+      <h3 class="t-h3">Le détail est dans QuickBooks</h3>
+      <p class="t-small">Carte QuickBooks : rappelle où se trouve la comptabilité officielle.</p>
+      <div><a class="btn btn-qbo btn-sm" href="https://qbo.intuit.com/" target="_blank" rel="noopener">Ouvrir QuickBooks <span aria-hidden="true">↗</span><span class="sr-only">(nouvel onglet)</span></a></div>
+    </article>
+    <article class="card card-dark">
+      <h3 class="t-h3">Votre comptable BVY</h3>
+      <p class="t-small">Carte sombre : réservée aux messages de marque (accueil, contact).</p>
+      <div><a class="btn btn-gold btn-sm" href="#cartes">Écrire un message</a></div>
+    </article>
+  </div>
+</section>
+
+<!-- ═════════════════════ 7. ALERTES ═════════════════════ -->
+<section class="g-sec" id="alertes" aria-labelledby="h-alertes">
+  <header>
+    <p class="t-eyebrow">7 · Alertes et notifications</p>
+    <h2 class="t-h1" id="h-alertes">Dire ce qui se passe et quoi faire</h2>
+    <p>Une alerte = un titre court, une phrase d'explication, une action. Les toasts confirment une action et disparaissent seuls (sauf les erreurs).</p>
+  </header>
+  <div class="g-grid-2">
+    <div class="g-panel">
+      <div class="alert alert-good"><svg class="i" aria-hidden="true"><use href="#i-ok"/></svg><div><p class="alert-title">Tout est à jour</p><p>Votre tenue de livres d'août est terminée et rapprochée.</p></div></div>
+      <div class="alert alert-watch"><svg class="i" aria-hidden="true"><use href="#i-eye"/></svg><div><p class="alert-title">2 factures en retard</p><p>5&nbsp;120&nbsp;$ attendus depuis plus de 30 jours. Un rappel au client peut aider.</p><div class="btn-row"><a class="btn btn-outline btn-sm" href="#tableaux">Voir les factures</a></div></div></div>
+      <div class="alert alert-act" role="alert"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg><div><p class="alert-title">Échéance TPS/TVQ dans 5 jours</p><p>Il nous manque 1 document pour préparer la déclaration.</p><div class="btn-row"><a class="btn btn-plum btn-sm" href="#formulaires">Téléverser le document</a></div></div></div>
+      <div class="alert alert-info"><svg class="i" aria-hidden="true"><use href="#i-info"/></svg><div><p class="alert-title">Nouveau rapport disponible</p><p>Le résumé de septembre est prêt à lire.</p></div></div>
+    </div>
+    <div class="g-panel">
+      <h3>Toast (aperçu)</h3>
+      <div class="toast g-static" role="status"><svg class="i" aria-hidden="true"><use href="#i-ok"/></svg><div><b>Réponse envoyée</b>Votre comptable BVY a reçu votre réponse.</div><button class="toast-close" type="button" aria-label="Fermer"><svg class="i i-sm" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+      <div><button class="btn btn-outline" type="button" data-toast="Document reçu|Merci, votre facture a bien été téléversée.">Afficher un toast</button></div>
+      <ul class="g-rules">
+        <li><b>role="alert"</b> seulement pour « Action requise » ; sinon <b>role="status"</b>.</li>
+        <li>Toasts : 6 secondes, bouton Fermer, jamais d'information qu'on ne retrouve pas ailleurs.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════ 8. FORMULAIRES ═════════════════════ -->
+<section class="g-sec" id="formulaires" aria-labelledby="h-formulaires">
+  <header>
+    <p class="t-eyebrow">8 · Formulaires</p>
+    <h2 class="t-h1" id="h-formulaires">Peu de champs, des étiquettes visibles</h2>
+    <p>Étiquette toujours au-dessus (jamais seulement un texte indicatif), aide sous le champ, erreur qui dit comment corriger.</p>
+  </header>
+  <div class="g-panel">
+    <form class="form form-2" action="#" novalidate>
+      <div class="field"><label class="label" for="f-name">Nom de l'entreprise <span class="req" aria-hidden="true">*</span></label><input class="input" id="f-name" value="Atelier Boréal inc." required></div>
+      <div class="field invalid"><label class="label" for="f-mail">Courriel <span class="req" aria-hidden="true">*</span></label><input class="input" id="f-mail" type="email" value="marie-eve@atelier" aria-invalid="true" aria-describedby="f-mail-err"><p class="err" id="f-mail-err"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg>Il manque la fin de l'adresse, par exemple « @atelierboreal.ca ».</p></div>
+      <div class="field"><label class="label" for="f-type">Type de document</label><select class="input" id="f-type"><option>Facture de fournisseur</option><option>Relevé bancaire</option><option>Reçu</option><option>Autre</option></select></div>
+      <div class="field"><label class="label" for="f-amount">Montant <span class="opt">(facultatif)</span></label><input class="input num" id="f-amount" inputmode="decimal" placeholder="0,00 $" aria-describedby="f-amount-hint"><p class="hint" id="f-amount-hint">Taxes incluses, si vous le savez.</p></div>
+      <div class="field full"><label class="label" for="f-note">Message à votre comptable <span class="opt">(facultatif)</span></label><textarea class="input" id="f-note" placeholder="Ex. : cette facture couvre deux mois"></textarea></div>
+      <div class="field full">
+        <span class="label" id="f-drop-l">Document</span>
+        <label class="dropzone" for="f-file"><svg class="i" aria-hidden="true"><use href="#i-upload"/></svg><b>Glissez votre fichier ici ou choisissez-le</b><span>PDF, JPG ou PNG · 20 Mo maximum · une photo prise avec le téléphone convient</span><input class="sr-only" id="f-file" type="file" accept=".pdf,.jpg,.jpeg,.png" aria-labelledby="f-drop-l"></label>
+      </div>
+      <div class="field full"><label class="check"><input type="checkbox" checked> M'envoyer un courriel quand BVY a traité ce document</label></div>
+      <div class="field"><label class="label" for="f-search">Rechercher</label><div class="input-icon"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg><input class="input" id="f-search" type="search" placeholder="Fournisseur, montant, date…"></div></div>
+      <div class="field"><span class="label" id="f-period">Période</span><div class="segmented" role="group" aria-labelledby="f-period"><button type="button" aria-pressed="true">Ce mois</button><button type="button" aria-pressed="false">Trimestre</button><button type="button" aria-pressed="false">Année</button></div></div>
+      <div class="field"><label class="label" for="f-dis">Champ désactivé</label><input class="input" id="f-dis" value="Géré par votre comptable" disabled></div>
+      <div class="field full"><div class="btn-row"><button class="btn btn-plum" type="button">Envoyer le document</button><button class="btn btn-ghost" type="button">Annuler</button></div></div>
+    </form>
+  </div>
+</section>
+
+<!-- ═════════════════════ 9. TABLEAUX ═════════════════════ -->
+<section class="g-sec" id="tableaux" aria-labelledby="h-tableaux">
+  <header>
+    <p class="t-eyebrow">9 · Tableaux</p>
+    <h2 class="t-h1" id="h-tableaux">Niveau 3 : le détail, quand on le demande</h2>
+    <p>Montants alignés à droite en chiffres tabulaires, état en badge, lien vers QuickBooks sur chaque ligne. Sur mobile, chaque ligne devient une petite carte.</p>
+  </header>
+  <div class="table-wrap" role="region" aria-labelledby="t-cap" tabindex="0">
+    <table class="table table-stack">
+      <caption id="t-cap">Ce que vos clients vous doivent — exemple, données fictives</caption>
+      <thead><tr><th scope="col">Client</th><th scope="col">Envoyée le</th><th scope="col">À payer le</th><th scope="col" class="r">Montant</th><th scope="col">État</th><th scope="col"><span class="sr-only">Action</span></th></tr></thead>
+      <tbody>
+        <tr><td class="who" data-label="Client">Groupe Laval<span class="sub">Facture 0412</span></td><td data-label="Envoyée le">12 août</td><td data-label="À payer le">11 septembre</td><td class="r" data-label="Montant">3&nbsp;450,00&nbsp;$</td><td data-label="État"><span class="badge b-act"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg>En retard de 20 j</span></td><td data-label="Action"><a class="qbo-link" href="https://qbo.intuit.com/" target="_blank" rel="noopener">Voir dans QuickBooks <span aria-hidden="true">↗</span><span class="sr-only">(nouvel onglet)</span></a></td></tr>
+        <tr><td class="who" data-label="Client">Café du Quai<span class="sub">Facture 0405</span></td><td data-label="Envoyée le">28 juillet</td><td data-label="À payer le">27 août</td><td class="r" data-label="Montant">1&nbsp;670,00&nbsp;$</td><td data-label="État"><span class="badge b-act"><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg>En retard de 35 j</span></td><td data-label="Action"><a class="qbo-link" href="https://qbo.intuit.com/" target="_blank" rel="noopener">Voir dans QuickBooks <span aria-hidden="true">↗</span><span class="sr-only">(nouvel onglet)</span></a></td></tr>
+        <tr><td class="who" data-label="Client">Rénovations Côté<span class="sub">Facture 0419</span></td><td data-label="Envoyée le">15 septembre</td><td data-label="À payer le">15 octobre</td><td class="r" data-label="Montant">6&nbsp;980,00&nbsp;$</td><td data-label="État"><span class="badge b-neutral">Dans les délais</span></td><td data-label="Action"><a class="qbo-link" href="https://qbo.intuit.com/" target="_blank" rel="noopener">Voir dans QuickBooks <span aria-hidden="true">↗</span><span class="sr-only">(nouvel onglet)</span></a></td></tr>
+      </tbody>
+      <tfoot><tr><td colspan="3">Total (3 sur 7 factures)</td><td class="r">12&nbsp;100,00&nbsp;$</td><td colspan="2"></td></tr></tfoot>
+    </table>
+  </div>
+</section>
+
+<!-- ═════════════════════ 10. NAVIGATION ═════════════════════ -->
+<section class="g-sec" id="navigation" aria-labelledby="h-navigation">
+  <header>
+    <p class="t-eyebrow">10 · Navigation</p>
+    <h2 class="t-h1" id="h-navigation">Neuf entrées, QuickBooks toujours à portée</h2>
+    <p>Voir l'exemple complet plus haut : barre latérale prune sur ordinateur, barre d'onglets en bas sur téléphone.</p>
+  </header>
+  <div class="g-panel">
+    <nav class="crumbs" aria-label="Fil d'Ariane (exemple)"><a href="#navigation">Accueil</a><span aria-hidden="true">/</span><a href="#navigation">Mes finances</a><span aria-hidden="true">/</span><span aria-current="page">Dépenses de septembre</span></nav>
+    <ul class="g-rules">
+      <li><b>Ordre fixe</b> : Accueil · À faire · Mes finances · Factures · Documents · Taxes · Rapports · Messages · QuickBooks ↗.</li>
+      <li><b>QuickBooks ↗</b> est séparé des autres entrées, encadré d'or, et répété dans la barre du haut (« Ouvrir QuickBooks ↗ ») sur tous les écrans. Il est masqué pour les clients sans QuickBooks.</li>
+      <li><b>Barre du haut</b> : état de la connexion QuickBooks + heure de la dernière synchronisation, toujours visibles.</li>
+      <li>Les compteurs (« À faire 3 ») sont des pastilles or ; ils annoncent leur sens aux lecteurs d'écran.</li>
+      <li>L'élément actif : texte or pâle + filet or à gauche + <span class="g-code">aria-current="page"</span>.</li>
+      <li>Mobile : Accueil, À faire, Finances, Messages et « Plus » (Factures, Documents, Taxes, Rapports, QuickBooks ↗).</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═════════════════════ 11. MODALE ═════════════════════ -->
+<section class="g-sec" id="modale" aria-labelledby="h-modale">
+  <header>
+    <p class="t-eyebrow">11 · Fenêtre modale</p>
+    <h2 class="t-h1" id="h-modale">Seulement pour confirmer</h2>
+    <p>Élément HTML <span class="g-code">&lt;dialog&gt;</span> : focus piégé, touche Échap, retour du focus au bouton d'origine. Sur mobile, elle monte du bas de l'écran.</p>
+  </header>
+  <div class="g-grid-2">
+    <div class="modal g-modal-preview" role="group" aria-label="Aperçu de modale">
+      <div class="modal-head"><h3 class="t-h2">Envoyer 3 documents ?</h3><button class="icon-btn" type="button" aria-label="Fermer"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+      <div class="modal-body"><p>Votre comptable BVY les recevra tout de suite. Vous pourrez encore ajouter un message après l'envoi.</p></div>
+      <div class="modal-foot"><button class="btn btn-ghost" type="button">Annuler</button><button class="btn btn-plum" type="button">Envoyer les documents</button></div>
+    </div>
+    <div class="g-panel">
+      <p>Essayez la vraie modale (clavier : Tab, Échap).</p>
+      <div><button class="btn btn-plum" type="button" data-open-modal="demo-modal">Ouvrir la modale</button></div>
+    </div>
+  </div>
+  <dialog class="modal" id="demo-modal" aria-labelledby="demo-modal-h">
+    <div class="modal-head"><h3 class="t-h2" id="demo-modal-h">Envoyer 3 documents ?</h3><button class="icon-btn" type="button" data-close aria-label="Fermer"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+    <div class="modal-body"><p>Votre comptable BVY les recevra tout de suite. Vous pourrez encore ajouter un message après l'envoi.</p></div>
+    <div class="modal-foot"><button class="btn btn-ghost" type="button" data-close>Annuler</button><button class="btn btn-plum" type="button" data-close data-toast="Documents envoyés|Votre comptable BVY les a reçus.">Envoyer les documents</button></div>
+  </dialog>
+</section>
+
+<!-- ═════════════════════ 12. ÉTATS ═════════════════════ -->
+<section class="g-sec" id="etats" aria-labelledby="h-etats">
+  <header>
+    <p class="t-eyebrow">12 · Vide, chargement, erreur</p>
+    <h2 class="t-h1" id="h-etats">Jamais un écran blanc, jamais un code d'erreur seul</h2>
+    <p>Un état vide rassure et dit quoi faire. Un chargement montre la forme du contenu. Une erreur dit ce qui ne va pas, ce qui reste fiable et comment réparer.</p>
+  </header>
+  <div class="g-grid wide">
+    <div class="card empty">
+      <span class="empty-ico" aria-hidden="true"><svg class="i"><use href="#i-ok"/></svg></span>
+      <h3 class="t-h3">Rien à faire pour l'instant</h3>
+      <p>Tout est à jour. Nous vous écrirons dès qu'une action sera nécessaire.</p>
+    </div>
+    <div class="card empty">
+      <span class="empty-ico neutral" aria-hidden="true"><svg class="i"><use href="#i-folder"/></svg></span>
+      <h3 class="t-h3">Aucun document encore</h3>
+      <p>Téléversez vos factures et reçus ici : votre comptable les classe pour vous.</p>
+      <button class="btn btn-outline btn-sm" type="button">Téléverser un document</button>
+    </div>
+    <div class="card" aria-busy="true" aria-label="Chargement des montants">
+      <span class="skeleton sk-line" style="width:45%"></span>
+      <span class="skeleton sk-amount"></span>
+      <span class="skeleton sk-line" style="width:85%"></span>
+      <p class="loading" role="status"><span class="spinner" aria-hidden="true"></span>Synchronisation avec QuickBooks…</p>
+    </div>
+    <div class="card">
+      <div class="state-error">
+        <span class="empty-ico" aria-hidden="true"><svg class="i"><use href="#i-unlink"/></svg></span>
+        <div>
+          <h3 class="t-h3">QuickBooks n'est plus connecté</h3>
+          <p class="t-small t-muted" style="margin-top:4px">Les montants affichés datent du 28 septembre. Reconnectez QuickBooks pour les mettre à jour.</p>
+          <div class="btn-row" style="margin-top:12px"><button class="btn btn-plum btn-sm" type="button">Reconnecter QuickBooks</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="state-error">
+        <span class="empty-ico" aria-hidden="true"><svg class="i"><use href="#i-alert"/></svg></span>
+        <div>
+          <h3 class="t-h3">Impossible d'afficher vos factures</h3>
+          <p class="t-small t-muted" style="margin-top:4px">Le problème vient de chez nous. Vos données ne sont pas touchées.</p>
+          <div class="btn-row" style="margin-top:12px"><button class="btn btn-outline btn-sm" type="button"><svg class="i i-sm" aria-hidden="true"><use href="#i-refresh"/></svg>Réessayer</button><a class="link" href="#etats">Écrire à BVY</a></div>
+          <p class="ref" style="margin-top:8px">Réf. ERR-7F3A</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════ 13. GRAPHIQUES ═════════════════════ -->
+<section class="g-sec" id="graphiques" aria-labelledby="h-graphiques">
+  <header>
+    <p class="t-eyebrow">13 · Graphiques</p>
+    <h2 class="t-h1" id="h-graphiques">Une phrase d'abord, le graphique ensuite</h2>
+    <p>Chaque graphique commence par sa conclusion en mots. Barres plutôt que camemberts, 3 couleurs au maximum, chiffres accessibles en tableau.</p>
+  </header>
+  <div class="g-grid-2">
+    <div class="g-panel">
+      <h3>Où va votre argent — septembre</h3>
+      <p class="chart-summary">Le matériel et les salaires représentent les deux tiers de vos dépenses.</p>
+      <div class="g-hbars">
+        <div class="g-hbar"><span>Matériel et fournitures</span><span class="track"><i style="width:37%"></i></span><span class="num">11&nbsp;240&nbsp;$</span></div>
+        <div class="g-hbar"><span>Salaires</span><span class="track"><i style="width:32%"></i></span><span class="num">9&nbsp;850&nbsp;$</span></div>
+        <div class="g-hbar"><span>Loyer</span><span class="track"><i style="width:10.5%"></i></span><span class="num">3&nbsp;200&nbsp;$</span></div>
+        <div class="g-hbar"><span>Autres</span><span class="track"><i style="width:20.4%"></i></span><span class="num">6&nbsp;210&nbsp;$</span></div>
+      </div>
+      <p class="t-meta">Exemple — données fictives.</p>
+    </div>
+    <div class="g-panel">
+      <h3>Règles</h3>
+      <ul class="g-rules">
+        <li>Couleurs : <span class="g-code">chart-1</span> prune (revenus), <span class="g-code">chart-2</span> or foncé (dépenses), <span class="g-code">chart-3</span> prune claire. Toutes ≥ 3:1 sur blanc.</li>
+        <li>Valeur écrite sur la dernière barre ou au bout de chaque barre horizontale.</li>
+        <li>SVG avec <span class="g-code">role="img"</span> + description, et « Voir les chiffres » (tableau).</li>
+        <li>Pas de 3D, pas d'axe tronqué, pas de score inventé. Évolution : « + 8 % » avec une flèche ET un mot.</li>
+        <li>Progression du travail : barre + texte (« 85 % », « Attend la tenue de livres »).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════ 14. VALIDATION CLIENT ═════════════════════ -->
+<section class="g-sec" id="validation" aria-labelledby="h-validation">
+  <header>
+    <p class="t-eyebrow">14 · Question de validation</p>
+    <h2 class="t-h1" id="h-validation">Une question d'affaires, pas de comptabilité</h2>
+    <p>Quand une transaction est ambiguë, on pose une question simple avec trois réponses. Jamais de numéro de compte. Après l'envoi, la carte confirme et disparaît de « À faire ».</p>
+  </header>
+  <div class="g-grid-2">
+    <article class="card ask" aria-labelledby="v-ask-q">
+      <p class="t-eyebrow">Question de votre comptable</p>
+      <p class="ask-q" id="v-ask-q">Nous avons trouvé un paiement Costco de 842,37&nbsp;$. Était-ce une dépense d'entreprise&nbsp;?</p>
+      <form data-ask>
+        <fieldset>
+          <legend class="sr-only">Votre réponse</legend>
+          <div class="choices" style="flex-direction:column">
+            <label class="choice"><input type="radio" name="v-costco" value="entreprise" required>Oui, dépense d'entreprise</label>
+            <label class="choice"><input type="radio" name="v-costco" value="personnel">Non, personnel</label>
+            <label class="choice"><input type="radio" name="v-costco" value="autre">Autre</label>
+          </div>
+          <div class="field ask-other" hidden>
+            <label class="label" for="v-costco-note">Expliquez en quelques mots</label>
+            <textarea class="input" id="v-costco-note"></textarea>
+          </div>
+        </fieldset>
+        <div class="btn-row" style="margin-top:16px"><button class="btn btn-plum" type="submit">Envoyer ma réponse</button></div>
+      </form>
+    </article>
+    <article class="card ask">
+      <p class="t-eyebrow">Après l'envoi</p>
+      <div class="ask-done" role="status">
+        <span class="empty-ico" aria-hidden="true"><svg class="i"><use href="#i-ok"/></svg></span>
+        <div>
+          <p class="t-h3">Merci, c'est noté.</p>
+          <p class="t-small t-muted" style="margin-top:4px">Paiement Costco du 18 septembre : <b>dépense d'entreprise</b>. Votre comptable BVY s'occupe du classement dans QuickBooks.</p>
+          <p class="t-meta" style="margin-top:8px">Vous pouvez changer d'avis dans « À faire » › Réponses envoyées.</p>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ═════════════════════ 15. MOBILE ═════════════════════ -->
+<section class="g-sec" id="mobile" aria-labelledby="h-mobile">
+  <header>
+    <p class="t-eyebrow">15 · Mobile</p>
+    <h2 class="t-h1" id="h-mobile">Le même portail, au pouce</h2>
+  </header>
+  <div class="g-panel">
+    <ul class="g-rules">
+      <li><b>Sous 960 px</b> : la barre latérale devient une barre d'onglets en bas (5 entrées), le reste dans « Plus ».</li>
+      <li><b>QuickBooks ↗</b> reste dans la barre du haut et dans « Plus ».</li>
+      <li><b>Sous 640 px</b> : une colonne ; les montants clés gardent leur taille ; les tableaux deviennent des cartes ; les choix deviennent pleine largeur.</li>
+      <li>Cibles tactiles ≥ 44 × 44 px ; rien ne déborde horizontalement à 390 px.</li>
+      <li>Modales en « tiroir » qui monte du bas ; toasts au-dessus de la barre d'onglets.</li>
+      <li>Téléversement : l'appareil photo du téléphone est accepté (« une photo convient »).</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═════════════════════ 16. ACCESSIBILITÉ ═════════════════════ -->
+<section class="g-sec" id="accessibilite" aria-labelledby="h-a11y">
+  <header>
+    <p class="t-eyebrow">16 · Accessibilité</p>
+    <h2 class="t-h1" id="h-a11y">WCAG 2.2 niveau AA, vérifié par script</h2>
+    <p><span class="g-code">node scripts/contrast.mjs</span> vérifie 46 paires texte/fond et échoue sous 4,5:1 (texte) ou 3:1 (grand texte, contours, graphiques).</p>
+  </header>
+  <div class="g-grid-2">
+    <div class="table-wrap" role="region" aria-labelledby="c-cap" tabindex="0">
+      <table class="table">
+        <caption id="c-cap">Contrastes principaux</caption>
+        <thead><tr><th scope="col">Paire</th><th scope="col" class="r">Ratio</th></tr></thead>
+        <tbody>
+          <tr><td>Texte sur blanc</td><td class="r">18,99:1</td></tr>
+          <tr><td>Texte secondaire sur fond crème</td><td class="r">10,03:1</td></tr>
+          <tr><td>Texte discret sur fond crème</td><td class="r">5,75:1</td></tr>
+          <tr><td>Navigation sur prune</td><td class="r">10,44:1</td></tr>
+          <tr><td>Élément actif (or pâle) sur prune</td><td class="r">10,14:1</td></tr>
+          <tr><td>Texte prune sur bouton or</td><td class="r">7,61:1</td></tr>
+          <tr><td>« Voir dans QuickBooks ↗ » (or encre) sur blanc</td><td class="r">6,05:1</td></tr>
+          <tr><td>« À surveiller » sur son fond (le plus faible)</td><td class="r">5,43:1</td></tr>
+          <tr><td>Contour de champ sur blanc</td><td class="r">3,92:1</td></tr>
+          <tr><td>Or 500 en texte sur blanc — <b>interdit</b></td><td class="r">2,49:1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="g-panel">
+      <ul class="g-rules">
+        <li>Lien d'évitement « Aller au contenu », un seul <span class="g-code">h1</span> par écran, titres dans l'ordre.</li>
+        <li>Focus toujours visible : anneau prune sur fond clair, or sur prune.</li>
+        <li>Tout se fait au clavier (Tab, Entrée, Espace, Échap) ; ordre de tabulation = ordre visuel.</li>
+        <li>États : mot + icône + couleur. Évolutions : flèche + signe + mot.</li>
+        <li>Liens externes annoncés « (nouvel onglet) ». Icônes décoratives en <span class="g-code">aria-hidden</span>.</li>
+        <li>Mouvement réduit respecté (<span class="g-code">prefers-reduced-motion</span>).</li>
+        <li>Texte jamais sous 12 px, zoom à 200 % sans perte, langue <span class="g-code">fr-CA</span>.</li>
+        <li>Montants : <span class="g-code">48&nbsp;215,60&nbsp;$</span> (espace insécable, virgule, $ après).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="g-foot">
+  <div class="g-wrap">
+    <span>BVY Accounting &amp; Tax Services Inc. — design system du portail, version 1.0 (1<sup>er</sup> octobre 2026)</span>
+    <code>STATUS: WAITING_FOR_OWNER_APPROVAL</code>
+  </div>
+</footer>
+
+<div class="toasts" aria-live="polite" aria-atomic="false"></div>
+<script src="gallery.js" defer></script>
+</body>
+</html>
