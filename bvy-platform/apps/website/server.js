@@ -5,6 +5,7 @@
  * Zero dependencies: node: built-ins only (Node >= 20.12).
  */
 
+const { smtpConfigFromEnv, sendMail, leadMessage } = require('./mailer.js');
 const http = require('node:http');
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
@@ -69,6 +70,7 @@ function envConfig() {
     host: process.env.HOST || '127.0.0.1',
     trustProxy: process.env.TRUST_PROXY === '1',
     webhookUrl: process.env.LEADS_WEBHOOK_URL || '',
+    smtp: smtpConfigFromEnv(),
     dataDir: path.resolve(__dirname, process.env.DATA_DIR || 'data'),
     publicDir: path.join(__dirname, 'public'),
   };
@@ -388,6 +390,11 @@ async function handleContact(req, res, cfg, limiter) {
       .catch((err) => console.error('Webhook des leads en échec:', err.message));
   }
 
+  if (cfg.smtp) {
+    sendMail(cfg.smtp, leadMessage(record))
+      .catch((err) => console.error('Courriel de notification en échec:', err.message));
+  }
+
   if (redirectAfter) {
     return send(res, 303, null, { Location: '/contact/merci/', 'Cache-Control': 'no-store' });
   }
@@ -404,6 +411,7 @@ function createServer(options = {}) {
     publicDir: path.resolve(options.publicDir ?? env.publicDir),
     dataDir: path.resolve(options.dataDir ?? env.dataDir),
     webhookUrl: options.webhookUrl ?? env.webhookUrl,
+    smtp: options.smtp !== undefined ? options.smtp : env.smtp,
     trustProxy: options.trustProxy ?? env.trustProxy,
     rateLimit: { max: 5, windowMs: 10 * 60 * 1000, ...(options.rateLimit || {}) },
   };
