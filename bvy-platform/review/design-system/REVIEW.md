@@ -1,6 +1,6 @@
 # Dossier de revue — design system du portail BVY, version 1.0
 
-`STATUS: WAITING_FOR_OWNER_APPROVAL`
+`STATUS: APPROVED` (propriétaire, 1er octobre 2026)
 
 Date : 1er octobre 2026. Phase 1 du plan (`CLAUDE.md`). Procédure : `workflows/01_design_system.md`.
 
@@ -77,4 +77,9 @@ clavier qui commence par « Aller au contenu ».
 Après `STATUS: APPROVED` : workflow 02 — connexion et rôles (administrateur BVY, comptable principal, tenue de
 livres, paie, fiscalité, client), puis le portail client (phase 3) construit avec ce design system.
 
-`STATUS: WAITING_FOR_OWNER_APPROVAL`
+`STATUS: APPROVED` (propriétaire, 1er octobre 2026)
+
+
+## Décision du propriétaire — 1er octobre 2026
+
+`STATUS: APPROVED`. Les cinq décisions sont retenues telles que proposées : boutons principaux prune avec un seul bouton or par écran ; boutons en casse normale ; fond lavande très pâle (#F8F4FF), cartes blanches et navigation prune ; contour des champs #8C7A99 et focus prune sur fond clair ; barre d’onglets en bas sur téléphone, QuickBooks ↗ toujours en haut.

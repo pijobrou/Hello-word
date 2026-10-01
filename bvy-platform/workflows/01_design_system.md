@@ -49,7 +49,7 @@ proxy, `IGNORE_HTTPS_ERRORS=1` for Google Fonts).
 5. Edit `components.css` and `gallery.html` (every component must appear in the gallery, in French).
 6. Screenshots: `node scripts/screenshots.mjs` → `review/design-system/`. Open every image; fix layout bugs until
    it reads as premium, calm and readable and the script reports no problem.
-7. Update `review/design-system/REVIEW.md` and **stop** with `STATUS: WAITING_FOR_OWNER_APPROVAL`.
+7. Update `review/design-system/REVIEW.md` and **stop** with `STATUS: APPROVED` (propriétaire, 1er octobre 2026).
 
 ## Design system definition
 
@@ -288,8 +288,13 @@ Lowest margin: « À surveiller » text on its background, 5.43:1.
 
 ## Approval gate
 
-Return `STATUS: WAITING_FOR_OWNER_APPROVAL` with `review/design-system/REVIEW.md`. Continue to workflow 02 only on
+Return `STATUS: APPROVED` (propriétaire, 1er octobre 2026) with `review/design-system/REVIEW.md`. Continue to workflow 02 only on
 `STATUS: APPROVED`. On `STATUS: CHANGES_REQUESTED`: collect changes → edit `tokens.json` / components → rebuild →
 contrast → screenshots → new review → wait again. On `STATUS: REJECTED`: stop.
 
-STATUS: WAITING_FOR_OWNER_APPROVAL
+STATUS: APPROVED
+
+
+## Décision du propriétaire — 1er octobre 2026
+
+`STATUS: APPROVED`. Les cinq décisions sont retenues telles que proposées : boutons principaux prune avec un seul bouton or par écran ; boutons en casse normale ; fond lavande très pâle (#F8F4FF), cartes blanches et navigation prune ; contour des champs #8C7A99 et focus prune sur fond clair ; barre d’onglets en bas sur téléphone, QuickBooks ↗ toujours en haut.
