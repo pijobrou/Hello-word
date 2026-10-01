@@ -49,3 +49,6 @@ html{scroll-padding-top:calc(var(--bvy-topbar-h) + var(--bvy-space-4))}
 textarea.input{min-height:110px}
 .sheet .link-btn.nav-item{width:100%;text-decoration:none;text-align:left;color:var(--bvy-nav-text);font-size:var(--bvy-fs-ui);font-weight:500;padding:8px var(--bvy-space-3)}
 .topbar .btn-qbo{white-space:nowrap}
+/* Le texte réservé aux lecteurs d'écran reste dans le cadre du tableau ; la ligne de synchronisation passe à la ligne sur téléphone. */
+.table-wrap{position:relative}
+.content .sync{display:flex;flex-wrap:wrap;white-space:normal;row-gap:2px}

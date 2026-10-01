@@ -86,7 +86,7 @@ function createPortal(db, { dataDir, audit, now = () => Date.now() }) {
     const id = requireAccess(actor, clientId);
     const row = db.prepare(`SELECT s.*, u.name AS updated_by_name FROM client_snapshots s
       LEFT JOIN users u ON u.id = s.updated_by WHERE s.client_id = ?`).get(id);
-    return row ? { ...JSON.parse(row.data), updatedAt: row.updated_at, updatedBy: row.updated_by_name } : null;
+    return row ? { ...JSON.parse(row.data), updatedAt: row.updated_at, updatedBy: row.updated_by_name, source: row.source || 'manual' } : null;
   }
 
   // Lignes « Libellé | explication » → [{ what, why }]

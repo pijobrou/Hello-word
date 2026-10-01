@@ -75,15 +75,20 @@ function taskItem(t, s, { compact = false, staff = false } = {}) {
     ${staffActions || (compact && t.status === 'open' ? `<div class="todo-actions"><a class="btn btn-plum btn-sm" href="/a-faire#t${t.id}">Faire</a></div>` : '')}</li>`;
 }
 
-function clientHome(s, { client, snap, tasks, nav, flash }) {
+function clientHome(s, { client, snap, tasks, nav, flash, sync = null }) {
   const first = esc(s.user.name.split(' ')[0]);
   const open = tasks.filter((t) => t.status === 'open');
   const intro = open.length
     ? `<b>${open.length} chose${open.length > 1 ? 's demandent' : ' demande'}</b> votre attention.`
     : 'Rien ne demande votre attention pour le moment.';
-  const qbo = client.qbo_url;
+  const qbo = nav.qboUrl;
+  const syncLine = sync ? `<p class="sync" role="status"><span class="dot${sync.status === 'connected' && sync.lastSyncStatus !== 'failed' ? '' : ' watch'}" aria-hidden="true"></span><span>${sync.status === 'connected'
+    ? `<b>QuickBooks connecté</b>${sync.lastSyncAt ? ` · dernière synchronisation le ${esc(dateTimeFr(sync.lastSyncAt))}` : ''}`
+    : '<b>Connexion QuickBooks à renouveler</b> · BVY s’en occupe ; vos derniers chiffres restent affichés avec leur date'}</span></p>` : '';
   const blocks = snap ? `
-    <p class="t-meta">Chiffres au ${esc(dateFr(snap.asOf))}, mis à jour par BVY${snap.updatedBy ? ` (${esc(snap.updatedBy)})` : ''}.${qbo ? ' Le détail complet est dans QuickBooks.' : ''}</p>
+    <p class="t-meta">${snap.source === 'qbo'
+    ? `Chiffres synchronisés avec QuickBooks le ${esc(dateTimeFr(snap.updatedAt))}. Le détail complet est dans QuickBooks.`
+    : `Chiffres au ${esc(dateFr(snap.asOf))}, mis à jour par BVY${snap.updatedBy ? ` (${esc(snap.updatedBy)})` : ''}.${qbo ? ' Le détail complet est dans QuickBooks.' : ''}`}</p>
     <div class="kpis">
       ${kpi('Argent disponible', 'i-wallet', snap.cash, qboLink(qbo))}
       ${kpi('Vos clients vous doivent', 'i-in', snap.receivable, qboLink(qbo))}
@@ -108,7 +113,7 @@ function clientHome(s, { client, snap, tasks, nav, flash }) {
   const body = `<div class="page-head"><div>
       <p class="t-eyebrow"><span>${esc(todayFr())}</span></p>
       <h1 class="t-display">Bonjour ${first}.</h1>
-      <p>Voici où en est ${esc(client.name)}${/\.$/.test(client.name) ? '' : '.'} ${intro}</p></div>
+      ${syncLine}<p>Voici où en est ${esc(client.name)}${/\.$/.test(client.name) ? '' : '.'} ${intro}</p></div>
       ${open.length ? `<div class="btn-row"><a class="btn btn-plum" href="/a-faire">Voir mes tâches ${icon('i-arrow', 'i i-sm')}</a></div>` : ''}</div>
     ${blocks}`;
   return appPage(s, { title: 'Accueil', current: '/accueil', body, flash, nav });
@@ -179,17 +184,22 @@ function staffHome(s, { rows, flash }) {
     ? `<div class="alert alert-watch">${icon('i-eye')}<div><p class="alert-title">Protégez mieux votre accès</p><p>Vous voyez des dossiers de clients : activez une application d’authentification.</p><div class="btn-row"><a class="btn btn-plum btn-sm" href="/compte#application">Activer maintenant</a></div></div></div>` : '';
   const body = `${pageHead('Espace BVY', `Bonjour ${first}.`, `${rows.length} client${rows.length > 1 ? 's' : ''} dans votre périmètre.`)}${mfaWarn}
     <article class="card mt-6"><div class="card-head"><h2 class="t-h3">Vos clients</h2></div>
-    ${rows.length ? `<div class="table-wrap"><table class="table"><thead><tr><th scope="col">Entreprise</th><th scope="col">Tâches ouvertes</th><th scope="col">Messages non lus</th><th scope="col">Tableau de bord</th></tr></thead><tbody>
+    ${rows.length ? `<div class="table-wrap"><table class="table"><thead><tr><th scope="col">Entreprise</th><th scope="col">Tâches ouvertes</th><th scope="col">Messages non lus</th><th scope="col">Tableau de bord</th><th scope="col">QuickBooks</th></tr></thead><tbody>
       ${rows.map((r) => `<tr><td><a class="link" href="/clients/${r.id}"><b>${esc(r.name)}</b></a></td><td class="num">${r.tasks}</td>
         <td>${r.unread ? `<a class="badge b-act" href="/clients/${r.id}/messages">${r.unread} non lu${r.unread > 1 ? 's' : ''}</a>` : '<span class="t-meta">—</span>'}</td>
-        <td>${r.asOf ? `<span class="t-meta">au ${esc(dateFr(r.asOf))}</span>` : '<span class="badge b-watch">À préparer</span>'}</td></tr>`).join('')}
+        <td>${r.asOf ? `<span class="t-meta">au ${esc(dateFr(r.asOf))}</span>` : '<span class="badge b-watch">À préparer</span>'}</td>
+        <td>${qboBadge(r.qbo)}${r.suggestions ? ` <a class="badge b-info" href="/clients/${r.id}/quickbooks">${r.suggestions} suggestion${r.suggestions > 1 ? 's' : ''}</a>` : ''}</td></tr>`).join('')}
       </tbody></table></div>` : `<div class="empty">${icon('i-users', 'i empty-ico')}<p><b>Aucun client pour l’instant.</b></p></div>`}</article>`;
   return appPage(s, { title: 'Clients', current: '/accueil', body, flash });
 }
 
 function staffClientShell(s, client, tab, inner, flash, counts = {}) {
-  const tabs = [['', 'Tableau de bord'], ['/taches', `Tâches${counts.tasks ? ` (${counts.tasks})` : ''}`], ['/documents', 'Documents'], ['/messages', `Messages${counts.unread ? ` (${counts.unread})` : ''}`]];
-  const body = `${pageHead('Dossier client', client.name, client.qbo_url ? qboLink(client.qbo_url, 'Ouvrir QuickBooks') : 'QuickBooks non relié')}
+  const q = counts.qbo;
+  const qboHome = q ? (q.environment === 'sandbox' ? 'https://app.sandbox.qbo.intuit.com/app/homepage' : 'https://app.qbo.intuit.com/app/homepage') : null;
+  const qboHead = client.qbo_url ? qboLink(client.qbo_url, 'Ouvrir QuickBooks')
+    : q ? `${qboLink(qboHome, 'Ouvrir QuickBooks')} ${q.status === 'connected' ? '' : '<span class="badge b-act">Reconnexion nécessaire</span>'}` : 'QuickBooks non relié';
+  const tabs = [['', 'Tableau de bord'], ['/quickbooks', `QuickBooks${counts.suggestions ? ` (${counts.suggestions})` : ''}`], ['/taches', `Tâches${counts.tasks ? ` (${counts.tasks})` : ''}`], ['/documents', 'Documents'], ['/messages', `Messages${counts.unread ? ` (${counts.unread})` : ''}`]];
+  const body = `${pageHead('Dossier client', client.name, qboHead)}
     <nav class="subnav" aria-label="Sections du dossier">${tabs.map(([p, l]) => `<a href="/clients/${client.id}${p}"${p === tab ? ' aria-current="page"' : ''}>${esc(l)}</a>`).join('')}</nav>
     ${inner}`;
   return appPage(s, { title: client.name, current: '/accueil', body, flash });
@@ -250,7 +260,51 @@ function staffMessages(s, { client, messages, flash, counts }) {
   return staffClientShell(s, client, '/messages', `<article class="card">${thread(s, messages, `/clients/${client.id}/messages`)}</article>`, flash, counts);
 }
 
+function qboBadge(q) {
+  if (!q) return '<span class="badge b-neutral">Non relié</span>';
+  if (q.status !== 'connected') return '<span class="badge b-act">Reconnexion nécessaire</span>';
+  if (q.lastSyncStatus === 'failed') return '<span class="badge b-watch">Synchronisation en échec</span>';
+  return '<span class="badge b-good">Connecté</span>';
+}
+
+function staffQuickbooks(s, { client, sync, items, enabled, flash, counts }) {
+  const csrf = csrfField(s);
+  const KIND = { uncategorized: 'Dépense non catégorisée', overdue_invoice: 'Facture en retard' };
+  let card;
+  if (!enabled) {
+    card = `<p>La connexion QuickBooks n’est pas encore configurée sur ce serveur (clés de l’application Intuit). Voir le guide DEPLOIEMENT.md, section QuickBooks.</p>`;
+  } else if (!sync) {
+    card = `<p>Reliez l’entreprise QuickBooks Online de ce client : BVY lira ses soldes bancaires, factures et dépenses (lecture seule, aucune modification dans QuickBooks) et vous proposera les tâches à faire.</p>
+      <form class="mt-4" method="post" action="/clients/${client.id}/quickbooks/connecter">${csrf}<button class="btn btn-plum" type="submit">Connecter QuickBooks</button></form>
+      <p class="t-meta mt-4">Il faut un accès administrateur à l’entreprise dans QuickBooks (par QuickBooks Online Accountant, ou par le client).</p>`;
+  } else {
+    card = `<p>${qboBadge(sync)} ${sync.companyName ? `<b>${esc(sync.companyName)}</b>` : ''} ${sync.environment === 'sandbox' ? '<span class="badge b-watch">Bac à sable (essai)</span>' : ''}</p>
+      <p class="mt-4">${sync.lastSyncAt ? `Dernière synchronisation : ${esc(dateTimeFr(sync.lastSyncAt))}.` : 'Pas encore synchronisé.'}</p>
+      ${sync.lastError ? `<div class="alert alert-watch mt-4">${icon('i-alert')}<div><p>${esc(sync.lastError)}</p></div></div>` : ''}
+      <div class="btn-row mt-4">
+        ${sync.status === 'connected'
+    ? `<form method="post" action="/clients/${client.id}/quickbooks/synchroniser">${csrf}<button class="btn btn-plum btn-sm" type="submit">Synchroniser maintenant</button></form>`
+    : `<form method="post" action="/clients/${client.id}/quickbooks/connecter">${csrf}<button class="btn btn-plum btn-sm" type="submit">Reconnecter QuickBooks</button></form>`}
+        <form method="post" action="/clients/${client.id}/quickbooks/deconnecter">${csrf}<button class="btn btn-ghost btn-sm" type="submit">Déconnecter</button></form>
+      </div>`;
+  }
+  const rows = items.map((it) => `<tr><td>${esc(KIND[it.kind] || it.kind)}</td><td>${esc(it.counterparty || '—')}${it.detail ? `<br><span class="t-meta">${esc(it.detail)}</span>` : ''}</td>
+    <td class="num">${it.amount_cents === null ? '—' : esc(formatAmount(it.amount_cents))}</td><td>${it.txn_date ? esc(dateFr(it.txn_date)) : ''}</td>
+    <td>${qboLink(it.qbo_url, 'Voir')}</td>
+    <td><div class="btn-row"><form method="post" action="/suggestions/${it.id}/envoyer">${csrf}<button class="btn btn-plum btn-sm" type="submit">Envoyer au client</button></form>
+      <form method="post" action="/suggestions/${it.id}/ignorer">${csrf}<button class="btn btn-ghost btn-sm" type="submit">Ignorer</button></form></div></td></tr>`).join('');
+  const inner = `<div class="cols-2"><article class="card"><div class="card-head"><h2 class="t-h3">Connexion QuickBooks Online</h2></div>${card}</article>
+    <article class="card"><div class="card-head"><h2 class="t-h3">Comment ça marche</h2></div>
+      <p>Chaque heure, BVY lit QuickBooks : argent en banque, factures impayées, factures à payer, revenus et dépenses des deux derniers mois. Le tableau de bord du client se met à jour tout seul ; la santé financière et « BVY travaille sur » restent écrits par vous.</p>
+      <p class="mt-4">Les éléments à faire détectés apparaissent ci-dessous. Rien n’est envoyé au client sans votre clic. Quand c’est corrigé dans QuickBooks, la tâche se ferme seule.</p></article></div>
+    <article class="card mt-6"><div class="card-head"><h2 class="t-h3">Suggestions QuickBooks</h2><span class="t-meta">${items.length} à traiter</span></div>
+      ${items.length ? `<div class="table-wrap"><table class="table"><thead><tr><th scope="col">Type</th><th scope="col">Tiers</th><th scope="col">Montant</th><th scope="col">Date</th><th scope="col">QuickBooks</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead><tbody>${rows}</tbody></table></div>`
+    : `<div class="empty">${icon('i-ok', 'i empty-ico')}<p><b>Rien à traiter.</b></p><p>${sync ? 'Aucune dépense non catégorisée ni facture en retard de plus de 30 jours.' : 'Connectez QuickBooks pour recevoir des suggestions.'}</p></div>`}</article>`;
+  return staffClientShell(s, client, '/quickbooks', inner, flash, counts);
+}
+
 module.exports = {
+  staffQuickbooks,
   clientHome, clientTasks, clientDocuments, clientReports, clientMessages,
   staffHome, staffDashboardForm, staffTasks, staffDocuments, staffMessages,
 };

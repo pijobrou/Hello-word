@@ -1,0 +1,21 @@
+# Synchronisation QuickBooks de tous les clients reliés (lecture seule)
+[Unit]
+Description=BVY portail - synchronisation QuickBooks
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=bvy
+Group=bvy
+EnvironmentFile=-/var/www/bvy-portail/shared/portail.env
+Environment=PORTAL_DATA_DIR=/var/www/bvy-portail/shared/data
+Environment=PORTAL_URL=https://portail.bvyaccountingtax.ca
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning /var/www/bvy-portail/current/cli.js sync-all
+TimeoutStartSec=15min
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/www/bvy-portail/shared/data
+ProtectHome=true
+PrivateTmp=true

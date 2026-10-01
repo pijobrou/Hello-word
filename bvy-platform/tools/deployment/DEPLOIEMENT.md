@@ -834,6 +834,52 @@ Les courriels du portail (codes, invitations, avis) utilisent les réglages SMTP
 
 ---
 
+## 9 ter. Connecter QuickBooks Online (phase 4)
+
+Le portail lit QuickBooks (lecture seule) avec **votre propre application Intuit**. Commencez par un essai sur la
+société « bac à sable » (sandbox) qu'Intuit fournit gratuitement, avant tout vrai client.
+
+**1. Créer l'application Intuit** (une seule fois, sur ordinateur)
+
+1. https://developer.intuit.com → **Sign in** avec votre compte Intuit (idéalement celui de QuickBooks Online Accountant).
+2. **Dashboard → Create an app → QuickBooks Online and Payments**, nom `BVY Portail`, accès **Accounting**.
+3. Dans l'application : **Keys & credentials → Development** (sandbox). Dans **Redirect URIs**, ajoutez exactement :
+   `https://portail.bvyaccountingtax.ca/quickbooks/retour` puis **Save**.
+4. Notez le **Client ID** et le **Client Secret**. Le Client Secret est un secret : ne le mettez jamais dans une
+   conversation, un courriel ou GitHub.
+
+**2. Mettre les clés sur le serveur** (le fichier est créé par le déploiement du portail, avec la clé de chiffrement)
+
+```bash
+sudo nano /var/www/bvy-portail/shared/portail.env
+```
+
+Complétez `QBO_CLIENT_ID=` et `QBO_CLIENT_SECRET=` (sans espace), laissez `QBO_ENV=sandbox` et ne touchez pas à
+`QBO_TOKEN_KEY`. `Ctrl + O`, Entrée, `Ctrl + X`, puis :
+
+```bash
+sudo systemctl restart bvy-portail
+```
+
+**3. Essai** : portail → un client → onglet **QuickBooks** → **Connecter QuickBooks** → connectez-vous chez Intuit
+avec le compte développeur → choisissez la société sandbox → **Connect**. De retour dans le portail : la première
+synchronisation remplit le tableau de bord et propose les suggestions. Ensuite, toutes les heures, tout seul.
+
+**4. Passer aux vrais clients** : **Keys & credentials → Production**. Intuit demande de remplir la fiche de
+l'application : politique de confidentialité `https://bvyaccountingtax.ca/confidentialite/`, conditions
+d'utilisation (page à créer sur le site), domaine `portail.bvyaccountingtax.ca`, URL de lancement
+`https://portail.bvyaccountingtax.ca/connexion`, et un questionnaire. Ajoutez la même Redirect URI en production,
+puis mettez les clés de production dans `portail.env` avec `QBO_ENV=production`, redémarrez, et connectez chaque
+client. Vous pouvez connecter vous-même les sociétés auxquelles vous avez accès par QuickBooks Online Accountant.
+
+Coût : gratuit au niveau « Builder » du programme de partenaires d'Intuit (500 000 lectures par mois incluses ; le
+portail en utilise environ 10 par client et par heure).
+
+Vérifier la synchronisation automatique : `systemctl list-timers bvy-portail-sync.timer` et
+`sudo journalctl -u bvy-portail-sync -n 20`.
+
+---
+
 ## 10. Mettre à jour, revenir en arrière, remettre l'ancien site
 
 ### 10.1 Publier une nouvelle version

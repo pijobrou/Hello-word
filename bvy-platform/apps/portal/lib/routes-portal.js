@@ -11,16 +11,21 @@ const { PortalError } = require('./portal.js');
 const P = require('./views-portal.js');
 const V = require('./views.js');
 
-function createPortalRoutes({ db, portal, notifyClient, notifyTeam }) {
+function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null }) {
   const isStaff = (u) => STAFF_ROLES.includes(u.role);
 
+  const qboStatus = (clientId) => (qboService ? qboService.status(clientId) : null);
+
+  // Lien « Ouvrir QuickBooks » : celui saisi par l'équipe, sinon l'accueil QuickBooks si l'entreprise est connectée.
   function clientNav(u) {
     const c = portal.client(u.client_id);
-    return { tasks: portal.openTaskCount(u, u.client_id), messages: portal.unreadCount(u, u.client_id), qboUrl: c && c.qbo_url };
+    const q = qboStatus(u.client_id);
+    const home = q ? (q.environment === 'sandbox' ? 'https://app.sandbox.qbo.intuit.com/app/homepage' : 'https://app.qbo.intuit.com/app/homepage') : null;
+    return { tasks: portal.openTaskCount(u, u.client_id), messages: portal.unreadCount(u, u.client_id), qboUrl: (c && c.qbo_url) || home };
   }
 
   function counts(u, clientId) {
-    return { tasks: portal.openTaskCount(u, clientId), unread: portal.unreadCount(u, clientId) };
+    return { tasks: portal.openTaskCount(u, clientId), unread: portal.unreadCount(u, clientId), suggestions: qboService ? qboService.newSuggestionCount(clientId) : 0, qbo: qboStatus(clientId) };
   }
 
   async function handle(ctx) {
@@ -35,11 +40,12 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam }) {
       if (p === '/accueil' && GET) {
         if (u.role === 'client') {
           const client = portal.client(u.client_id);
-          return send200(res, P.clientHome(s, { client, snap: portal.getSnapshot(u, u.client_id), tasks: portal.listTasks(u, u.client_id, { open: true }), nav: clientNav(u), flash: flashOf(url) })), true;
+          return send200(res, P.clientHome(s, { client, snap: portal.getSnapshot(u, u.client_id), tasks: portal.listTasks(u, u.client_id, { open: true }), nav: clientNav(u), flash: flashOf(url), sync: qboStatus(u.client_id) })), true;
         }
         const rows = visibleClients(db, u).map((c) => {
           const snap = db.prepare('SELECT data FROM client_snapshots WHERE client_id = ?').get(c.id);
-          return { ...c, tasks: portal.openTaskCount(u, c.id), unread: portal.unreadCount(u, c.id), asOf: snap ? JSON.parse(snap.data).asOf : null };
+          return { ...c, tasks: portal.openTaskCount(u, c.id), unread: portal.unreadCount(u, c.id), asOf: snap ? JSON.parse(snap.data).asOf : null,
+            qbo: qboStatus(c.id), suggestions: qboService ? qboService.newSuggestionCount(c.id) : 0 };
         });
         return send200(res, P.staffHome(s, { rows, flash: flashOf(url) })), true;
       }
@@ -97,6 +103,39 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam }) {
           portal.closeTask(u, task.id, form.status, ip);
           return ok(`/clients/${task.client_id}/taches`, form.status === 'cancelled' ? 'Tâche annulée.' : 'Tâche terminée.'), true;
         }
+        // Retour d'Intuit après l'autorisation (la session de l'employé suit, témoin SameSite=Lax).
+        if (p === '/quickbooks/retour' && GET) {
+          if (url.searchParams.get('error')) {
+            return redirect(res, `/accueil?erreur=${encodeURIComponent('La connexion QuickBooks a été annulée ou refusée.')}`), true;
+          }
+          if (!qboService) throw new PortalError('QuickBooks n’est pas encore configuré sur ce serveur.');
+          const cid = await qboService.finishConnect(u, { code: url.searchParams.get('code'), state: url.searchParams.get('state'), realmId: url.searchParams.get('realmId') }, ip);
+          let msg = 'QuickBooks est connecté.';
+          try { await qboService.sync(cid, 'connect', u); msg += ' Première synchronisation terminée.'; } catch (err) { msg += ` La première synchronisation a échoué : ${err.message}`; }
+          return ok(`/clients/${cid}/quickbooks`, msg), true;
+        }
+        const sg = p.match(/^\/suggestions\/(\d+)\/(envoyer|ignorer)$/);
+        if (sg && POST && qboService) {
+          if (sg[2] === 'envoyer') {
+            const r = qboService.sendSuggestion(u, sg[1], ip);
+            notifyClient(r.clientId, u.id, 'Vous avez une nouvelle tâche dans votre portail BVY');
+            return ok(`/clients/${r.clientId}/quickbooks`, 'Tâche envoyée au client.'), true;
+          }
+          const cid = qboService.dismissSuggestion(u, sg[1], ip);
+          return ok(`/clients/${cid}/quickbooks`, 'Suggestion ignorée.'), true;
+        }
+        const q = p.match(/^\/clients\/(\d+)\/quickbooks\/(connecter|synchroniser|deconnecter)$/);
+        if (q && POST) {
+          const cid = Number(q[1]);
+          if (!qboService || !qboService.enabled) throw new PortalError('QuickBooks n’est pas encore configuré sur ce serveur.');
+          if (q[2] === 'connecter') return redirect(res, qboService.startConnect(u, cid)), true;
+          if (q[2] === 'synchroniser') {
+            const st = await qboService.sync(cid, 'manual', u);
+            return ok(`/clients/${cid}/quickbooks`, `Synchronisé : ${st.banks} compte(s) bancaire(s), ${st.invoices} facture(s) impayée(s), ${st.bills} facture(s) à payer.`), true;
+          }
+          await qboService.disconnect(u, cid, ip);
+          return ok(`/clients/${cid}/quickbooks`, 'QuickBooks déconnecté : les autorisations sont retirées.'), true;
+        }
         const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages))?$/);
         if (c) {
           const cid = Number(c[1]);
@@ -108,6 +147,10 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam }) {
             portal.saveSnapshot(u, cid, form, ip);
             notifyClient(cid, u.id, 'Votre tableau de bord BVY a été mis à jour');
             return ok(`/clients/${cid}`, 'Tableau de bord publié pour le client.'), true;
+          }
+          if (sub === '/quickbooks' && GET) {
+            return send200(res, P.staffQuickbooks(s, { client, sync: qboStatus(cid), items: qboService ? qboService.suggestions(u, cid) : [],
+              enabled: Boolean(qboService && qboService.enabled), flash: flashOf(url), counts: counts(u, cid) })), true;
           }
           if (sub === '/quickbooks' && POST) {
             portal.setQboUrl(u, cid, form.qboUrl, ip);

@@ -5,6 +5,7 @@
  *   node cli.js create-admin <courriel> "<Prénom Nom>"   premier administrateur : affiche un lien d'invitation (72 h)
  *   node cli.js list-users                               liste des comptes
  *   node cli.js unlock <courriel>                        déverrouille un compte après trop d'essais
+ *   node cli.js sync-all                                 synchronise tous les clients reliés à QuickBooks (minuterie horaire)
  *   node cli.js backup [jours]                           copie cohérente de la base dans DATA_DIR/backups (garde N jours, 14 par défaut)
  */
 
@@ -16,7 +17,28 @@ try { process.loadEnvFile(path.join(__dirname, '.env')); } catch { /* facultatif
 const { openDb } = require('./lib/db.js');
 const { createAccounts, AccountError } = require('./lib/accounts.js');
 
+async function syncAll(out = console) {
+  const { qboConfigFromEnv, createQbo } = require('./lib/qbo.js');
+  const { createQboService } = require('./lib/qbo-sync.js');
+  const { createPortal } = require('./lib/portal.js');
+  const dataDir = path.resolve(__dirname, process.env.PORTAL_DATA_DIR || 'data');
+  const cfg = qboConfigFromEnv(process.env, process.env.PORTAL_URL || 'https://portail.bvyaccountingtax.ca');
+  if (!cfg) { out.log('QuickBooks non configuré : rien à synchroniser.'); return 0; }
+  const db = openDb(path.join(dataDir, 'portail.sqlite'));
+  try {
+    const acc = createAccounts(db);
+    const portal = createPortal(db, { dataDir, audit: acc.audit });
+    const service = createQboService(db, { qbo: createQbo(cfg), portal, audit: acc.audit });
+    const r = await service.syncAll(out);
+    out.log(`Synchronisation QuickBooks : ${r.ok}/${r.total} client(s) à jour.`);
+    return r.ok === r.total ? 0 : 1;
+  } finally {
+    db.close();
+  }
+}
+
 function main(argv, out = console) {
+  if (argv[0] === 'sync-all') return syncAll(out);
   const dataDir = path.resolve(__dirname, process.env.PORTAL_DATA_DIR || 'data');
   const publicUrl = (process.env.PORTAL_URL || 'https://portail.bvyaccountingtax.ca').replace(/\/+$/, '');
   const db = openDb(path.join(dataDir, 'portail.sqlite'));
@@ -55,7 +77,7 @@ function main(argv, out = console) {
       out.log(`Compte ${u.email} déverrouillé.`);
       return 0;
     }
-    out.log('Commandes : create-admin <courriel> "<Prénom Nom>" | list-users | unlock <courriel> | backup [jours]');
+    out.log('Commandes : create-admin <courriel> "<Prénom Nom>" | list-users | unlock <courriel> | backup [jours] | sync-all');
     return 1;
   } catch (err) {
     if (!(err instanceof AccountError)) throw err;
@@ -66,6 +88,8 @@ function main(argv, out = console) {
   }
 }
 
-module.exports = { main };
+module.exports = { main, syncAll };
 
-if (require.main === module) process.exitCode = main(process.argv.slice(2));
+if (require.main === module) {
+  Promise.resolve(main(process.argv.slice(2))).then((code) => { process.exitCode = code; }, (err) => { console.error(err); process.exitCode = 1; });
+}

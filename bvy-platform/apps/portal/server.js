@@ -22,6 +22,8 @@ const mailer = require('./lib/mailer.js');
 const { createPortal, MAX_UPLOAD } = require('./lib/portal.js');
 const { createPortalRoutes } = require('./lib/routes-portal.js');
 const multipart = require('./lib/multipart.js');
+const { qboConfigFromEnv, createQbo } = require('./lib/qbo.js');
+const { createQboService } = require('./lib/qbo-sync.js');
 
 const COOKIE = '__Host-bvy_session';
 const MAX_BODY = 16 * 1024;
@@ -169,7 +171,11 @@ function createServer(options = {}) {
     const c = portal.client(clientId);
     sendOrFail({ to: notifyTo, subject: `${subject} — ${c ? c.name : `client ${clientId}`}`, text: `${subject} (${c ? c.name : ''}).\n\nDossier : ${cfg.publicUrl}/clients/${clientId}\n` });
   }
-  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam });
+  // QuickBooks Online (workflow 04) : actif seulement si l'application Intuit est configurée (ou un faux client en test).
+  const qboCfg = options.qbo !== undefined ? options.qbo : qboConfigFromEnv(process.env, cfg.publicUrl);
+  const qbo = qboCfg ? (qboCfg.authorizeUrl ? qboCfg : createQbo(qboCfg, { now: options.now })) : null;
+  const qboService = createQboService(db, { qbo, portal, audit: acc.audit, now: options.now });
+  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService });
 
   async function serveAsset(req, res, pathname) {
     const name = path.basename(pathname);
@@ -457,6 +463,7 @@ function createServer(options = {}) {
   });
 
   server.db = db;
+  server.qboService = qboService;
   server.accounts = acc;
   server.config = cfg;
   server.on('close', () => authLimiter.stop());

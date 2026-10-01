@@ -141,6 +141,61 @@ const MIGRATIONS = [
     PRIMARY KEY (user_id, client_id)
   );
   `,
+  // 3 — QuickBooks Online : connexions, états OAuth, synchronisations, suggestions
+  `
+  ALTER TABLE client_snapshots ADD COLUMN source TEXT NOT NULL DEFAULT 'manual';
+  ALTER TABLE tasks ADD COLUMN qbo_item_id INTEGER;
+  CREATE TABLE qbo_connections (
+    client_id        INTEGER PRIMARY KEY REFERENCES clients(id),
+    realm_id         TEXT NOT NULL UNIQUE,
+    company_name     TEXT,
+    environment      TEXT NOT NULL CHECK (environment IN ('sandbox','production')),
+    access_enc       TEXT,
+    refresh_enc      TEXT,
+    access_expires   INTEGER NOT NULL DEFAULT 0,
+    refresh_expires  INTEGER NOT NULL DEFAULT 0,
+    status           TEXT NOT NULL CHECK (status IN ('connected','needs_reconnect')),
+    connected_by     INTEGER REFERENCES users(id),
+    connected_at     TEXT NOT NULL,
+    last_sync_at     TEXT,
+    last_sync_status TEXT,
+    last_error       TEXT
+  );
+  CREATE TABLE qbo_oauth_states (
+    state_hash  TEXT PRIMARY KEY,
+    client_id   INTEGER NOT NULL REFERENCES clients(id),
+    user_id     INTEGER NOT NULL REFERENCES users(id),
+    created_at  INTEGER NOT NULL
+  );
+  CREATE TABLE sync_jobs (
+    id           INTEGER PRIMARY KEY,
+    client_id    INTEGER NOT NULL REFERENCES clients(id),
+    trigger      TEXT NOT NULL,
+    started_at   TEXT NOT NULL,
+    finished_at  TEXT,
+    status       TEXT NOT NULL CHECK (status IN ('running','ok','failed')),
+    error        TEXT,
+    stats        TEXT
+  );
+  CREATE INDEX sync_jobs_client ON sync_jobs(client_id, id);
+  CREATE TABLE qbo_items (
+    id            INTEGER PRIMARY KEY,
+    client_id     INTEGER NOT NULL REFERENCES clients(id),
+    kind          TEXT NOT NULL CHECK (kind IN ('uncategorized','overdue_invoice')),
+    qbo_type      TEXT NOT NULL,
+    qbo_id        TEXT NOT NULL,
+    txn_date      TEXT,
+    amount_cents  INTEGER,
+    counterparty  TEXT,
+    detail        TEXT,
+    qbo_url       TEXT,
+    status        TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','sent','dismissed','resolved')),
+    task_id       INTEGER REFERENCES tasks(id),
+    first_seen    TEXT NOT NULL,
+    last_seen     TEXT NOT NULL,
+    UNIQUE (client_id, kind, qbo_type, qbo_id)
+  );
+  `,
 ];
 
 function openDb(file) {

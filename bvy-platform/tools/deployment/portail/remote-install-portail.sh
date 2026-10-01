@@ -110,13 +110,31 @@ ok "Extraite dans $NEW"
 
 # ------------------------------------------------------------------ systemd
 step "4. Services"
-for u in bvy-portail.service bvy-portail-backup.service bvy-portail-backup.timer; do
+for u in bvy-portail.service bvy-portail-backup.service bvy-portail-backup.timer bvy-portail-sync.service bvy-portail-sync.timer; do
   tr -d '\r' < "$SCRIPT_DIR/systemd/$u" > "/etc/systemd/system/$u"; chmod 644 "/etc/systemd/system/$u"
 done
 systemctl daemon-reload
-systemctl enable "$SERVICE" bvy-portail-backup.timer >/dev/null 2>&1
-systemctl start bvy-portail-backup.timer
-ok "Service $SERVICE et sauvegarde quotidienne (03 h 15) installés"
+systemctl enable "$SERVICE" bvy-portail-backup.timer bvy-portail-sync.timer >/dev/null 2>&1
+systemctl start bvy-portail-backup.timer bvy-portail-sync.timer
+ok "Service $SERVICE, sauvegarde quotidienne (03 h 15) et synchronisation QuickBooks horaire installés"
+# Réglages propres au portail (QuickBooks) : créés une fois, jamais écrasés, lisibles par « bvy » seulement.
+PENV="$SHARED/portail.env"
+if [ ! -f "$PENV" ]; then
+  cat > "$PENV" <<'ENVEOF'
+# Réglages du portail BVY — sudo nano /var/www/bvy-portail/shared/portail.env  puis  sudo systemctl restart bvy-portail
+# NE JAMAIS copier ce fichier dans Git ni dans une conversation.
+# --- QuickBooks Online (application Intuit, developer.intuit.com) ---
+# sandbox pour les essais, production pour les vrais clients
+QBO_ENV=sandbox
+QBO_CLIENT_ID=
+QBO_CLIENT_SECRET=
+# Clé de chiffrement des jetons : générée automatiquement à l'installation, ne pas la changer.
+QBO_TOKEN_KEY=
+ENVEOF
+  sed -i "s|^QBO_TOKEN_KEY=$|QBO_TOKEN_KEY=$(openssl rand -base64 32)|" "$PENV"
+  ok "$PENV créé (clé de chiffrement QuickBooks générée)"
+fi
+chown root:"$APP_USER" "$PENV"; chmod 640 "$PENV"
 
 # ------------------------------------------------------- activation + santé
 step "5. Mise en ligne de la version"
