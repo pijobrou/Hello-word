@@ -313,3 +313,11 @@ test('HEAD = GET : jamais traité comme une tentative de connexion ou de code', 
     assert.strictEqual(ok.headers.location, '/accueil', 'les HEAD n’ont pas consommé les essais du code');
   } finally { ctx.app.close(); }
 });
+
+test('CSP : les formulaires peuvent rediriger vers Intuit (bouton « Connecter QuickBooks »), pas ailleurs', () => {
+  const { SECURITY_HEADERS } = require('../server.js');
+  const formAction = SECURITY_HEADERS['Content-Security-Policy'].match(/form-action ([^;]+)/)[1].split(/\s+/);
+  const { AUTH_URL } = require('../lib/qbo.js');
+  assert.ok(formAction.includes(new URL(AUTH_URL).origin), 'la page d’autorisation Intuit doit être permise');
+  assert.deepStrictEqual(formAction.filter((s) => s !== "'self'" && !/^https:\/\/([*a-z]+\.)?intuit\.com$|^https:\/\/appcenter\.intuit\.com$/.test(s)), [], 'aucune autre origine');
+});

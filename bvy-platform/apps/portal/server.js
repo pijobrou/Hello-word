@@ -31,7 +31,8 @@ const MAX_BODY = 16 * 1024;
 const SECURITY_HEADERS = Object.freeze({
   'Content-Security-Policy':
     "default-src 'self'; img-src 'self' data:; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; " +
-    "script-src 'self'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'",
+    // form-action : le bouton « Connecter QuickBooks » est un formulaire qui redirige vers Intuit ; sans ces origines, le navigateur bloque l'envoi sans rien afficher.
+    "script-src 'self'; connect-src 'self'; form-action 'self' https://appcenter.intuit.com https://*.intuit.com; frame-ancestors 'none'; base-uri 'none'; object-src 'none'",
   'X-Content-Type-Options': 'nosniff',
   // « same-origin » (et non « no-referrer ») : sinon le navigateur envoie « Origin: null » sur nos propres formulaires.
   'Referrer-Policy': 'same-origin',
