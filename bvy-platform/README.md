@@ -2,7 +2,7 @@
 
 Projet BVY organisé selon le cadre WAT (Workflows, Agents, Tools) décrit dans `CLAUDE.md`.
 
-**Phase actuelle : 2 — connexion et rôles.** Site public : `STATUS: APPROVED` (1er octobre 2026). Design system : `STATUS: APPROVED` (1er octobre 2026).
+**Phase actuelle : 2 — connexion et rôles (construite et testée, `apps/portal`, pas encore en ligne).** Site public et design system : `STATUS: APPROVED` (1er octobre 2026).
 Rien d'autre (portail, QuickBooks, IA) n'est construit avant l'approbation du site par la propriétaire ou le propriétaire.
 
 | Dossier | Contenu |

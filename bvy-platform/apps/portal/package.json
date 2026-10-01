@@ -1,0 +1,15 @@
+{
+  "name": "bvy-portal",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Portail BVY — connexion, rôles et portail client. Node.js, sans dépendance (node:sqlite).",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js",
+    "sync-design": "node scripts/sync-design.js"
+  }
+}
