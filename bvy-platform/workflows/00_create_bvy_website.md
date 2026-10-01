@@ -131,3 +131,12 @@ On `STATUS: REJECTED`: stop.
   appointment schedule (booking page managed by Google). `BOOKING_URL` in the server `.env` (Google Calendar
   links only) is given by Jessica, shown at the bottom of her window and used in the client acknowledgement email.
   Jessica cannot see availability or book on someone's behalf. Privacy policy updated. Tests 37/37.
+- 2026-10-01 — v7 (owner request: Jessica takes name, email, phone, books by availability and records it in Google
+  Drive). `google.js` (service-account JWT, freeBusy, events.insert, Sheets append; no dependency) and `booking.js`
+  (Québec time zone slots Mon–Fri 8–17, 18 h lead, 14 days; tools `voir_disponibilites` / `reserver_rendez_vous`).
+  Jessica must obtain consent and an explicit « oui » on a recap before booking; the server re-checks the slot,
+  validates contact data, caps 2/IP, 1/email per day, 15/day site-wide. Event in the owner's calendar, row in a
+  Google Sheet, local copy `data/rendez-vous.jsonl` (Canada), confirmation email to the client and notice to BVY.
+  The meeting is a phone call (service accounts cannot invite attendees on a personal Google account). Privacy
+  policy updated (Google outside Canada). Setup: `DEPLOIEMENT.md` §9.4 ter. Tests 43/43 with fake Google/Claude.
+  Not tested against the real Google and Claude APIs yet.

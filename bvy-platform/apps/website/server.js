@@ -8,6 +8,8 @@
 const { smtpConfigFromEnv, sendMail, leadMessage, confirmationMessage } = require('./mailer.js');
 const { createChat, chatConfigFromEnv } = require('./chat.js');
 const { isBlockedAgent } = require('./bots.js');
+const { googleConfigFromEnv, createGoogle } = require('./google.js');
+const { bookingConfigFromEnv, createBooking, appointmentMessages } = require('./booking.js');
 const http = require('node:http');
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
@@ -77,6 +79,8 @@ function envConfig() {
     webhookUrl: process.env.LEADS_WEBHOOK_URL || '',
     smtp: smtpConfigFromEnv(),
     chat: chatConfigFromEnv(),
+    google: googleConfigFromEnv(),
+    booking: bookingConfigFromEnv(),
     dataDir: path.resolve(__dirname, process.env.DATA_DIR || 'data'),
     publicDir: path.join(__dirname, 'public'),
   };
@@ -446,7 +450,20 @@ function createServer(options = {}) {
   const limiter = createRateLimiter(cfg.rateLimit);
   const confirmations = createDailyCap(cfg.confirmationsPerDay);
   const chatLimiter = createRateLimiter(cfg.chat.rateLimit);
-  const chat = createChat(cfg.chat, { limiter: chatLimiter, dailyCap: createDailyCap(cfg.chat.maxPerDay) });
+  // Rendez-vous par Jessica : actif seulement si l'agenda Google est configuré (ou un faux agenda en test).
+  const google = options.google || (env.google && options.google !== null ? createGoogle(env.google) : null);
+  let booking = null;
+  if (google) {
+    const mail = cfg.smtp
+      ? async (r) => {
+        const { client, team } = appointmentMessages(r, { replyTo: cfg.smtp.to[0] });
+        await sendMail(cfg.smtp, client);
+        await sendMail(cfg.smtp, team);
+      }
+      : null;
+    booking = createBooking({ ...env.booking, ...(options.booking || {}) }, { google, mail, dataDir: cfg.dataDir, now: options.now });
+  }
+  const chat = createChat(cfg.chat, { limiter: chatLimiter, dailyCap: createDailyCap(cfg.chat.maxPerDay), booking });
 
   const server = http.createServer(async (req, res) => {
     try {
@@ -476,6 +493,7 @@ function createServer(options = {}) {
   });
 
   server.config = cfg;
+  server.google = google;
   server.on('close', () => { limiter.stop(); chatLimiter.stop(); });
   return server;
 }
@@ -488,6 +506,13 @@ if (require.main === module) {
   server.listen(port, host, () => {
     console.log(`BVY website running on http://${host}:${port}`);
   });
+  // Vérification de l'agenda Google au démarrage (visible avec : journalctl -u bvy-website)
+  if (server.google) {
+    const t = Date.now();
+    server.google.busy(new Date(t).toISOString(), new Date(t + 86_400_000).toISOString())
+      .then(() => console.log('Rendez-vous Jessica : connexion à Google Agenda OK.'))
+      .catch((err) => console.error('Rendez-vous Jessica : Google Agenda inaccessible :', err.message));
+  }
 
   const shutdown = (signal) => {
     console.log(`${signal} reçu, arrêt en cours...`);

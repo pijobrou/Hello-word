@@ -5,7 +5,10 @@
  *
  * POST /api/chat  { messages: [{ role: 'user' | 'assistant', content: string }, ...] }
  *              →  { ok: true, reply: string }
- * GET  /api/chat  →  { ok: true, enabled: boolean }   (le widget reste caché si enabled = false)
+ * GET  /api/chat  →  { ok: true, enabled, bookingUrl, booking }   (le widget reste caché si enabled = false)
+ *
+ * Si l'agenda Google est configuré (booking.js), Jessica peut voir les disponibilités et réserver
+ * la consultation avec deux outils, exécutés sur le serveur avec leurs propres garde-fous.
  *
  * La conversation n'est jamais enregistrée par BVY : l'historique vit dans l'onglet du visiteur et
  * est renvoyé à chaque question. Les messages sont traités par l'API Claude d'Anthropic.
@@ -63,8 +66,16 @@ function bookingUrlFromEnv(env = process.env) {
   return BOOKING_RE.test(url) ? url : '';
 }
 
-// Consignes du système, avec la réservation directe dans l'agenda quand elle est configurée.
-function systemPrompt(bookingUrl) {
+const NO_BOOKING_RULE = `- Tu ne peux ni réserver un rendez-vous, ni envoyer un courriel, ni consulter un dossier client. Pour être rappelé ou réserver, la personne remplit le formulaire : ${SITE}/rendez-vous/`;
+const BOOKING_RULES =
+  '- Tu peux réserver la consultation gratuite dans l’agenda de BVY avec tes outils (voir plus bas). Tu ne peux ni envoyer un courriel toi-même, ni consulter un dossier client.\n' +
+  '- Exception à la règle précédente, pour réserver seulement : tu peux demander le prénom, le nom, le courriel, le numéro de téléphone et le besoin en une phrase.';
+
+// Consignes du système : réservation par outils (booking) ou lien Google Agenda (bookingUrl), sinon formulaire.
+function systemPrompt(bookingUrl, booking) {
+  if (booking) {
+    return SYSTEM_PROMPT.replace(NO_BOOKING_RULE, BOOKING_RULES) + '\n' + booking.prompt;
+  }
   if (!bookingUrl) return SYSTEM_PROMPT;
   return `${SYSTEM_PROMPT}
 - Réservation directe : la personne peut choisir elle-même un moment libre pour la consultation gratuite de 30 minutes dans l’agenda de BVY : ${bookingUrl} — Google Agenda confirme le rendez-vous par courriel. Quand quelqu’un veut un rendez-vous, donne d’abord ce lien. Tu ne vois pas les disponibilités et tu ne peux pas réserver à sa place : ne propose jamais de date ni d’heure. Le formulaire ${SITE}/rendez-vous/ reste possible pour écrire un message.`;
@@ -121,7 +132,9 @@ function replyText(message) {
     .trim();
 }
 
-function createChat(cfg, { limiter, dailyCap }) {
+const MAX_TOOL_ROUNDS = 5;
+
+function createChat(cfg, { limiter, dailyCap, booking = null }) {
   const Anthropic = cfg.client ? null : loadSdk();
   let client = cfg.client || null;
   if (!client && Anthropic && cfg.apiKey && !cfg.disabled) {
@@ -133,22 +146,38 @@ function createChat(cfg, { limiter, dailyCap }) {
   }
 
   const bookingUrl = BOOKING_RE.test(cfg.bookingUrl || '') ? cfg.bookingUrl : '';
-  const prompt = systemPrompt(bookingUrl);
+  const prompt = systemPrompt(bookingUrl, booking);
 
-  async function ask(messages) {
-    // Fallback serveur : si les garde-fous du modèle refusent la demande, l'API la relance sur
-    // le modèle de repli recommandé (choisi selon la catégorie du refus).
-    const message = await client.beta.messages.create({
-      model: cfg.model,
-      max_tokens: 2048,
-      betas: ['server-side-fallback-2026-07-01'],
-      fallbacks: 'default',
-      output_config: { effort: 'low' },
-      cache_control: { type: 'ephemeral' },
-      system: prompt,
-      messages,
-    });
-    return replyText(message) || HANDOFF;
+  async function ask(messages, ip) {
+    const convo = [...messages];
+    for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+      // Fallback serveur : si les garde-fous du modèle refusent la demande, l'API la relance sur
+      // le modèle de repli recommandé (choisi selon la catégorie du refus).
+      const params = {
+        model: cfg.model,
+        max_tokens: 4096,
+        betas: ['server-side-fallback-2026-07-01'],
+        fallbacks: 'default',
+        output_config: { effort: booking ? 'medium' : 'low' },
+        cache_control: { type: 'ephemeral' },
+        system: prompt,
+        messages: convo,
+      };
+      if (booking) params.tools = booking.tools;
+      const message = await client.beta.messages.create(params);
+      if (!booking || message.stop_reason !== 'tool_use') return replyText(message) || HANDOFF;
+
+      // Outils de rendez-vous : exécutés un à un sur le serveur, résultats renvoyés ensemble.
+      convo.push({ role: 'assistant', content: message.content });
+      const results = [];
+      for (const block of message.content) {
+        if (block.type !== 'tool_use') continue;
+        const out = await booking.runTool(block.name, block.input, ip);
+        results.push({ type: 'tool_result', tool_use_id: block.id, content: JSON.stringify(out), is_error: !out.ok });
+      }
+      convo.push({ role: 'user', content: results });
+    }
+    return HANDOFF;
   }
 
   function apiErrorStatus(err) {
@@ -167,7 +196,7 @@ function createChat(cfg, { limiter, dailyCap }) {
   }
 
   async function handle(req, res, { sendJson, readBody, clientIp }) {
-    if (req.method === 'GET' || req.method === 'HEAD') return sendJson(res, 200, { ok: true, enabled, bookingUrl: enabled ? bookingUrl : '' });
+    if (req.method === 'GET' || req.method === 'HEAD') return sendJson(res, 200, { ok: true, enabled, bookingUrl: enabled ? bookingUrl : '', booking: enabled && Boolean(booking) });
     if (req.method !== 'POST') {
       return sendJson(res, 405, { ok: false, error: 'Méthode non autorisée.' }, { Allow: 'GET, HEAD, POST' });
     }
@@ -202,7 +231,7 @@ function createChat(cfg, { limiter, dailyCap }) {
       return sendJson(res, 503, { ok: false, error: `Jessica a atteint sa limite pour aujourd’hui. ${HANDOFF}` });
     }
     try {
-      return sendJson(res, 200, { ok: true, reply: await ask(messages) });
+      return sendJson(res, 200, { ok: true, reply: await ask(messages, clientIp()) });
     } catch (err) {
       if (!apiErrorStatus(err)) console.error('Jessica : erreur inattendue :', err && err.message);
       return sendJson(res, 503, { ok: false, error: `Jessica ne peut pas répondre pour le moment. ${HANDOFF}` });

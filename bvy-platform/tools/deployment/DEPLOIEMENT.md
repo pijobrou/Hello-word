@@ -674,6 +674,84 @@ Jessica donne alors ce lien à qui veut un rendez-vous, le bas de sa fenêtre de
 notre agenda », et l'accusé de réception du formulaire le propose aussi. Google vérifie vos disponibilités,
 inscrit le rendez-vous dans votre agenda et envoie la confirmation. Seuls les liens Google Agenda sont acceptés.
 
+### 9.4 ter Jessica réserve elle-même dans Google Agenda et inscrit le rendez-vous dans Google Drive
+
+Jessica regarde vos moments libres (lundi–vendredi, 8 h–17 h, heure du Québec, au moins 18 h à l'avance,
+14 jours), propose des moments, demande prénom, nom, courriel, téléphone et besoin, demande l'accord du
+client, fait un récapitulatif, puis réserve après un « oui ». Le serveur vérifie de nouveau que le moment est
+libre avant de réserver. Le rendez-vous est inscrit dans votre agenda, une ligne est ajoutée à votre feuille
+Google Sheets, une copie reste sur le serveur (`data/rendez-vous.jsonl`), le client reçoit une confirmation
+par courriel et vous recevez un avis. La consultation se fait par **appel téléphonique** : vous appelez le
+client au numéro donné. Pour changer ou annuler, le client répond au courriel de confirmation.
+
+**A. Google Cloud (une seule fois, environ 15 minutes, sur ordinateur, avec le compte de l'agenda)**
+
+1. Ouvrez https://console.cloud.google.com, acceptez les conditions, puis en haut **Sélectionner un projet →
+   Nouveau projet**, nom `bvy-site`, **Créer**.
+2. Menu ☰ → **API et services → Bibliothèque** : cherchez **Google Calendar API** → **Activer** ; revenez,
+   cherchez **Google Sheets API** → **Activer**.
+3. Menu ☰ → **IAM et administration → Comptes de service → Créer un compte de service** : nom `jessica-agenda`,
+   **Créer et continuer**, puis **OK** (aucun rôle à donner).
+4. Cliquez sur le compte créé : notez son **adresse courriel** (`jessica-agenda@bvy-site-….iam.gserviceaccount.com`).
+   Onglet **Clés → Ajouter une clé → Créer une clé → JSON → Créer** : un fichier `.json` se télécharge.
+   **C'est un secret** : ne l'envoyez à personne, ne le mettez pas sur GitHub ni dans une conversation.
+
+**B. Partager l'agenda et créer la feuille**
+
+1. Google Agenda → ⚙ **Paramètres** → à gauche, votre agenda → **Partager avec des personnes ou des groupes
+   spécifiques → Ajouter des personnes** : collez l'adresse du compte de service, autorisation
+   **Apporter des modifications aux événements**, **Envoyer**.
+2. Google Drive → **Nouveau → Google Sheets** : nommez-la « Rendez-vous BVY ». En ligne 1, écrivez les titres :
+   `Réservé le | Rendez-vous | Prénom | Nom | Courriel | Téléphone | Besoin | Événement | Source`.
+3. **Partager** → collez l'adresse du compte de service → **Éditeur** → décochez « Envoyer une notification » → **Partager**.
+4. Copiez l'identifiant de la feuille : dans l'adresse `https://docs.google.com/spreadsheets/d/IDENTIFIANT/edit`,
+   c'est la partie `IDENTIFIANT`.
+
+**C. Sur votre PC : envoyer la clé au serveur** (Invite de commandes, en remplaçant le chemin du fichier)
+
+```bat
+scp "C:\Users\pijo\Downloads\NOM-DU-FICHIER.json" ubuntu@148.113.238.146:/home/ubuntu/google-sa.json
+```
+
+**D. Sur le serveur, une ligne à la fois**
+
+```bash
+sudo install -o root -g bvy -m 640 /home/ubuntu/google-sa.json /var/www/bvy-website/shared/google-sa.json
+```
+```bash
+rm /home/ubuntu/google-sa.json
+```
+```bash
+sudo nano /var/www/bvy-website/shared/.env
+```
+
+Ajoutez en bas (remplacez l'adresse de l'agenda et l'identifiant de la feuille) :
+
+```text
+GOOGLE_SA_FILE=/var/www/bvy-website/shared/google-sa.json
+GOOGLE_CALENDAR_ID=bvypjb@gmail.com
+GOOGLE_SHEET_ID=IDENTIFIANT
+```
+
+`Ctrl + O`, Entrée, `Ctrl + X`, puis :
+
+```bash
+sudo systemctl restart bvy-website
+```
+```bash
+sudo journalctl -u bvy-website -n 20 --no-pager | grep -i "rendez-vous"
+```
+
+Vous devez lire **« Rendez-vous Jessica : connexion à Google Agenda OK. »** et
+`curl -s https://bvyaccountingtax.ca/api/chat` doit contenir `"booking":true`. Si le journal dit
+« inaccessible » : vérifiez le partage de l'agenda (étape B1) et `GOOGLE_CALENDAR_ID`. Si la feuille ne se
+remplit pas : vérifiez son partage (B3) et `GOOGLE_SHEET_ID`.
+
+Garde-fous : seul un moment encore libre est accepté ; 2 réservations par appareil et 1 par courriel par jour ;
+15 par jour pour le site (`BOOKING_MAX_PER_DAY`). Heures et délais réglables dans le `.env`
+(`BOOKING_START_HOUR`, `BOOKING_END_HOUR`, `BOOKING_MIN_LEAD_HOURS`, `BOOKING_DAYS_AHEAD`).
+Supprimez les lignes de la feuille de plus de 24 mois qui n'ont pas mené à un mandat (politique de confidentialité).
+
 ### 9.5 Protection contre les robots d'IA et l'aspiration du site
 
 La liste des robots refusés est dans `apps/website/bots.js` (une seule liste pour tout le site).

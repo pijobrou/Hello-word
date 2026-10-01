@@ -40,7 +40,9 @@
     if (last < text.length) into.appendChild(document.createTextNode(text.slice(last)));
   }
 
-  function init(bookingUrl) {
+  var bookingOn = false;
+  function init(bookingUrl, booking) {
+    bookingOn = booking;
     load();
     var launcher = el('button', 'jx-launch');
     launcher.type = 'button';
@@ -75,6 +77,7 @@
 
     var notice = el('p', 'jx-notice');
     notice.appendChild(document.createTextNode('Je suis une intelligence artificielle : mes réponses sont générales et ne remplacent pas un conseil professionnel. N’écrivez aucun renseignement sensible (NAS, numéros de compte). Vos messages sont traités par Anthropic, hors du Canada, et ne sont pas conservés par BVY. '));
+    if (booking) notice.appendChild(document.createTextNode('Si vous réservez avec Jessica, vos prénom, nom, courriel et téléphone sont enregistrés dans l’agenda et le registre de BVY (Google). '));
     var pol = el('a', null, 'Confidentialité');
     pol.href = '/confidentialite/#jessica';
     notice.appendChild(pol);
@@ -119,7 +122,7 @@
     }
     function greet() {
       log.textContent = '';
-      bubble('assistant', 'Bonjour, je suis Jessica, l’assistante virtuelle de BVY. Je peux vous renseigner sur nos services, nos offres et notre façon de travailler. Comment puis-je vous aider ?');
+      bubble('assistant', 'Bonjour, je suis Jessica, l’assistante virtuelle de BVY. Je peux vous renseigner sur nos services, nos offres et notre façon de travailler' + (bookingOn ? ', et réserver votre consultation gratuite de 30 minutes' : '') + '. Comment puis-je vous aider ?');
       history.forEach(function (m) { bubble(m.role, m.content); });
     }
     function setOpen(open) {
@@ -184,6 +187,6 @@
   if (!window.fetch || !document.body) return;
   fetch('/api/chat', { headers: { 'Accept': 'application/json' } })
     .then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (s) { if (s && s.enabled) init(typeof s.bookingUrl === 'string' && /^https:\/\/calendar\./.test(s.bookingUrl) ? s.bookingUrl : ''); })
+    .then(function (s) { if (s && s.enabled) init(typeof s.bookingUrl === 'string' && /^https:\/\/calendar\./.test(s.bookingUrl) ? s.bookingUrl : '', s.booking === true); })
     .catch(function () { /* service indisponible : pas de widget */ });
 })();

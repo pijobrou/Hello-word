@@ -54,7 +54,7 @@ test('validateMessages : alternance, longueur, historique tronqué qui commence 
 test('sans clé API : GET indique enabled=false et POST répond 503', async () => {
   const { app, base, ask } = await start({ apiKey: '', client: undefined });
   try {
-    assert.deepStrictEqual(await (await fetch(base)).json(), { ok: true, enabled: false, bookingUrl: '' });
+    assert.deepStrictEqual(await (await fetch(base)).json(), { ok: true, enabled: false, bookingUrl: '', booking: false });
     assert.strictEqual((await ask([{ role: 'user', content: 'Bonjour' }])).status, 503);
   } finally { app.close(); }
 });
@@ -63,7 +63,7 @@ test('une question reçoit la réponse de Jessica ; requête conforme envoyée a
   const client = fakeClient(textReply('Bonjour ! La Mise au clair Shopify coûte 850 $.'));
   const { app, base, ask } = await start({ client, model: 'claude-opus-5-5' });
   try {
-    assert.deepStrictEqual(await (await fetch(base)).json(), { ok: true, enabled: true, bookingUrl: '' });
+    assert.deepStrictEqual(await (await fetch(base)).json(), { ok: true, enabled: true, bookingUrl: '', booking: false });
     const r = await ask([{ role: 'user', content: '  Combien coûte la mise au clair ?  ' }]);
     assert.strictEqual(r.status, 200);
     assert.strictEqual(r.body.reply, 'Bonjour ! La Mise au clair Shopify coûte 850 $.');
@@ -153,7 +153,7 @@ test('avec BOOKING_URL : Jessica donne le lien de l’agenda et le widget le re�
   const url = 'https://calendar.app.google/AbC123xyz';
   const { app, base, ask } = await start({ client, bookingUrl: url });
   try {
-    assert.deepStrictEqual(await (await fetch(base)).json(), { ok: true, enabled: true, bookingUrl: url });
+    assert.deepStrictEqual(await (await fetch(base)).json(), { ok: true, enabled: true, bookingUrl: url, booking: false });
     await ask([{ role: 'user', content: 'Je veux un rendez-vous' }]);
     assert.ok(client.calls[0].system.includes(`Réservation directe`));
     assert.ok(client.calls[0].system.includes(url));
@@ -161,6 +161,6 @@ test('avec BOOKING_URL : Jessica donne le lien de l’agenda et le widget le re�
   } finally { app.close(); }
   const s2 = await start({ client: fakeClient(textReply('ok')), bookingUrl: 'https://evil.example/x' });
   try {
-    assert.deepStrictEqual(await (await fetch(s2.base)).json(), { ok: true, enabled: true, bookingUrl: '' });
+    assert.deepStrictEqual(await (await fetch(s2.base)).json(), { ok: true, enabled: true, bookingUrl: '', booking: false });
   } finally { s2.app.close(); }
 });
