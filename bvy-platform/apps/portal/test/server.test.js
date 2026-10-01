@@ -265,8 +265,8 @@ test('personnel : tenue de livres ne voit que ses clients assignés ; l’admin 
 
 test('cli : create-admin affiche un lien d’invitation', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bvy-cli-'));
-  const prev = process.env.DATA_DIR;
-  process.env.DATA_DIR = dir;
+  const prev = process.env.PORTAL_DATA_DIR;
+  process.env.PORTAL_DATA_DIR = dir;
   try {
     const lines = [];
     const out = { log: (s) => lines.push(s), error: (s) => lines.push(`ERR ${s}`) };
@@ -275,7 +275,24 @@ test('cli : create-admin affiche un lien d’invitation', () => {
     assert.match(lines[1], /^https:\/\/portail\.bvyaccountingtax\.ca\/invitation\?jeton=/);
     assert.strictEqual(main(['list-users'], out), 0);
     assert.match(lines[2], /invited\s+admin\s+owner@bvy\.ca/);
+    assert.strictEqual(main(['backup', '2'], out), 0);
+    main(['backup', '2'], out); main(['backup', '2'], out);
+    const backups = fs.readdirSync(path.join(dir, 'backups'));
+    assert.ok(backups.length >= 1 && backups.length <= 2, 'rotation des sauvegardes');
+    assert.strictEqual(fs.statSync(path.join(dir, 'backups', backups[0])).mode & 0o777, 0o600);
   } finally {
-    if (prev === undefined) delete process.env.DATA_DIR; else process.env.DATA_DIR = prev;
+    if (prev === undefined) delete process.env.PORTAL_DATA_DIR; else process.env.PORTAL_DATA_DIR = prev;
+  }
+});
+
+test('déploiement : les modèles nginx du portail refusent la même liste de robots que le site', () => {
+  const { BLOCKED_AGENTS } = require('../../website/bots.js');
+  const dir = path.join(__dirname, '..', '..', '..', 'tools', 'deployment', 'portail', 'nginx');
+  for (const f of ['portail.conf', 'portail.http-only.conf']) {
+    const conf = fs.readFileSync(path.join(dir, f), 'utf8');
+    assert.deepStrictEqual(conf.match(/"~\*\(([^)]+)\)" 1;/)[1].split('|'), [...BLOCKED_AGENTS], f);
+    assert.match(conf, /proxy_pass http:\/\/127\.0\.0\.1:3100;/);
+    assert.match(conf, /client_max_body_size 21m;/);
+    assert.strictEqual((conf.match(/if \(\$bvy_portail_robot\) \{ return 403; \}/g) || []).length, 2, f);
   }
 });

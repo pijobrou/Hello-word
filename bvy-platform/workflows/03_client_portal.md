@@ -52,3 +52,12 @@ their date (« Chiffres au 30 septembre 2026, mis à jour par BVY »). Nothing i
 - `npm test` green, including isolation tests for every new route (task, document, message, snapshot).
 - Screens answer the four questions of `CLAUDE.md` (« What am I looking at? … What should I click next? »).
 - Review package with desktop and mobile screenshots presented to the owner.
+
+## Deployment
+
+Kit `tools/deployment/portail/` (`deploy-portail.cmd` → `remote-install-portail.sh`): release directories with
+rollback, `bvy-portail` systemd service (port 3100, user `bvy`, hardened), nightly database backup
+(`cli.js backup`, 14 kept), nginx vhost generated with the shared robot list (`apps/website/bots.js`, checked by a
+test), automatic Let's Encrypt certificate once the `portail` DNS record points to the server, and the
+`sudo bvy-portail` admin command (runs the CLI as `bvy`). Guide: `DEPLOIEMENT.md` §9 bis. The website login pages
+now link to the portal.

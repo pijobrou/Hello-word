@@ -784,6 +784,43 @@ service anti-robots payant ou Cloudflare devant le site (option « Block AI bots
 
 ---
 
+## 9 bis. Le portail client (portail.bvyaccountingtax.ca)
+
+Le portail a son propre kit : `tools/deployment/portail/`. Il n'écrase rien du site public.
+
+**1. DNS, une seule fois (chez OVH).** Espace client OVH → **Noms de domaine** → `bvyaccountingtax.ca` →
+**Zone DNS** → **Ajouter une entrée** → type **A** → sous-domaine `portail` → cible `148.113.238.146` → valider.
+Attendez 5 à 30 minutes.
+
+**2. Publier le portail** (Invite de commandes Windows) :
+
+```bat
+"C:\Users\pijo\Downloads\bvy-site-deploiement-v8\bvy-platform\tools\deployment\portail\deploy-portail.cmd"
+```
+
+Le script installe Node.js à jour si besoin, le service `bvy-portail`, une sauvegarde chaque nuit, la configuration
+nginx, et obtient le certificat HTTPS tout seul si le DNS est prêt (sinon il l'explique : relancez-le plus tard).
+Si la nouvelle version ne démarre pas, l'ancienne est remise automatiquement.
+
+**3. Créer votre accès administrateur** (une seule fois, sur le serveur) :
+
+```bash
+sudo bvy-portail create-admin bvypjb@protonmail.com "Votre Prénom Nom"
+```
+
+Le lien affiché est valable 72 heures : ouvrez-le, choisissez votre mot de passe, puis activez l'application
+d'authentification (Mon compte). Ensuite, invitez vos clients et votre équipe depuis **Administration**.
+
+Autres commandes : `sudo bvy-portail list-users` · `sudo bvy-portail unlock <courriel>` ·
+`sudo bvy-portail backup` · journal : `sudo journalctl -u bvy-portail -n 50` · version précédente :
+`deploy-portail.cmd --rollback`.
+
+Les courriels du portail (codes, invitations, avis) utilisent les réglages SMTP du site
+(`/var/www/bvy-website/shared/.env`) : rien à ajouter. Les données sont dans `/var/www/bvy-portail/shared/data`
+(base, documents, sauvegardes des 14 dernières nuits) ; pensez à en garder une copie hors du serveur.
+
+---
+
 ## 10. Mettre à jour, revenir en arrière, remettre l'ancien site
 
 ### 10.1 Publier une nouvelle version

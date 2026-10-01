@@ -4,3 +4,4 @@
 *.conf    text eol=lf
 *.service text eol=lf
 *.md      text eol=lf
+*.timer   text eol=lf

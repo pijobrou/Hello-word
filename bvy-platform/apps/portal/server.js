@@ -47,7 +47,7 @@ function envConfig() {
     port: Number(process.env.PORTAL_PORT || 3100),
     host: process.env.HOST || '127.0.0.1',
     publicUrl: (process.env.PORTAL_URL || 'https://portail.bvyaccountingtax.ca').replace(/\/+$/, ''),
-    dataDir: path.resolve(__dirname, process.env.DATA_DIR || 'data'),
+    dataDir: path.resolve(__dirname, process.env.PORTAL_DATA_DIR || 'data'),
     trustProxy: process.env.TRUST_PROXY === '1',
     smtp: mailer.smtpConfigFromEnv(),
     production: process.env.NODE_ENV === 'production',
