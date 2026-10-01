@@ -109,6 +109,8 @@ test('confirmationMessage : adressé au client, signé BVY, lien de rendez-vous,
   assert.ok(!m.text.includes('TEXTE-SECRET'));
   assert.ok(!/CPA/.test(m.text));
   assert.ok(!confirmationMessage({ prenom: 'A', courriel: 'a@b.ca', service: '<script>' }).text.includes('concernant'));
+  const booked = confirmationMessage({ prenom: 'A', courriel: 'a@b.ca' }, { bookingUrl: 'https://calendar.app.google/AbC' });
+  assert.match(booked.text, /Réservez directement dans notre agenda : https:\/\/calendar\.app\.google\/AbC/);
 });
 
 function decodeBodies(data) {

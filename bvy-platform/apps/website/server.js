@@ -416,7 +416,7 @@ async function handleContact(req, res, cfg, limiter, confirmations) {
       .catch((err) => console.error('Courriel de notification en échec:', err.message));
     // Accusé de réception au client, plafonné par jour pour protéger la réputation du compte d'envoi.
     if (cfg.smtp.confirmation && confirmations.take()) {
-      sendMail(cfg.smtp, confirmationMessage(record, { replyTo: cfg.smtp.to[0] }))
+      sendMail(cfg.smtp, confirmationMessage(record, { replyTo: cfg.smtp.to[0], bookingUrl: cfg.chat.bookingUrl }))
         .catch((err) => console.error('Courriel de confirmation au client en échec:', err.message));
     }
   }

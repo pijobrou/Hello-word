@@ -24,13 +24,14 @@
 
   // Texte -> nœuds sûrs : seuls les liens vers bvyaccountingtax.ca et les adresses courriel deviennent cliquables.
   function render(text, into) {
-    var re = /(https:\/\/(?:www\.)?bvyaccountingtax\.ca(?:\/[\w\-\/#?=&.%]*)?|[\w.+-]+@[\w-]+\.[\w.]+)/g;
+    var re = /(https:\/\/(?:www\.)?bvyaccountingtax\.ca(?:\/[\w\-\/#?=&.%]*)?|https:\/\/calendar\.app\.google\/[\w-]+|https:\/\/calendar\.google\.com\/calendar\/appointments\/[\w\-\/?=&.%]+|[\w.+-]+@[\w-]+\.[\w.]+)/g;
     var last = 0, m;
     while ((m = re.exec(text))) {
       if (m.index > last) into.appendChild(document.createTextNode(text.slice(last, m.index)));
       var url = m[0].replace(/[.,;:)]+$/, '');
       var a = el('a', null, url);
       if (url.indexOf('@') > 0 && url.indexOf('http') !== 0) a.href = 'mailto:' + url;
+      else if (/^https:\/\/calendar\./.test(url)) { a.href = url; a.target = '_blank'; a.rel = 'noopener'; }
       else a.href = url.replace(/^https:\/\/(?:www\.)?bvyaccountingtax\.ca/, '') || '/';
       into.appendChild(a);
       last = m.index + url.length;
@@ -39,7 +40,7 @@
     if (last < text.length) into.appendChild(document.createTextNode(text.slice(last)));
   }
 
-  function init() {
+  function init(bookingUrl) {
     load();
     var launcher = el('button', 'jx-launch');
     launcher.type = 'button';
@@ -92,8 +93,11 @@
     form.appendChild(input);
     form.appendChild(send);
 
-    var foot = el('a', 'jx-cta', 'Réserver une consultation gratuite de 30 minutes →');
-    foot.href = RDV;
+    var foot = el('a', 'jx-cta', bookingUrl
+      ? 'Choisir un moment dans notre agenda (30 min, gratuit) →'
+      : 'Réserver une consultation gratuite de 30 minutes →');
+    foot.href = bookingUrl || RDV;
+    if (bookingUrl) { foot.target = '_blank'; foot.rel = 'noopener'; }
 
     panel.appendChild(head);
     panel.appendChild(log);
@@ -180,6 +184,6 @@
   if (!window.fetch || !document.body) return;
   fetch('/api/chat', { headers: { 'Accept': 'application/json' } })
     .then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (s) { if (s && s.enabled) init(); })
+    .then(function (s) { if (s && s.enabled) init(typeof s.bookingUrl === 'string' && /^https:\/\/calendar\./.test(s.bookingUrl) ? s.bookingUrl : ''); })
     .catch(function () { /* service indisponible : pas de widget */ });
 })();

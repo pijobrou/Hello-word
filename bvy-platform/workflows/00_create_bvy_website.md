@@ -127,3 +127,7 @@ On `STATUS: REJECTED`: stop.
 - 2026-10-01 — v5 deployed by the owner (`deploy.cmd --nginx`). `ANTHROPIC_API_KEY` added by the owner to
   `/var/www/bvy-website/shared/.env` (never in the repo or chat); `/api/chat` → `{"ok":true,"enabled":true}`.
   Jessica is live; first real conversation still to be checked by the owner.
+- 2026-10-01 — v6 (owner request: Jessica books appointments in Google Calendar). Chosen approach: Google Calendar
+  appointment schedule (booking page managed by Google). `BOOKING_URL` in the server `.env` (Google Calendar
+  links only) is given by Jessica, shown at the bottom of her window and used in the client acknowledgement email.
+  Jessica cannot see availability or book on someone's behalf. Privacy policy updated. Tests 37/37.

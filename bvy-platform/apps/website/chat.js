@@ -55,6 +55,21 @@ Faits sur BVY (source : le site bvyaccountingtax.ca) :
 - Confidentialité (${SITE}/confidentialite/) : le site et les demandes du formulaire sont hébergés au Canada; Loi 25 et LPRPDE appliquées. Cette conversation avec toi n’est pas conservée par BVY, mais elle est traitée par Anthropic, le fournisseur de l’IA, à l’extérieur du Canada.
 - Consultation gratuite de 30 minutes, sans engagement : ${SITE}/rendez-vous/`;
 
+// Lien de la page de réservation Google Agenda (« Agenda de prise de rendez-vous »), réglé dans le .env
+// du serveur (BOOKING_URL). Seules les adresses Google Agenda sont acceptées ; sinon : aucun lien.
+const BOOKING_RE = /^https:\/\/(?:calendar\.app\.google\/[A-Za-z0-9_-]+|calendar\.google\.com\/calendar\/appointments\/[A-Za-z0-9_\-/?=&.%]+)$/;
+function bookingUrlFromEnv(env = process.env) {
+  const url = String(env.BOOKING_URL || '').trim();
+  return BOOKING_RE.test(url) ? url : '';
+}
+
+// Consignes du système, avec la réservation directe dans l'agenda quand elle est configurée.
+function systemPrompt(bookingUrl) {
+  if (!bookingUrl) return SYSTEM_PROMPT;
+  return `${SYSTEM_PROMPT}
+- Réservation directe : la personne peut choisir elle-même un moment libre pour la consultation gratuite de 30 minutes dans l’agenda de BVY : ${bookingUrl} — Google Agenda confirme le rendez-vous par courriel. Quand quelqu’un veut un rendez-vous, donne d’abord ce lien. Tu ne vois pas les disponibilités et tu ne peux pas réserver à sa place : ne propose jamais de date ni d’heure. Le formulaire ${SITE}/rendez-vous/ reste possible pour écrire un message.`;
+}
+
 function chatConfigFromEnv(env = process.env) {
   const num = (v, d) => (v !== undefined && v !== '' && Number.isFinite(Number(v)) ? Number(v) : d);
   return {
@@ -63,6 +78,7 @@ function chatConfigFromEnv(env = process.env) {
     rateLimit: { max: num(env.CHAT_RATE_MAX, 20), windowMs: 10 * 60 * 1000 },
     maxPerDay: num(env.CHAT_MAX_PER_DAY, 150),
     disabled: env.CHAT_ENABLED === '0',
+    bookingUrl: bookingUrlFromEnv(env),
   };
 }
 
@@ -116,6 +132,9 @@ function createChat(cfg, { limiter, dailyCap }) {
     console.error('Jessica désactivée : le module @anthropic-ai/sdk est introuvable (npm ci --omit=dev).');
   }
 
+  const bookingUrl = BOOKING_RE.test(cfg.bookingUrl || '') ? cfg.bookingUrl : '';
+  const prompt = systemPrompt(bookingUrl);
+
   async function ask(messages) {
     // Fallback serveur : si les garde-fous du modèle refusent la demande, l'API la relance sur
     // le modèle de repli recommandé (choisi selon la catégorie du refus).
@@ -126,7 +145,7 @@ function createChat(cfg, { limiter, dailyCap }) {
       fallbacks: 'default',
       output_config: { effort: 'low' },
       cache_control: { type: 'ephemeral' },
-      system: SYSTEM_PROMPT,
+      system: prompt,
       messages,
     });
     return replyText(message) || HANDOFF;
@@ -148,7 +167,7 @@ function createChat(cfg, { limiter, dailyCap }) {
   }
 
   async function handle(req, res, { sendJson, readBody, clientIp }) {
-    if (req.method === 'GET' || req.method === 'HEAD') return sendJson(res, 200, { ok: true, enabled });
+    if (req.method === 'GET' || req.method === 'HEAD') return sendJson(res, 200, { ok: true, enabled, bookingUrl: enabled ? bookingUrl : '' });
     if (req.method !== 'POST') {
       return sendJson(res, 405, { ok: false, error: 'Méthode non autorisée.' }, { Allow: 'GET, HEAD, POST' });
     }
@@ -193,4 +212,4 @@ function createChat(cfg, { limiter, dailyCap }) {
   return { enabled, handle };
 }
 
-module.exports = { createChat, chatConfigFromEnv, validateMessages, replyText, SYSTEM_PROMPT, HANDOFF };
+module.exports = { createChat, chatConfigFromEnv, bookingUrlFromEnv, systemPrompt, validateMessages, replyText, SYSTEM_PROMPT, HANDOFF };

@@ -660,6 +660,20 @@ Garde-fous : 20 messages par visiteur toutes les 10 minutes, 150 messages par jo
 
 ---
 
+### 9.4 bis Prise de rendez-vous dans Google Agenda
+
+1. Dans Google Agenda (ordinateur), cliquez sur **Créer → Agenda de prise de rendez-vous**. Titre :
+   « Consultation gratuite — BVY », durée 30 minutes, vos plages libres, lieu Google Meet ou téléphone.
+   Enregistrez, puis ouvrez **Partager → Copier le lien** (il commence par `https://calendar.app.google/`).
+2. Sur le serveur : `sudo nano /var/www/bvy-website/shared/.env`, ajoutez en bas la ligne
+   `BOOKING_URL=` suivie du lien (sans espace), `Ctrl + O`, Entrée, `Ctrl + X`.
+3. `sudo systemctl restart bvy-website`, puis `curl -s https://bvyaccountingtax.ca/api/chat` : le lien doit
+   apparaître dans `"bookingUrl"`.
+
+Jessica donne alors ce lien à qui veut un rendez-vous, le bas de sa fenêtre devient « Choisir un moment dans
+notre agenda », et l'accusé de réception du formulaire le propose aussi. Google vérifie vos disponibilités,
+inscrit le rendez-vous dans votre agenda et envoie la confirmation. Seuls les liens Google Agenda sont acceptés.
+
 ### 9.5 Protection contre les robots d'IA et l'aspiration du site
 
 La liste des robots refusés est dans `apps/website/bots.js` (une seule liste pour tout le site).

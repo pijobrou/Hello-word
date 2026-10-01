@@ -184,7 +184,7 @@ const SERVICE_LABELS = Object.freeze({
 
 // Accusé de réception envoyé au client. Volontairement fixe : on n'y recopie jamais le message
 // reçu, pour que le formulaire ne puisse pas servir à envoyer du texte arbitraire à un tiers.
-function confirmationMessage(lead, { replyTo } = {}) {
+function confirmationMessage(lead, { replyTo, bookingUrl } = {}) {
   const prenom = String(lead.prenom || '').replace(/[\r\n<>]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40);
   const about = SERVICE_LABELS[lead.service] ? ` concernant ${SERVICE_LABELS[lead.service]}` : '';
   const lines = [
@@ -194,7 +194,7 @@ function confirmationMessage(lead, { replyTo } = {}) {
     'Un membre de notre équipe vous répondra personnellement par courriel.',
     '',
     'Vous souhaitez choisir un moment pour votre consultation gratuite de 30 minutes ?',
-    `${SITE_URL}/rendez-vous/`,
+    bookingUrl ? `Réservez directement dans notre agenda : ${bookingUrl}` : `${SITE_URL}/rendez-vous/`,
     '',
     'Pour ajouter une précision, répondez simplement à ce courriel. Par prudence, ne nous transmettez',
     'aucun renseignement sensible (numéro d’assurance sociale, mots de passe, numéros de compte) par courriel.',
