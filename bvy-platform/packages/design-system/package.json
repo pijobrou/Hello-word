@@ -1,0 +1,15 @@
+{
+  "name": "@bvy/design-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Design system du portail client BVY — jetons, composants CSS, galerie. Aucune dépendance.",
+  "type": "module",
+  "files": ["tokens.json", "tokens.css", "components.css", "assets/"],
+  "scripts": {
+    "build": "node scripts/build-tokens.mjs",
+    "check": "node scripts/build-tokens.mjs --check && node scripts/contrast.mjs",
+    "contrast": "node scripts/contrast.mjs",
+    "screenshots": "node scripts/screenshots.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

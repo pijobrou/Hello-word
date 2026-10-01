@@ -2,10 +2,11 @@
 
 /**
  * BVY Accounting & Tax Services — public website server.
- * Zero dependencies: node: built-ins only (Node >= 20.12).
+ * node: built-ins only (Node >= 20.12), except the optional Anthropic SDK used by the Jessica chat.
  */
 
-const { smtpConfigFromEnv, sendMail, leadMessage } = require('./mailer.js');
+const { smtpConfigFromEnv, sendMail, leadMessage, confirmationMessage } = require('./mailer.js');
+const { createChat, chatConfigFromEnv } = require('./chat.js');
 const http = require('node:http');
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
@@ -71,6 +72,7 @@ function envConfig() {
     trustProxy: process.env.TRUST_PROXY === '1',
     webhookUrl: process.env.LEADS_WEBHOOK_URL || '',
     smtp: smtpConfigFromEnv(),
+    chat: chatConfigFromEnv(),
     dataDir: path.resolve(__dirname, process.env.DATA_DIR || 'data'),
     publicDir: path.join(__dirname, 'public'),
   };
@@ -308,7 +310,22 @@ function createRateLimiter({ max, windowMs }) {
   };
 }
 
-async function handleContact(req, res, cfg, limiter) {
+// Compteur quotidien simple (remis à zéro à chaque changement de date UTC).
+function createDailyCap(max) {
+  let day = '';
+  let count = 0;
+  return {
+    take() {
+      const today = new Date().toISOString().slice(0, 10);
+      if (today !== day) { day = today; count = 0; }
+      if (count >= max) return false;
+      count += 1;
+      return true;
+    },
+  };
+}
+
+async function handleContact(req, res, cfg, limiter, confirmations) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { ok: false, error: 'Méthode non autorisée.' }, { Allow: 'POST' });
   }
@@ -393,6 +410,11 @@ async function handleContact(req, res, cfg, limiter) {
   if (cfg.smtp) {
     sendMail(cfg.smtp, leadMessage(record))
       .catch((err) => console.error('Courriel de notification en échec:', err.message));
+    // Accusé de réception au client, plafonné par jour pour protéger la réputation du compte d'envoi.
+    if (cfg.smtp.confirmation && confirmations.take()) {
+      sendMail(cfg.smtp, confirmationMessage(record, { replyTo: cfg.smtp.to[0] }))
+        .catch((err) => console.error('Courriel de confirmation au client en échec:', err.message));
+    }
   }
 
   if (redirectAfter) {
@@ -414,8 +436,13 @@ function createServer(options = {}) {
     smtp: options.smtp !== undefined ? options.smtp : env.smtp,
     trustProxy: options.trustProxy ?? env.trustProxy,
     rateLimit: { max: 5, windowMs: 10 * 60 * 1000, ...(options.rateLimit || {}) },
+    confirmationsPerDay: options.confirmationsPerDay ?? 100,
+    chat: { ...env.chat, ...(options.chat || {}) },
   };
   const limiter = createRateLimiter(cfg.rateLimit);
+  const confirmations = createDailyCap(cfg.confirmationsPerDay);
+  const chatLimiter = createRateLimiter(cfg.chat.rateLimit);
+  const chat = createChat(cfg.chat, { limiter: chatLimiter, dailyCap: createDailyCap(cfg.chat.maxPerDay) });
 
   const server = http.createServer(async (req, res) => {
     try {
@@ -426,7 +453,8 @@ function createServer(options = {}) {
         }
         return sendJson(res, 200, { ok: true });
       }
-      if (pathname === '/api/contact') return await handleContact(req, res, cfg, limiter);
+      if (pathname === '/api/contact') return await handleContact(req, res, cfg, limiter, confirmations);
+      if (pathname === '/api/chat') return await chat.handle(req, res, { sendJson, readBody, clientIp: () => clientIp(req, cfg.trustProxy) });
       if (pathname === '/api' || pathname.startsWith('/api/')) {
         return sendJson(res, 404, { ok: false, error: 'Introuvable.' });
       }
@@ -439,7 +467,7 @@ function createServer(options = {}) {
   });
 
   server.config = cfg;
-  server.on('close', () => limiter.stop());
+  server.on('close', () => { limiter.stop(); chatLimiter.stop(); });
   return server;
 }
 

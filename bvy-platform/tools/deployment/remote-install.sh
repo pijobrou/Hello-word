@@ -222,6 +222,17 @@ extract_release() {
   fi
   # Sécurité : jamais de données ni de secrets dans une version
   rm -rf "$NEW_RELEASE/data" "$NEW_RELEASE/.env"
+  # Dépendances (SDK Anthropic de Jessica) : installées ici, à partir de package-lock.json.
+  # En cas d'échec, le site fonctionne quand même ; seule Jessica reste désactivée.
+  if [ -f "$NEW_RELEASE/package-lock.json" ] && grep -q '"dependencies"' "$NEW_RELEASE/package.json"; then
+    rm -rf "$NEW_RELEASE/node_modules"
+    if command -v npm >/dev/null 2>&1 \
+       && (cd "$NEW_RELEASE" && npm ci --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error >/dev/null 2>&1); then
+      ok "Dépendances installées (npm ci)"
+    else
+      warn "Dépendances non installées (npm absent ou registre injoignable) : Jessica restera désactivée."
+    fi
+  fi
   chown -R root:root "$NEW_RELEASE"
   find "$NEW_RELEASE" -type d -exec chmod 755 {} +
   find "$NEW_RELEASE" -type f -exec chmod 644 {} +

@@ -2,7 +2,7 @@
   "name": "bvy-website",
   "version": "1.0.0",
   "private": true,
-  "description": "Site public de BVY Accounting & Tax Services — serveur Node.js sans dépendances.",
+  "description": "Site public de BVY Accounting & Tax Services — serveur Node.js (seule dépendance : le SDK Anthropic pour Jessica).",
   "main": "server.js",
   "engines": {
     "node": ">=20.12"
@@ -12,5 +12,8 @@
     "build": "node build.js",
     "test": "node --test test/*.test.js",
     "dev": "node build.js && node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.131.0"
   }
 }

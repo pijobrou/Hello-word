@@ -612,6 +612,52 @@ Même si le webhook ne répond pas, la demande reste enregistrée dans `leads.js
 > L'URL du webhook est un secret : elle ne doit être que dans ce fichier `.env` du serveur,
 > jamais dans le code ni sur GitHub.
 
+### 9.3 Accusé de réception envoyé au client
+
+Dès que le courriel SMTP est réglé (`SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `MAIL_TO`), chaque personne qui
+remplit le formulaire reçoit un courriel signé **L'équipe BVY** : confirmation de la demande, lien
+https://bvyaccountingtax.ca/rendez-vous/ et rappel de ne rien envoyer de sensible par courriel. Si elle
+répond, la réponse arrive à la première adresse de `MAIL_TO`. Le message est fixe (le texte du formulaire
+n'y est jamais recopié) et plafonné à 100 envois par jour.
+
+- Pour le couper : ajoutez `CONFIRMATION_EMAIL=0` au `.env`, puis `sudo systemctl restart bvy-website`.
+- **Désactivez la réponse automatique de votre boîte** (Proton ou Gmail) : sinon le client reçoit deux
+  courriels, dont un qui ne vient pas du site.
+
+### 9.4 Activer Jessica, l'assistante virtuelle (IA)
+
+Jessica n'apparaît sur le site que si une clé de l'API Claude est présente dans le `.env` du serveur.
+
+1. Sur https://console.anthropic.com : créez une clé (**API Keys → Create Key**) et, dans **Billing → Limits**,
+   fixez une **limite de dépenses mensuelle** (par exemple 30 $ US). Gardez la clé pour vous.
+2. Sur le serveur, tapez ces commandes **une ligne à la fois** (Entrée après chacune). La première attend la
+   clé : collez-la avec un clic droit, rien ne s'affiche, c'est normal, puis Entrée.
+
+   ```bash
+   read -rs -p "Cle API Anthropic : " K; echo
+   ```
+   ```bash
+   echo "ANTHROPIC_API_KEY=$K" | sudo tee -a /var/www/bvy-website/shared/.env >/dev/null; unset K
+   ```
+   ```bash
+   sudo systemctl restart bvy-website
+   ```
+   ```bash
+   curl -s https://bvyaccountingtax.ca/api/chat
+   ```
+
+   La dernière commande doit afficher `{"ok":true,"enabled":true}`. Si elle affiche `"enabled":false` :
+   `sudo journalctl -u bvy-website -n 30` (clé absente, mal copiée, ou SDK non installé — relancez alors
+   le déploiement).
+3. Rechargez le site : le bouton **Une question ? Jessica** apparaît en bas à droite.
+
+Garde-fous : 20 messages par visiteur toutes les 10 minutes, 150 messages par jour pour tout le site
+(`CHAT_MAX_PER_DAY`), aucune conversation enregistrée par BVY. Pour couper Jessica sans retirer la clé :
+`CHAT_ENABLED=0` dans le `.env`, puis redémarrage.
+
+> La clé API est un secret, comme le mot de passe SMTP : seulement dans le `.env` du serveur, jamais dans le
+> code, sur GitHub ou dans une conversation.
+
 ---
 
 ## 10. Mettre à jour, revenir en arrière, remettre l'ancien site

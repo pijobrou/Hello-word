@@ -104,3 +104,16 @@ On `STATUS: REJECTED`: stop.
 - 2026-10-01 — v3 deployed. Contact-form email notification active: sent through Gmail SMTP from the owner's
   Gmail account (app password stored only in `/var/www/bvy-website/shared/.env` on the server) to
   bvypjb@protonmail.com. Owner confirmed receipt of a test request.
+- 2026-10-01 — v4 (owner request « jessica et le courriel »), built and tested, not yet deployed:
+  - Client acknowledgement email: after each form request the site sends the client a fixed message signed
+    « L’équipe BVY » with the `/rendez-vous/` link (`mailer.js` → `confirmationMessage`). Replies go to the first
+    `MAIL_TO` address. The form text is never copied into it; capped at 100 per day; `CONFIRMATION_EMAIL=0`
+    turns it off. The owner should disable the mailbox auto-reply.
+  - Jessica, AI assistant (`chat.js`, `public/assets/js/jessica.js`): `POST /api/chat` calls the Claude API
+    (`claude-opus-5-5`, low effort, server-side refusal fallback) with a system prompt limited to the site's
+    published facts; no personalised tax advice; hands off to `/rendez-vous/`. Discloses that it is an AI and that
+    messages are processed by Anthropic outside Canada. Nothing is stored server-side. Limits: 20 messages per
+    visitor per 10 min, 150 per day site-wide. Hidden unless `ANTHROPIC_API_KEY` is set in the server `.env`.
+  - Privacy policy: new section 10 (Jessica) and the email providers (Gmail, ProtonMail) in section 6.
+  - Deployment: `remote-install.sh` now runs `npm ci --omit=dev` for the Anthropic SDK; failure leaves the site up
+    with Jessica disabled. Guide: `DEPLOIEMENT.md` §9.3–9.4. Review screenshots: `review/jessica/`.
