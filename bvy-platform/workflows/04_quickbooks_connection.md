@@ -81,3 +81,14 @@ what needs attention, and the work is organised from QBO data — while QBO stay
 
 - `npm test` green with a fake Intuit API (OAuth, refresh rotation, sync, suggestions, auto-close, isolation).
 - First real test on an Intuit **sandbox** company before connecting any real client.
+
+## Production log
+
+- 2026-10-01 — v11: the « Connecter QuickBooks » form was silently blocked by the portal's CSP (`form-action 'self'`
+  refused the redirect to Intuit). Fixed (`form-action` allows `https://appcenter.intuit.com` and `*.intuit.com`),
+  reproduced and verified in Chromium, regression test added.
+- 2026-10-01 — v12: Intuit gateway errors (lowercase `fault.error`, e.g. 403 `ApplicationAuthorizationFailed` 003100)
+  were shown as « erreur ». Now parsed and explained in French, with the `intuit_tid` reference.
+- 2026-10-02 — Root cause of the 403: Production keys with `QBO_ENV=sandbox`. Owner set `QBO_ENV=production`,
+  reconnected, and the first client is connected to its real QuickBooks Online company (read-only). The QBOA consent
+  screen lists the firm first; client companies are reached with « Rechercher pour un client ».

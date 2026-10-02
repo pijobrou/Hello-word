@@ -872,6 +872,11 @@ d'utilisation (page à créer sur le site), domaine `portail.bvyaccountingtax.ca
 puis mettez les clés de production dans `portail.env` avec `QBO_ENV=production`, redémarrez, et connectez chaque
 client. Vous pouvez connecter vous-même les sociétés auxquelles vous avez accès par QuickBooks Online Accountant.
 
+**Important : `QBO_ENV` doit correspondre aux clés.** Clés de l'onglet *Development* → `QBO_ENV=sandbox` ; clés de
+l'onglet *Production* → `QBO_ENV=production`. Un mélange laisse la connexion réussir, puis chaque lecture échoue avec
+« QuickBooks 403 … ApplicationAuthorizationFailed » (vécu le 2026-10-01). Avec QuickBooks Online Accountant, l'écran
+d'Intuit propose d'abord le cabinet : choisissez **Rechercher pour un client** pour connecter la société du client.
+
 Coût : gratuit au niveau « Builder » du programme de partenaires d'Intuit (500 000 lectures par mois incluses ; le
 portail en utilise environ 10 par client et par heure).
 
