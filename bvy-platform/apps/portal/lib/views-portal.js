@@ -205,28 +205,12 @@ function clientMessages(s, { messages, nav, flash }) {
 
 /* ================================================================= ÉQUIPE */
 
-function staffHome(s, { rows, flash }) {
-  const u = s.user;
-  const first = esc(u.name.split(' ')[0]);
-  const mfaWarn = !u.totp_enabled
-    ? `<div class="alert alert-watch">${icon('i-eye')}<div><p class="alert-title">Protégez mieux votre accès</p><p>Vous voyez des dossiers de clients : activez une application d’authentification.</p><div class="btn-row"><a class="btn btn-plum btn-sm" href="/compte#application">Activer maintenant</a></div></div></div>` : '';
-  const body = `${pageHead('Espace BVY', `Bonjour ${first}.`, `${rows.length} client${rows.length > 1 ? 's' : ''} dans votre périmètre.`)}${mfaWarn}
-    <article class="card mt-6"><div class="card-head"><h2 class="t-h3">Vos clients</h2></div>
-    ${rows.length ? `<div class="table-wrap"><table class="table"><thead><tr><th scope="col">Entreprise</th><th scope="col">Tâches ouvertes</th><th scope="col">Messages non lus</th><th scope="col">Tableau de bord</th><th scope="col">QuickBooks</th></tr></thead><tbody>
-      ${rows.map((r) => `<tr><td><a class="link" href="/clients/${r.id}"><b>${esc(r.name)}</b></a></td><td class="num">${r.tasks}</td>
-        <td>${r.unread ? `<a class="badge b-act" href="/clients/${r.id}/messages">${r.unread} non lu${r.unread > 1 ? 's' : ''}</a>` : '<span class="t-meta">—</span>'}</td>
-        <td>${r.asOf ? `<span class="t-meta">au ${esc(dateFr(r.asOf))}</span>` : '<span class="badge b-watch">À préparer</span>'}</td>
-        <td>${qboBadge(r.qbo)}${r.suggestions ? ` <a class="badge b-info" href="/clients/${r.id}/quickbooks">${r.suggestions} suggestion${r.suggestions > 1 ? 's' : ''}</a>` : ''}</td></tr>`).join('')}
-      </tbody></table></div>` : `<div class="empty">${icon('i-users', 'i empty-ico')}<p><b>Aucun client pour l’instant.</b></p></div>`}</article>`;
-  return appPage(s, { title: 'Clients', current: '/accueil', body, flash });
-}
-
 function staffClientShell(s, client, tab, inner, flash, counts = {}) {
   const q = counts.qbo;
   const qboHome = q ? (q.environment === 'sandbox' ? 'https://app.sandbox.qbo.intuit.com/app/homepage' : 'https://app.qbo.intuit.com/app/homepage') : null;
   const qboHead = client.qbo_url ? qboLink(client.qbo_url, 'Ouvrir QuickBooks')
     : q ? `${qboLink(qboHome, 'Ouvrir QuickBooks')} ${q.status === 'connected' ? '' : '<span class="badge b-act">Reconnexion nécessaire</span>'}` : 'QuickBooks non relié';
-  const tabs = [['', 'Tableau de bord'], ['/quickbooks', `QuickBooks${counts.suggestions ? ` (${counts.suggestions})` : ''}`], ['/taches', `Tâches${counts.tasks ? ` (${counts.tasks})` : ''}`], ['/documents', 'Documents'], ['/messages', `Messages${counts.unread ? ` (${counts.unread})` : ''}`]];
+  const tabs = [['', 'Tableau de bord'], ['/echeances', 'Échéances'], ['/quickbooks', `QuickBooks${counts.suggestions ? ` (${counts.suggestions})` : ''}`], ['/taches', `Tâches${counts.tasks ? ` (${counts.tasks})` : ''}`], ['/documents', 'Documents'], ['/messages', `Messages${counts.unread ? ` (${counts.unread})` : ''}`]];
   const body = `${pageHead('Dossier client', client.name, qboHead)}
     <nav class="subnav" aria-label="Sections du dossier">${tabs.map(([p, l]) => `<a href="/clients/${client.id}${p}"${p === tab ? ' aria-current="page"' : ''}>${esc(l)}</a>`).join('')}</nav>
     ${inner}`;
@@ -334,5 +318,5 @@ function staffQuickbooks(s, { client, sync, items, enabled, flash, counts }) {
 module.exports = {
   staffQuickbooks,
   clientHome, clientTasks, clientDocuments, clientReports, clientMessages,
-  staffHome, staffDashboardForm, staffTasks, staffDocuments, staffMessages,
+  staffClientShell, staffDashboardForm, staffTasks, staffDocuments, staffMessages,
 };

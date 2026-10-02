@@ -67,7 +67,7 @@ function createAccounts(db, { now = () => Date.now() } = {}) {
     if (!EMAIL_RE.test(e)) throw new AccountError('Adresse courriel invalide.');
     if (n.length < 2) throw new AccountError('Indiquez le nom de la personne.');
     const cid = role === 'client' ? Number(clientId) : null;
-    if (role === 'client' && !db.prepare("SELECT 1 FROM clients WHERE id = ? AND status = 'active'").get(cid)) {
+    if (role === 'client' && !db.prepare("SELECT 1 FROM clients WHERE id = ? AND status = 'active' AND is_firm = 0").get(cid)) {
       throw new AccountError('Choisissez l’entreprise de ce client.');
     }
     return tx(db, () => {
@@ -290,7 +290,7 @@ function createAccounts(db, { now = () => Date.now() } = {}) {
   function setAssignment(actor, userId, clientId, assigned, ip) {
     const user = userById(userId);
     if (!user || !['bookkeeper', 'payroll', 'tax'].includes(user.role)) throw new AccountError('Seul le personnel assigné (tenue de livres, paie, fiscalité) a des assignations.');
-    if (!db.prepare('SELECT 1 FROM clients WHERE id = ?').get(Number(clientId))) throw new AccountError('Client introuvable.');
+    if (!db.prepare('SELECT 1 FROM clients WHERE id = ? AND is_firm = 0').get(Number(clientId))) throw new AccountError('Client introuvable.');
     if (assigned) {
       db.prepare('INSERT OR IGNORE INTO client_assignments (user_id, client_id, created_at) VALUES (?, ?, ?)').run(user.id, Number(clientId), iso(now()));
     } else {

@@ -10,8 +10,9 @@ const { visibleClients, STAFF_ROLES } = require('./rbac.js');
 const { PortalError } = require('./portal.js');
 const P = require('./views-portal.js');
 const V = require('./views.js');
+const W = require('./views-work.js');
 
-function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null }) {
+function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue }) {
   const isStaff = (u) => STAFF_ROLES.includes(u.role);
 
   const qboStatus = (clientId) => (qboService ? qboService.status(clientId) : null);
@@ -42,12 +43,8 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           const client = portal.client(u.client_id);
           return send200(res, P.clientHome(s, { client, snap: portal.getSnapshot(u, u.client_id), tasks: portal.listTasks(u, u.client_id, { open: true }), nav: clientNav(u), flash: flashOf(url), sync: qboStatus(u.client_id) })), true;
         }
-        const rows = visibleClients(db, u).map((c) => {
-          const snap = db.prepare('SELECT data FROM client_snapshots WHERE client_id = ?').get(c.id);
-          return { ...c, tasks: portal.openTaskCount(u, c.id), unread: portal.unreadCount(u, c.id), asOf: snap ? JSON.parse(snap.data).asOf : null,
-            qbo: qboStatus(c.id), suggestions: qboService ? qboService.newSuggestionCount(c.id) : 0 };
-        });
-        return send200(res, P.staffHome(s, { rows, flash: flashOf(url) })), true;
+        const data = workqueue.dashboard(u, { qboStatus, suggestions: (id) => (qboService ? qboService.newSuggestionCount(id) : 0), unread: (id) => portal.unreadCount(u, id) });
+        return send200(res, W.staffDashboard(s, { data, flash: flashOf(url) })), true;
       }
 
       /* ------------------------------------------------------ côté client */
@@ -112,7 +109,45 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           const cid = await qboService.finishConnect(u, { code: url.searchParams.get('code'), state: url.searchParams.get('state'), realmId: url.searchParams.get('realmId') }, ip);
           let msg = 'QuickBooks est connecté.';
           try { await qboService.sync(cid, 'connect', u); msg += ' Première synchronisation terminée.'; } catch (err) { msg += ` La première synchronisation a échoué : ${err.message}`; }
-          return ok(`/clients/${cid}/quickbooks`, msg), true;
+          const firm = workqueue.firmClient();
+          return ok(firm && firm.id === cid ? '/cabinet' : `/clients/${cid}/quickbooks`, msg), true;
+        }
+        /* QuickBooks du cabinet : administrateur seulement */
+        if (p === '/cabinet' || p.startsWith('/cabinet/')) {
+          if (u.role !== 'admin') throw new PortalError('Accès refusé.');
+          if (p === '/cabinet' && GET) {
+            const firm = workqueue.firmClient();
+            const links = new Map();
+            for (const c of visibleClients(db, u)) { const o = workqueue.owedBy(c); if (o) links.set(o.customerId, c); }
+            return send200(res, W.firmPage(s, { qbo: firm ? qboStatus(firm.id) : null, enabled: Boolean(qboService && qboService.enabled),
+              receivables: firm ? workqueue.firmReceivables() : [], links, flash: flashOf(url) })), true;
+          }
+          const fq = p.match(/^\/cabinet\/quickbooks\/(connecter|synchroniser|deconnecter)$/);
+          if (fq && POST) {
+            if (!qboService || !qboService.enabled) throw new PortalError('QuickBooks n’est pas encore configuré sur ce serveur.');
+            const firm = workqueue.firmClient(fq[1] === 'connecter');
+            if (!firm) throw new PortalError('Le QuickBooks du cabinet n’est pas relié.');
+            if (fq[1] === 'connecter') return redirect(res, qboService.startConnect(u, firm.id)), true;
+            if (fq[1] === 'synchroniser') {
+              const st = await qboService.sync(firm.id, 'manual', u);
+              return ok('/cabinet', `Lu : ${st.invoices} facture(s) impayée(s), ${st.owing} client(s) concerné(s).`), true;
+            }
+            await qboService.disconnect(u, firm.id, ip);
+            return ok('/cabinet', 'QuickBooks du cabinet déconnecté : les autorisations sont retirées.'), true;
+          }
+        }
+        /* échéances et profil fiscal d'un client */
+        const dl = p.match(/^\/clients\/(\d+)\/(profil|echeances|echeances\/marquer|echeances\/(\d+)\/supprimer)$/);
+        if (dl && POST) {
+          const cid = Number(dl[1]);
+          if (dl[2] === 'profil') { workqueue.saveProfile(u, cid, form, ip); return ok(`/clients/${cid}/echeances`, 'Profil fiscal enregistré : les échéances sont recalculées.'), true; }
+          if (dl[2] === 'echeances') { workqueue.addCustomDeadline(u, cid, form, ip); return ok(`/clients/${cid}/echeances`, 'Échéance ajoutée.'), true; }
+          if (dl[2] === 'echeances/marquer') {
+            workqueue.markDeadline(u, cid, form.key, form.status, ip);
+            return ok(`/clients/${cid}/echeances`, form.status === 'open' ? 'Échéance rétablie.' : form.status === 'na' ? 'Marquée « ne s’applique pas ».' : 'Échéance marquée comme faite.'), true;
+          }
+          workqueue.deleteCustomDeadline(u, cid, dl[4], ip);
+          return ok(`/clients/${cid}/echeances`, 'Échéance supprimée.'), true;
         }
         const sg = p.match(/^\/suggestions\/(\d+)\/(envoyer|ignorer)$/);
         if (sg && POST && qboService) {
@@ -136,12 +171,20 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           await qboService.disconnect(u, cid, ip);
           return ok(`/clients/${cid}/quickbooks`, 'QuickBooks déconnecté : les autorisations sont retirées.'), true;
         }
-        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages))?$/);
+        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances))?$/);
         if (c) {
           const cid = Number(c[1]);
           const sub = c[2] || '';
           portal.listTasks(u, cid, { open: true }); // contrôle d'accès (lève PortalError sinon)
           const client = portal.client(cid);
+          if (!client || client.is_firm) return send200(res, V.errorPage(404, 'Ce dossier n’existe pas.'), 404), true;
+          if (sub === '/echeances' && GET) {
+            const firm = workqueue.firmClient();
+            const fq = firm ? qboStatus(firm.id) : null;
+            return send200(res, W.staffDeadlines(s, { client, deadlines: workqueue.listDeadlines(u, cid), customers: workqueue.firmCustomers(),
+              owed: workqueue.owedBy(client), firmConnected: Boolean(fq && fq.status === 'connected'),
+              shell: (inner) => P.staffClientShell(s, client, '/echeances', inner, flashOf(url), counts(u, cid)) })), true;
+          }
           if (sub === '' && GET) return send200(res, P.staffDashboardForm(s, { client, snap: portal.getSnapshot(u, cid), flash: flashOf(url), counts: counts(u, cid) })), true;
           if (sub === '/tableau' && POST) {
             portal.saveSnapshot(u, cid, form, ip);

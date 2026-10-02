@@ -106,3 +106,22 @@ a.cd-kpi:focus-visible{outline:2px solid var(--bvy-focus);outline-offset:2px}
   .cd-bar{padding:12px 14px}
   .cd-barrow{grid-template-columns:minmax(0,1.4fr) minmax(50px,1fr) 72px}
 }
+/* Tableau de bord de l'équipe (workflow 05) */
+.wq-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:var(--bvy-space-6) 0 var(--bvy-space-4)}
+.wq-kpis .cd-kpi b{font-size:clamp(22px,2vw,28px)}
+.wq-table tbody th[scope=row]{font:inherit;font-size:var(--bvy-fs-small);text-transform:none;letter-spacing:0;background:transparent;color:var(--bvy-text);text-align:left;vertical-align:top;min-width:150px}
+.wq-table td{vertical-align:top}
+.wq-next{min-width:200px}
+.wq-owed{min-width:150px}
+.wq-next .badge{margin-bottom:4px}
+.wq-date{display:block;font-weight:600;color:var(--bvy-text)}
+.wq-what{display:block;font-size:var(--bvy-fs-meta);color:var(--bvy-text-muted);text-decoration:none;max-width:320px}
+.wq-what:hover{text-decoration:underline;color:var(--bvy-plum-700)}
+.wq-owed b{display:block}
+.wq-late{display:block;font-size:var(--bvy-fs-meta);font-weight:600;color:var(--bvy-act)}
+.wq-owed .t-meta{display:block}
+.wq-actions{white-space:nowrap}
+.wq-actions .inline-form+.inline-form{margin-left:4px}
+.nowrap{white-space:nowrap}
+@media (max-width:1100px){.wq-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:640px){.wq-kpis{grid-template-columns:1fr 1fr}.wq-next{min-width:180px}}

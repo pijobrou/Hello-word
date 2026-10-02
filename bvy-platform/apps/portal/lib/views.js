@@ -150,7 +150,7 @@ function navItems(user, nav = {}) {
     if (nav.qboUrl) items.push({ href: nav.qboUrl, label: 'QuickBooks', icon: 'i-book', qbo: true });
     return items;
   }
-  const items = [{ href: '/accueil', label: 'Clients', icon: 'i-users', tab: true }];
+  const items = [{ href: '/accueil', label: 'Tableau de bord', short: 'Accueil', icon: 'i-home', tab: true }];
   if (can(user, 'audit.view') || can(user, 'users.invite_client')) items.push({ href: '/admin', label: 'Administration', icon: 'i-lock', tab: true, short: 'Admin' });
   items.push({ href: '/compte', label: 'Mon compte', icon: 'i-lock', tab: true });
   return items;
@@ -317,11 +317,12 @@ function adminPage(s, { users, clients, flash }) {
         <p class="hint">La personne reçoit un lien valable 72 heures et choisit elle-même son mot de passe.</p></form></article>
     ${can(u, 'clients.manage') ? `<article class="card"><div class="card-head"><h2 class="t-h3">Créer un client</h2></div>
       <form class="form" method="post" action="/admin/clients">${csrf}
-        ${field('c-name', 'Nom de l’entreprise', '<input class="input" id="c-name" name="name" required maxlength="160">')}
+        ${field('c-name', 'Nom du client ou de l’entreprise', '<input class="input" id="c-name" name="name" required maxlength="160">')}
+        ${field('c-kind', 'Type de client', '<select class="input" id="c-kind" name="kind"><option value="">— À préciser plus tard —</option><option value="entreprise">Entreprise (société)</option><option value="autonome">Travailleur autonome</option><option value="particulier">Particulier</option></select>')}
         <div class="btn-row"><button class="btn btn-outline" type="submit">Créer le client</button></div></form>
       <p class="t-meta mt-4">${clients.length} client${clients.length > 1 ? 's' : ''} actif${clients.length > 1 ? 's' : ''}.</p></article>` : ''}
   </div>
-  <article class="card mt-6"><div class="card-head"><h2 class="t-h3">Personnes</h2>${can(u, 'audit.view') ? '<a class="link" href="/admin/journal">Journal d’audit</a>' : ''}</div>
+  <article class="card mt-6"><div class="card-head"><h2 class="t-h3">Personnes</h2>${can(u, 'audit.view') ? '<a class="link" href="/admin/journal">Journal d’audit</a>' : ''}${u.role === 'admin' ? ' <a class="link" href="/cabinet">QuickBooks du cabinet</a>' : ''}</div>
     <div class="table-wrap"><table class="table"><thead><tr><th scope="col">Personne</th><th scope="col">Rôle</th><th scope="col">État</th><th scope="col"><span class="sr-only">Action</span></th></tr></thead><tbody>${userRows}</tbody></table></div></article>`;
   return appPage(s, { title: 'Administration', current: '/admin', body, flash });
 }

@@ -256,7 +256,7 @@ test('jetons renouvelés (rotation conservée) ; autorisation retirée → recon
     assert.match((await marie.get('/accueil')).body, /Connexion QuickBooks à renouveler/);
     const staff2 = await t.login('owner@bvy.ca'); // la première session a expiré (4 h sans activité)
     assert.match((await staff2.get(`/clients/${t.boreal.id}/quickbooks`)).body, /Reconnecter QuickBooks/);
-    assert.match((await staff2.get('/accueil')).body, /Reconnexion nécessaire/);
+    assert.match((await staff2.get('/accueil')).body, /À reconnecter/);
   } finally { t.app.close(); }
 });
 

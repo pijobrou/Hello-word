@@ -196,6 +196,46 @@ const MIGRATIONS = [
     UNIQUE (client_id, kind, qbo_type, qbo_id)
   );
   `,
+  // 4 — tableau de bord de l'équipe (workflow 05) : profil fiscal, échéances, QuickBooks du cabinet
+  `
+  ALTER TABLE clients ADD COLUMN is_firm INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE clients ADD COLUMN kind TEXT CHECK (kind IN ('entreprise','autonome','particulier'));
+  ALTER TABLE clients ADD COLUMN year_end_month INTEGER NOT NULL DEFAULT 12 CHECK (year_end_month BETWEEN 1 AND 12);
+  ALTER TABLE clients ADD COLUMN gst_freq TEXT NOT NULL DEFAULT 'none' CHECK (gst_freq IN ('none','monthly','quarterly','annual'));
+  ALTER TABLE clients ADD COLUMN payroll INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE clients ADD COLUMN installments INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE clients ADD COLUMN profile_since TEXT;
+  ALTER TABLE clients ADD COLUMN billing_customer_id TEXT;
+  CREATE TABLE deadline_marks (
+    client_id  INTEGER NOT NULL REFERENCES clients(id),
+    key        TEXT NOT NULL,
+    status     TEXT NOT NULL CHECK (status IN ('done','na')),
+    marked_by  INTEGER REFERENCES users(id),
+    marked_at  TEXT NOT NULL,
+    PRIMARY KEY (client_id, key)
+  );
+  CREATE TABLE custom_deadlines (
+    id          INTEGER PRIMARY KEY,
+    client_id   INTEGER NOT NULL REFERENCES clients(id),
+    title       TEXT NOT NULL,
+    due_date    TEXT NOT NULL,
+    created_by  INTEGER REFERENCES users(id),
+    created_at  TEXT NOT NULL
+  );
+  CREATE TABLE firm_customers (
+    customer_id  TEXT PRIMARY KEY,
+    name         TEXT NOT NULL
+  );
+  CREATE TABLE firm_receivables (
+    customer_id    TEXT PRIMARY KEY,
+    customer_name  TEXT,
+    balance_cents  INTEGER NOT NULL,
+    overdue_cents  INTEGER NOT NULL,
+    invoices       INTEGER NOT NULL,
+    oldest_due     TEXT,
+    synced_at      TEXT NOT NULL
+  );
+  `,
 ];
 
 function openDb(file) {

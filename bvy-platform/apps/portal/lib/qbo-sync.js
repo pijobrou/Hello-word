@@ -111,6 +111,16 @@ function createQboService(db, { qbo, portal, audit, now = () => Date.now() }) {
       const app = qbo.cfg.appBase;
       const today = ymd(now());
 
+      // QuickBooks du cabinet : seulement les factures de BVY à ses clients (workflow 05).
+      const isFirm = db.prepare('SELECT is_firm FROM clients WHERE id = ?').get(id);
+      if (isFirm && isFirm.is_firm) {
+        const stats = await billingSync(realm, token);
+        db.prepare("UPDATE sync_jobs SET status = 'ok', finished_at = ?, stats = ? WHERE id = ?").run(iso(), JSON.stringify(stats), job);
+        db.prepare("UPDATE qbo_connections SET last_sync_at = ?, last_sync_status = 'ok', last_error = NULL WHERE client_id = ?").run(iso(), id);
+        audit({ userId: actor ? actor.id : null, action: 'qbo.sync.firm', target: `client:${id}`, details: { trigger, ...stats } });
+        return stats;
+      }
+
       const accounts = (await qbo.query(realm, token, "select * from Account where Active = true maxresults 1000")).Account || [];
       const banks = accounts.filter((a) => a.AccountType === 'Bank');
       const uncategorized = new Set(accounts.filter((a) => UNCATEGORIZED_RE.test(a.Name || '') || UNCATEGORIZED_RE.test(a.FullyQualifiedName || '')).map((a) => String(a.Id)));
@@ -219,6 +229,33 @@ function createQboService(db, { qbo, portal, audit, now = () => Date.now() }) {
       throw err instanceof PortalError ? err : new PortalError(`Synchronisation en échec : ${msg}`);
     }
   }
+
+  // Factures ouvertes du cabinet, regroupées par client QuickBooks (solde, partie en retard, plus vieille échéance).
+  async function billingSync(realm, token) {
+    const customers = (await qbo.query(realm, token, 'select * from Customer where Active = true maxresults 1000')).Customer || [];
+    const invoices = (await qbo.query(realm, token, "select * from Invoice where Balance > '0' maxresults 1000")).Invoice || [];
+    const today = ymd(now());
+    const agg = new Map();
+    for (const i of invoices) {
+      const ref = i.CustomerRef || {};
+      if (!ref.value) continue;
+      const a = agg.get(String(ref.value)) || { name: ref.name || null, balance: 0, overdue: 0, n: 0, oldest: null };
+      const bal = cents(i.Balance);
+      a.balance += bal; a.n += 1;
+      if (i.DueDate && i.DueDate < today) { a.overdue += bal; if (!a.oldest || i.DueDate < a.oldest) a.oldest = i.DueDate; }
+      agg.set(String(ref.value), a);
+    }
+    tx(() => {
+      db.prepare('DELETE FROM firm_customers').run();
+      const ins = db.prepare('INSERT OR REPLACE INTO firm_customers (customer_id, name) VALUES (?, ?)');
+      for (const cu of customers) if (cu.Id) ins.run(String(cu.Id), String(cu.DisplayName || cu.CompanyName || cu.FullyQualifiedName || `Client ${cu.Id}`).slice(0, 200));
+      db.prepare('DELETE FROM firm_receivables').run();
+      const ir = db.prepare('INSERT INTO firm_receivables (customer_id, customer_name, balance_cents, overdue_cents, invoices, oldest_due, synced_at) VALUES (?, ?, ?, ?, ?, ?, ?)');
+      for (const [cid, a] of agg) ir.run(cid, a.name, a.balance, a.overdue, a.n, a.oldest, iso());
+    });
+    return { customers: customers.length, invoices: invoices.length, owing: agg.size };
+  }
+  const tx = (fn) => { db.exec('BEGIN'); try { fn(); db.exec('COMMIT'); } catch (e) { db.exec('ROLLBACK'); throw e; } };
 
   async function syncAll(out = console) {
     const rows = db.prepare("SELECT client_id FROM qbo_connections WHERE status = 'connected'").all();

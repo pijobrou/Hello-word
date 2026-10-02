@@ -24,6 +24,7 @@ const { createPortalRoutes } = require('./lib/routes-portal.js');
 const multipart = require('./lib/multipart.js');
 const { qboConfigFromEnv, createQbo } = require('./lib/qbo.js');
 const { createQboService } = require('./lib/qbo-sync.js');
+const { createWorkqueue } = require('./lib/workqueue.js');
 
 const COOKIE = '__Host-bvy_session';
 const MAX_BODY = 16 * 1024;
@@ -176,7 +177,8 @@ function createServer(options = {}) {
   const qboCfg = options.qbo !== undefined ? options.qbo : qboConfigFromEnv(process.env, cfg.publicUrl);
   const qbo = qboCfg ? (qboCfg.authorizeUrl ? qboCfg : createQbo(qboCfg, { now: options.now })) : null;
   const qboService = createQboService(db, { qbo, portal, audit: acc.audit, now: options.now });
-  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService });
+  const workqueue = createWorkqueue(db, { audit: acc.audit, now: options.now });
+  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue });
 
   async function serveAsset(req, res, pathname) {
     const name = path.basename(pathname);
@@ -418,6 +420,7 @@ function createServer(options = {}) {
           if (p === '/admin/clients' && req.method === 'POST') {
             if (!can(u, 'clients.manage')) throw new AccountError('Accès refusé.');
             const c = acc.createClient(u, form.name, ip);
+            if (form.kind) workqueue.saveProfile(u, c.id, { kind: form.kind }, ip);
             return redirect(res, '/admin?ok=' + encodeURIComponent(`Client « ${c.name} » créé.`));
           }
           const m = p.match(/^\/admin\/utilisateurs\/(\d+)(?:\/(statut|assignation|reinviter|application))?$/);
@@ -465,6 +468,7 @@ function createServer(options = {}) {
 
   server.db = db;
   server.qboService = qboService;
+  server.workqueue = workqueue;
   server.accounts = acc;
   server.config = cfg;
   server.on('close', () => authLimiter.stop());
