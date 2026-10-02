@@ -120,7 +120,7 @@ test('tableau de bord : publié par BVY, vu par le client avec explication ; jam
 
     const paul = await t.login('paul@autre.ca');
     const other = await paul.get('/accueil');
-    assert.ok(!other.body.includes('48'), 'aucun chiffre d’un autre client');
+    assert.ok(!/48\s215/.test(other.body), 'aucun chiffre d’un autre client');
     assert.match(other.body, /tableau de bord se prépare/);
     assert.notStrictEqual((await paul.get(`/clients/${t.boreal.id}`)).status, 200);
   } finally { t.app.close(); }

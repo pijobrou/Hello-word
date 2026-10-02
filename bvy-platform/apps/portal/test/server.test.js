@@ -321,3 +321,21 @@ test('CSP : les formulaires peuvent rediriger vers Intuit (bouton « Connecter Q
   assert.ok(formAction.includes(new URL(AUTH_URL).origin), 'la page d’autorisation Intuit doit être permise');
   assert.deepStrictEqual(formAction.filter((s) => s !== "'self'" && !/^https:\/\/([*a-z]+\.)?intuit\.com$|^https:\/\/appcenter\.intuit\.com$/.test(s)), [], 'aucune autre origine');
 });
+
+test('feuilles de style et script avec empreinte : jamais d’ancienne version gardée après un déploiement', async () => {
+  const fsx = require('node:fs'); const osx = require('node:os'); const px = require('node:path');
+  const app = createServer({ port: 0, dataDir: fsx.mkdtempSync(px.join(osx.tmpdir(), 'bvy-cache-')), smtp: null, publicUrl: ORIGIN, sendMail: async () => {} });
+  await new Promise((r) => app.listen(0, '127.0.0.1', r));
+  const get = (p) => new Promise((resolve, reject) => http.get({ host: '127.0.0.1', port: app.address().port, path: p }, (res) => {
+    let b = ''; res.on('data', (c) => { b += c; }); res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, body: b }));
+  }).on('error', reject));
+  try {
+    const page = await get('/connexion');
+    const css = page.body.match(/href="(\/assets\/portal\.css\?v=[0-9a-f]{10})"/);
+    assert.ok(css, 'portal.css porte une empreinte');
+    const v = await get(css[1]);
+    assert.strictEqual(v.status, 200);
+    assert.match(v.headers['cache-control'], /immutable/);
+    assert.strictEqual((await get('/assets/portal.css')).headers['cache-control'], 'no-cache');
+  } finally { app.close(); }
+});

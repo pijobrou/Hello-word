@@ -187,7 +187,9 @@ function createServer(options = {}) {
     if (!MIME[path.extname(name)] || pathname !== `/assets/${name}`) return false;
     const st = await fsp.stat(file).catch(() => null);
     if (!st || !st.isFile()) return false;
-    res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': MIME[path.extname(name)], 'Content-Length': st.size, 'Cache-Control': 'public, max-age=86400' });
+    // Adresse avec empreinte (?v=…) : gardée un an ; sans empreinte : revalidée à chaque fois.
+    const versioned = /[?&]v=[0-9a-f]{10}\b/.test(req.url || '');
+    res.writeHead(200, { ...SECURITY_HEADERS, 'Content-Type': MIME[path.extname(name)], 'Content-Length': st.size, 'Cache-Control': versioned ? 'public, max-age=31536000, immutable' : 'no-cache' });
     if (req.method === 'HEAD') return res.end(), true;
     fs.createReadStream(file).pipe(res);
     return true;

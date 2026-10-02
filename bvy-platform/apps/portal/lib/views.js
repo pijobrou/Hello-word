@@ -10,7 +10,19 @@ const { ROLES, can } = require('./rbac.js');
 const esc = (v) => String(v == null ? '' : v)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-const icon = (name, cls = 'i') => `<svg class="${cls}" aria-hidden="true"><use href="/assets/icons.svg#${name}"/></svg>`;
+// Adresse d'un fichier de /assets avec son empreinte : chaque nouvelle version a une nouvelle adresse,
+// le navigateur ne garde donc jamais une ancienne feuille de style après un déploiement.
+const ASSETS_DIR = require('node:path').join(__dirname, '..', 'public', 'assets');
+const assetHashes = new Map();
+function asset(name) {
+  if (!assetHashes.has(name)) {
+    let v = '0';
+    try { v = require('node:crypto').createHash('sha256').update(require('node:fs').readFileSync(require('node:path').join(ASSETS_DIR, name))).digest('hex').slice(0, 10); } catch { /* fichier absent */ }
+    assetHashes.set(name, v);
+  }
+  return `/assets/${name}?v=${assetHashes.get(name)}`;
+}
+const icon = (name, cls = 'i') => `<svg class="${cls}" aria-hidden="true"><use href="${asset('icons.svg')}#${name}"/></svg>`;
 const csrfField = (s) => (s ? `<input type="hidden" name="_csrf" value="${esc(s.csrf)}">` : '');
 
 function head(title) {
@@ -21,13 +33,13 @@ function head(title) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>${esc(title)} — Portail BVY</title>
-<link rel="icon" href="/assets/favicon.png">
+<link rel="icon" href="${asset('favicon.png')}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Jost:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/assets/tokens.css">
-<link rel="stylesheet" href="/assets/components.css">
-<link rel="stylesheet" href="/assets/portal.css">
+<link rel="stylesheet" href="${asset('tokens.css')}">
+<link rel="stylesheet" href="${asset('components.css')}">
+<link rel="stylesheet" href="${asset('portal.css')}">
 </head>`;
 }
 
@@ -200,7 +212,7 @@ function appPage(s, { title, current, body, flash, nav = {} }) {
     <div class="mnav">${sheet}<nav class="tabbar tabs-${tabCount}" aria-label="Navigation principale (mobile)">${tabs}</nav></div>
   </div>
 </div>
-<script src="/assets/portal.js" defer></script>
+<script src="${asset('portal.js')}" defer></script>
 </body>
 </html>`;
 }
