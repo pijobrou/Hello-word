@@ -291,6 +291,10 @@ const MIGRATIONS = [
   );
   ALTER TABLE tasks ADD COLUMN pay_run_id INTEGER REFERENCES pay_runs(id);
   `,
+  // 7 — détail de chaque paie : retenues des employés, cotisations de l'employeur, vacances (montants en cents, JSON)
+  `
+  ALTER TABLE pay_runs ADD COLUMN breakdown TEXT;
+  `,
 ];
 
 function openDb(file) {

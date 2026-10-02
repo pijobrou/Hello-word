@@ -33,10 +33,10 @@ try { ({ chromium } = require('playwright')); } catch { ({ chromium } = require(
   const jean = acc.userByEmail('jean@laurentides.ca');
   const marc = db.prepare("SELECT id FROM employees WHERE name = 'Marc Pelletier'").get().id;
   pay.submitHours(jean, run(b.id), { [`reg_${marc}`]: '42', [`ot_${marc}`]: '3', note: 'Julie en congé cette semaine' }, null);
-  pay.saveSummary(admin, run(b.id), { gross: '1 640,00', net: '1 238,55', remit: '587,20', employeesPaid: '1' });
+  pay.saveSummary(admin, run(b.id), { gross: '1 640,00', net: '1 228,35', employeesPaid: '1', fedTax: '128,40', qcTax: '157,30', qppEe: '96,35', eiEe: '21,65', qpipEe: '7,95', qppEr: '96,35', eiEr: '30,31', qpipEr: '11,12', fss: '27,22', cnt: '1,07', cnesst: '24,93', vacation: '65,60' });
   // Fleur de Sel : approuvée → en préparation
   pay.move(admin, run(c.id), 'hours', 'Feuille reçue par courriel');
-  pay.saveSummary(admin, run(c.id), { gross: '860,00', net: '694,10', remit: '281,35', employeesPaid: '1' });
+  pay.saveSummary(admin, run(c.id), { gross: '860,00', net: '694,10', employeesPaid: '1', fedTax: '52,10', qcTax: '61,40', qppEe: '41,95', eiEe: '11,35', qpipEe: '4,17', qppEr: '41,95', eiEr: '15,89', qpipEr: '5,83', fss: '14,28', cnt: '0,56', cnesst: '13,07' });
   db.prepare("UPDATE pay_runs SET status = 'preparing' WHERE id = ?").run(run(c.id));
   const B = `http://localhost:${port}`; const br = await chromium.launch();
   const lastCode = () => mails[mails.length - 1].subject.match(/(\d{6})/)[1];

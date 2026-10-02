@@ -187,3 +187,16 @@ a.wq-due:hover{filter:brightness(.97);border-color:currentColor}
 .hours-table td:last-child .input{min-width:140px}
 .hours-table tbody th[scope=row]{font:inherit;text-transform:none;letter-spacing:0;background:transparent;color:var(--bvy-text);font-weight:600}
 @media (max-width:640px){.pay-sum{grid-template-columns:1fr}}
+/* Sommaire détaillé de la paie */
+.pay-sum .pay-remit,.pay-sum .pay-cost{background:var(--bvy-surface)}
+.pay-sum .pay-remit{border-color:var(--bvy-gold-line)}
+.pay-sum div>span{display:block;margin-top:4px;font-size:var(--bvy-fs-meta);color:var(--bvy-text-muted)}
+.pay-sum-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pay-detail .pay-group th{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--bvy-text-muted);background:var(--bvy-surface-muted);text-align:left}
+.pay-detail .pay-subtotal td{font-weight:600;border-top:1px solid var(--bvy-border-input)}
+.pay-detail td.num{text-align:right;white-space:nowrap}
+.pay-fs{border:1px solid var(--bvy-border);border-radius:var(--bvy-radius-md);padding:12px 14px 4px;margin:0}
+.pay-fs legend{padding:0 6px;font-weight:600;font-size:var(--bvy-fs-small)}
+.pay-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:0 14px}
+@media (max-width:900px){.pay-sum-4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.pay-sum-4{grid-template-columns:1fr}}

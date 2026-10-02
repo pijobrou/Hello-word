@@ -147,9 +147,21 @@ test('paie de bout en bout : calendrier, heures du client, sommaire, approbation
     await marie.post(`/paie/${run.id}/decision`, { decision: 'reject', comment: 'Il manque la prime de Luc' });
     assert.strictEqual(t.db.prepare('SELECT status FROM pay_runs WHERE id = ?').get(run.id).status, 'hours_received');
     await staff.get(`/paie/${run.id}`);
-    await staff.post(`/paie/${run.id}/sommaire`, { gross: '2 080,00', net: '1 590,00', remit: '740,00', employeesPaid: '2' });
+    // Détail recopié de QuickBooks Paie : le portail fait les totaux (ARC, Revenu Québec, coût, date de versement)
+    await staff.post(`/paie/${run.id}/sommaire`, { gross: '2 080,00', net: '1 590,00', employeesPaid: '2',
+      fedTax: '180,00', qcTax: '200,00', qppEe: '70,00', eiEe: '25,00', qpipEe: '15,00',
+      qppEr: '70,00', eiEr: '35,00', qpipEr: '21,00', fss: '34,00', cnt: '1,50', cnesst: '30,00', vacation: '83,20' });
+    row = t.db.prepare('SELECT * FROM pay_runs WHERE id = ?').get(run.id);
+    assert.strictEqual(row.remit_cents, 24000 + 44150, 'ARC 240,00 + Revenu Québec 441,50');
+    const sheet = await staff.get(`/paie/${run.id}`);
+    assert.match(sheet.body, /À remettre d’ici le 2026-11-16<\/dt><dd>681,50\s\$<\/dd><span>ARC 240,00\s\$ · Revenu Québec 441,50\s\$/);
+    assert.match(sheet.body, /Coût total pour l’entreprise<\/dt><dd>2\s271,50\s\$/);
+    assert.match(sheet.body, /Cotisation CNESST[\s\S]*?30,00\s\$/);
+    assert.match(sheet.body, /Vacances versées sur cette paie[\s\S]*?83,20\s\$/);
+    assert.ok(!/Écart de/.test(sheet.body), 'brut − retenues = net : pas d’écart');
     const view = await marie.get(`/paie/${run.id}`);
-    assert.match(view.body, /2\s080,00\s\$[\s\S]*J’approuve/);
+    assert.match(view.body, /Ce que cette paie coûte à l’entreprise<\/dt><dd>2\s271,50\s\$[\s\S]*J’approuve/);
+    assert.ok(!/Écart de/.test(view.body));
     await marie.post(`/paie/${run.id}/decision`, { decision: 'approve' });
     assert.strictEqual(t.db.prepare('SELECT status FROM pay_runs WHERE id = ?').get(run.id).status, 'preparing');
 
@@ -177,6 +189,23 @@ test('paie de bout en bout : calendrier, heures du client, sommaire, approbation
     const detail = await staff.get(`/paie/${run.id}`);
     assert.match(detail.body, /Taux de vacances à revoir/);
     assert.match(detail.body, /app\.qbo\.intuit\.com\/app\/payroll/);
+
+    // Cumul de l'année (base des T4/RL-1) et production de fin d'année dans l'onglet Paie
+    const tab = await staff.get(`/clients/${t.boreal.id}/paie`);
+    assert.match(tab.body, /Cumul 2026[\s\S]*Salaires bruts<\/dt><dd>2\s080,00\s\$[\s\S]*Remis à l’ARC<\/dt><dd>240,00\s\$/);
+    assert.match(tab.body, /Feuillets T4 et RL-1 2026 et sommaires[\s\S]*CNESST — déclaration des salaires 2026/);
+    // Départ d'un employé : relevé d'emploi à produire dans les 5 jours
+    const sara = t.db.prepare("SELECT id FROM employees WHERE name = 'Sara Roy'").get().id;
+    await staff.post(`/clients/${t.boreal.id}/paie/employes/${sara}/desactiver`);
+    assert.deepStrictEqual(t.db.prepare('SELECT title, due_date FROM custom_deadlines WHERE client_id = ?').all(t.boreal.id).map((d) => [d.title, d.due_date]), [['Relevé d’emploi (RE) de Sara Roy', '2026-10-07']]);
+    // Un écart entre brut − retenues et net est signalé à l'équipe
+    const r2 = t.app.payroll;
+    t.db.prepare("INSERT INTO pay_runs (client_id, pay_date, status, created_at, updated_at) VALUES (?, '2026-10-19', 'hours_received', '2026-10-02', '2026-10-02')").run(t.boreal.id);
+    const run2 = t.db.prepare("SELECT id FROM pay_runs WHERE pay_date = '2026-10-19'").get().id;
+    await staff.get(`/paie/${run2}`);
+    await staff.post(`/paie/${run2}/sommaire`, { gross: '1000', net: '900', fedTax: '50', employeesPaid: '1' });
+    assert.match((await staff.get(`/paie/${run2}`)).body, /Écart de 50,00\s\$/);
+    void r2;
 
     // Calendrier refusé pour un client sans employés ; lien QuickBooks hors intuit.com refusé
     t.db.prepare('UPDATE clients SET payroll = 0 WHERE id = ?').run(t.autre.id);

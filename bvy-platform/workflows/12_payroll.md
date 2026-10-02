@@ -97,3 +97,18 @@ A pay can go back one step with a reason (e.g. hours corrected). Every change is
 - Timesheets accepted: PDF, JPG, PNG and Excel (.xlsx, recognised by content, not by name).
 - « En retard » on the staff screen: pay date within one day and the pay not yet « Prête ».
 - Emails never contain amounts: « BVY a besoin des heures de paie… », « Votre paie du … est prête à approuver ».
+
+## Owner feedback 2026-10-02 — everything the pay costs and must be remitted
+
+- The pay summary is entered in detail from the QuickBooks Paie summary: employee deductions (federal tax, Québec
+  tax, QPP, EI, QPIP, other), employer contributions (QPP, EI, QPIP, FSS, CNT, CNESST) and vacation pay (paid or
+  accrued). The portal computes: **to remit to the CRA** (federal tax + EI employee and employer), **to remit to
+  Revenu Québec** (Québec tax, QPP and QPIP both shares, FSS, CNT, CNESST), the **remittance due date** (15th of
+  the following month, regular remitter, weekend → Monday), the **total cost for the business** (gross + employer
+  contributions + accrued vacation) and a **check** that gross − employee deductions = net (difference flagged).
+- The client sees the same summary before approving (« Ce que cette paie coûte à l’entreprise »).
+- Client payroll tab: **year-to-date** totals per component from completed pays (base for T4, RL-1 and the CNESST
+  wage declaration) and the **year-end production** list (T4/RL-1 and summaries — last day of February; CNESST —
+  15 March; records of employment). Removing an employee adds « Relevé d’emploi (RE) » due in 5 days.
+- Assumptions to validate by the firm: regular-remitter frequency for every client (quarterly or accelerated
+  remitters not handled yet); CNESST premiums paid to Revenu Québec with source deductions.

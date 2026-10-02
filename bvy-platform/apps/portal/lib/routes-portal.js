@@ -247,8 +247,11 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           if (!client || client.is_firm) return send200(res, V.errorPage(404, 'Ce dossier n’existe pas.'), 404), true;
           if (sub === '/paie' && GET) {
             if (!payroll.canStaff(u)) throw new PortalError('Accès refusé.');
+            const year = new Date().getUTCFullYear();
+            const yearEnd = client.kind ? workqueue.deadlinesFor(client).filter((d) => /^(t4|cnesst):/.test(d.key) || /^Relevé d’emploi/.test(d.title)) : [];
             return send200(res, PV.clientPayrollTab(s, { client, schedule: payroll.schedule(cid), employees: payroll.employees(cid, { all: true }), runs: payroll.runsForClient(u, cid),
-              qboUrl: payroll.qboUrlFor(cid), shell: (inner) => P.staffClientShell(s, client, '/paie', inner, flashOf(url), counts(u, cid)) })), true;
+              qboUrl: payroll.qboUrlFor(cid), ytd: payroll.yearToDate(u, cid, year), yearEnd,
+              shell: (inner) => P.staffClientShell(s, client, '/paie', inner, flashOf(url), counts(u, cid)) })), true;
           }
           if (sub === '/echeances' && GET) {
             const firm = workqueue.firmClient();

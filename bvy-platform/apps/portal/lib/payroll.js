@@ -20,6 +20,44 @@ const STATES = Object.freeze({
 const ORDER = ['waiting', 'hours_received', 'validation', 'preparing', 'ready', 'done'];
 const FREQ = Object.freeze({ weekly: 'Hebdomadaire', biweekly: 'Aux deux semaines', semimonthly: 'Deux fois par mois (le 15 et le dernier jour)', monthly: 'Mensuelle' });
 const PAYROLL_ROLES = ['admin', 'lead', 'payroll'];
+
+// Détail d'une paie, recopié du sommaire de QuickBooks Paie. Le portail fait les totaux, il ne calcule pas les retenues.
+const COMPONENTS = Object.freeze([
+  // [clé, libellé, groupe, organisme]
+  ['fedTax', 'Impôt fédéral retenu', 'employee', 'arc'],
+  ['qcTax', 'Impôt du Québec retenu', 'employee', 'rq'],
+  ['qppEe', 'RRQ — part de l’employé', 'employee', 'rq'],
+  ['eiEe', 'Assurance-emploi — part de l’employé', 'employee', 'arc'],
+  ['qpipEe', 'RQAP — part de l’employé', 'employee', 'rq'],
+  ['otherEe', 'Autres retenues (REER, syndicat, avances…)', 'employee', null],
+  ['qppEr', 'RRQ — part de l’employeur', 'employer', 'rq'],
+  ['eiEr', 'Assurance-emploi — part de l’employeur', 'employer', 'arc'],
+  ['qpipEr', 'RQAP — part de l’employeur', 'employer', 'rq'],
+  ['fss', 'Fonds des services de santé (FSS)', 'employer', 'rq'],
+  ['cnt', 'Normes du travail (CNT)', 'employer', 'rq'],
+  ['cnesst', 'Cotisation CNESST', 'employer', 'rq'],
+  ['vacation', 'Vacances versées sur cette paie', 'vacation', null],
+  ['vacationAccrued', 'Vacances accumulées (à verser plus tard)', 'vacation', null],
+]);
+
+// Totaux d'une paie : à remettre à l'ARC et à Revenu Québec, coût pour l'entreprise, contrôle du net.
+function payTotals(run) {
+  const b = (run && run.breakdown) || {};
+  const v = (k) => Number(b[k] || 0);
+  const sum = (pred) => COMPONENTS.filter(pred).reduce((n, [k]) => n + v(k), 0);
+  const arc = sum(([, , , to]) => to === 'arc');
+  const rq = sum(([, , , to]) => to === 'rq');
+  const employee = sum(([, , g]) => g === 'employee');
+  const employer = sum(([, , g]) => g === 'employer');
+  const gross = run && run.gross_cents !== null && run.gross_cents !== undefined ? run.gross_cents : null;
+  const net = run && run.net_cents !== null && run.net_cents !== undefined ? run.net_cents : null;
+  return {
+    arc, rq, remit: arc + rq, employee, employer,
+    cost: gross === null ? null : gross + employer + v('vacationAccrued'),
+    // Brut − retenues des employés devrait donner le net : un écart signale une saisie à vérifier
+    gap: gross === null || net === null ? null : gross - employee - net,
+  };
+}
 const DEFAULT_QBO_PAYROLL = 'https://app.qbo.intuit.com/app/payroll';
 const DAY = 86_400_000;
 
@@ -38,6 +76,13 @@ function nextPayDate(date, freq) {
   }
   const [ny, nm] = m === 12 ? [y + 1, 1] : [y, m + 1];
   return `${ny}-${String(nm).padStart(2, '0')}-${String(Math.min(d, lastDay(ny, nm))).padStart(2, '0')}`;
+}
+// Versement des retenues (remettant régulier) : le 15 du mois suivant la paie ; samedi/dimanche → lundi.
+function remitDue(payDate) {
+  const [y, m] = payDate.split('-').map(Number);
+  const d = new Date(Date.UTC(m === 12 ? y + 1 : y, m === 12 ? 0 : m, 15));
+  if (d.getUTCDay() === 6) d.setUTCDate(17); else if (d.getUTCDay() === 0) d.setUTCDate(16);
+  return d.toISOString().slice(0, 10);
 }
 const isDay = (s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s || '')) && !Number.isNaN(Date.parse(`${s}T00:00:00Z`));
 const oneLine = (s, n) => String(s || '').replace(/\s+/g, ' ').trim().slice(0, n);
@@ -71,7 +116,10 @@ function createPayroll(db, { audit, now = () => Date.now() }) {
     return decorate(r);
   }
   function decorate(r) {
-    return { ...r, hours: r.hours ? JSON.parse(r.hours) : null, label: STATES[r.status] };
+    const d = { ...r, hours: r.hours ? JSON.parse(r.hours) : null, breakdown: r.breakdown ? JSON.parse(r.breakdown) : {}, label: STATES[r.status] };
+    d.totals = payTotals(d);
+    d.remitDue = remitDue(d.pay_date);
+    return d;
   }
 
   function setStatus(run, to, actor, note = null) {
@@ -115,8 +163,14 @@ function createPayroll(db, { audit, now = () => Date.now() }) {
   }
   function setEmployeeActive(actor, clientId, employeeId, active, ip) {
     const c = requireStaff(actor, clientId);
-    const r = db.prepare('UPDATE employees SET active = ? WHERE id = ? AND client_id = ?').run(active ? 1 : 0, Number(employeeId), c.id);
-    if (!r.changes) throw new PortalError('Employé introuvable.');
+    const e = db.prepare('SELECT * FROM employees WHERE id = ? AND client_id = ?').get(Number(employeeId), c.id);
+    if (!e) throw new PortalError('Employé introuvable.');
+    db.prepare('UPDATE employees SET active = ? WHERE id = ?').run(active ? 1 : 0, e.id);
+    // Départ d'un employé : le relevé d'emploi (RE) se produit dans les 5 jours suivant l'arrêt de la rémunération
+    if (!active && e.active) {
+      db.prepare('INSERT INTO custom_deadlines (client_id, title, due_date, created_by, created_at) VALUES (?, ?, ?, ?, ?)')
+        .run(c.id, `Relevé d’emploi (RE) de ${e.name}`, addDays(today(), 5), actor.id, iso());
+    }
     audit({ userId: actor.id, action: active ? 'payroll.employee.reactivate' : 'payroll.employee.deactivate', target: `client:${c.id}`, clientId: c.id, ip });
   }
   const employees = (clientId, { all = false } = {}) => db.prepare(`SELECT * FROM employees WHERE client_id = ?${all ? '' : ' AND active = 1'} ORDER BY name`).all(Number(clientId));
@@ -188,13 +242,21 @@ function createPayroll(db, { audit, now = () => Date.now() }) {
   function saveSummary(actor, runId, form, ip) {
     const r = runFor(actor, runId);
     if (!['hours_received', 'validation'].includes(r.status)) throw new PortalError('Le sommaire se saisit une fois les heures reçues.');
-    const gross = parseAmount(form.gross); const net = parseAmount(form.net); const remit = parseAmount(form.remit);
+    const gross = parseAmount(form.gross); const net = parseAmount(form.net);
     const n = Number(form.employeesPaid);
-    if (gross === null || net === null || remit === null) throw new PortalError('Indiquez le brut, le net et les retenues à remettre.');
-    if (gross < 0 || net < 0 || remit < 0) throw new PortalError('Les montants ne peuvent pas être négatifs.');
+    if (gross === null || net === null) throw new PortalError('Indiquez le brut et le net de la paie.');
+    const breakdown = {};
+    for (const [k, label] of COMPONENTS) {
+      const c = parseAmount(form[k]);
+      if (c !== null && c < 0) throw new PortalError(`Montant négatif : ${label}.`);
+      if (c) breakdown[k] = c;
+    }
+    if (gross < 0 || net < 0) throw new PortalError('Les montants ne peuvent pas être négatifs.');
     if (net > gross) throw new PortalError('Le net ne peut pas dépasser le brut.');
     if (!Number.isInteger(n) || n < 1 || n > 999) throw new PortalError('Indiquez le nombre d’employés payés.');
-    db.prepare('UPDATE pay_runs SET gross_cents = ?, net_cents = ?, remit_cents = ?, employees_paid = ? WHERE id = ?').run(gross, net, remit, n, r.id);
+    const totals = payTotals({ breakdown, gross_cents: gross, net_cents: net });
+    db.prepare('UPDATE pay_runs SET gross_cents = ?, net_cents = ?, remit_cents = ?, employees_paid = ?, breakdown = ? WHERE id = ?')
+      .run(gross, net, totals.remit, n, JSON.stringify(breakdown), r.id);
     if (r.status === 'hours_received') {
       setStatus(r, 'validation', actor, 'Sommaire inscrit ; approbation demandée au client');
       const t = newTask(r, 'approval', `Approuver la paie du ${r.pay_date}`, 'Vérifiez le sommaire de la paie préparée par BVY, puis approuvez-la.', actor);
@@ -224,6 +286,19 @@ function createPayroll(db, { audit, now = () => Date.now() }) {
     return r;
   }
 
+  // Cumul de l'année (paies terminées, selon la date de paie) : base des T4, RL-1 et de la déclaration CNESST
+  function yearToDate(actor, clientId, year) {
+    if (actor.role === 'client') requireClientUser(actor, clientId); else requireStaff(actor, clientId);
+    const runs = db.prepare("SELECT * FROM pay_runs WHERE client_id = ? AND status = 'done' AND substr(pay_date, 1, 4) = ?").all(Number(clientId), String(year)).map(decorate);
+    const total = { runs: runs.length, gross: 0, net: 0, arc: 0, rq: 0, cost: 0 };
+    const by = Object.fromEntries(COMPONENTS.map(([k]) => [k, 0]));
+    for (const r of runs) {
+      total.gross += r.gross_cents || 0; total.net += r.net_cents || 0; total.arc += r.totals.arc; total.rq += r.totals.rq; total.cost += r.totals.cost || 0;
+      for (const [k] of COMPONENTS) by[k] += Number(r.breakdown[k] || 0);
+    }
+    return { year, ...total, by };
+  }
+
   /* ------------------------------------------------------------ lectures */
   const events = (runId) => db.prepare('SELECT e.*, u.name AS user_name FROM pay_run_events e LEFT JOIN users u ON u.id = e.user_id WHERE run_id = ? ORDER BY e.id').all(Number(runId));
   function runsForClient(actor, clientId) {
@@ -249,7 +324,7 @@ function createPayroll(db, { audit, now = () => Date.now() }) {
   const qboUrlFor = (clientId) => (schedule(clientId) || {}).qbo_url || DEFAULT_QBO_PAYROLL;
 
   return { STATES, FREQ, canStaff, saveSchedule, schedule, addEmployee, setEmployeeActive, employees, ensureRuns, submitHours, decide,
-    saveSummary, move, runFor, events, runsForClient, board, openRunsFor, qboUrlFor };
+    saveSummary, move, runFor, events, runsForClient, board, openRunsFor, qboUrlFor, yearToDate };
 }
 
-module.exports = { createPayroll, nextPayDate, STATES, FREQ, PAYROLL_ROLES };
+module.exports = { createPayroll, nextPayDate, payTotals, remitDue, COMPONENTS, STATES, FREQ, PAYROLL_ROLES };
