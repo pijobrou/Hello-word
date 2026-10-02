@@ -144,7 +144,7 @@ test('tableau de bord de l’équipe : clients séparés par type, prochaine éc
     assert.match(decodeURIComponent(r.headers.location), /Profil fiscal enregistré/);
     const page = await admin.get(`/clients/${boreal}/echeances`);
     assert.match(page.body, /Retenues à la source — paies de septembre 2026/);
-    assert.match(page.body, /TPS\/TVQ — trimestre terminé le 30 septembre 2026/);
+    assert.match(page.body, /TPS\/TVQ — trimestre terminé le 2026-09-30/);
     // Les échéances d'avant la mise en place du profil ne sont pas « en retard »
     assert.ok(!/En retard/.test(page.body));
 
@@ -158,11 +158,11 @@ test('tableau de bord de l’équipe : clients séparés par type, prochaine éc
     assert.match(home.body, /<th scope="col">Tenue de livres<\/th><th scope="col">TPS\/TVQ<\/th><th scope="col"><abbr title="Retenues à la source \(et T4\/RL-1\)">RS<\/abbr><\/th><th scope="col">T2 \/ CO-17<\/th><th scope="col">CNESST<\/th>/);
     // Retenues : paies de septembre → 15 octobre (dans 13 jours) ; TPS/TVQ : 2 novembre ; T2 : 30 juin 2027 ; CNESST : 15 mars 2027
     const row = home.body.slice(home.body.indexOf('Atelier Boréal inc.'), home.body.indexOf('</tr>', home.body.indexOf('Atelier Boréal inc.')));
-    assert.match(row, /title="Retenues à la source — paies de septembre 2026[^"]*"><b>15 oct\.<\/b><span>dans 13 j<\/span>/);
-    assert.match(row, /title="TPS\/TVQ — trimestre terminé le 30 septembre 2026[^"]*"><b>2 nov\.<\/b>/);
+    assert.match(row, /title="Retenues à la source — paies de septembre 2026[^"]*"><b>2026-10-15<\/b><span>dans 13 j<\/span>/);
+    assert.match(row, /title="TPS\/TVQ — trimestre terminé le 2026-09-30[^"]*"><b>2026-11-02<\/b>/);
     // Colonne T2/CO-17 : la plus proche entre production, solde d'impôt et REQ → solde du 1er mars 2027
-    assert.match(row, /title="Solde d’impôt de la société \(exercice terminé le 31 décembre 2026\)[^"]*"><b>1 mars 2027<\/b>/);
-    assert.match(row, /CNESST — déclaration des salaires 2026[^"]*"><b>15 mars 2027<\/b>/);
+    assert.match(row, /title="Solde d’impôt de la société \(exercice terminé le 2026-12-31\)[^"]*"><b>2027-03-01<\/b>/);
+    assert.match(row, /CNESST — déclaration des salaires 2026[^"]*"><b>2027-03-15<\/b>/);
     assert.match(row, /<option value="todo" selected>Pas encore traité<\/option>/);
     assert.match(row, /1 tâche chez le client/);
     assert.match(row, /badge b-neutral">Non relié/);
@@ -184,12 +184,12 @@ test('tableau de bord de l’équipe : clients séparés par type, prochaine éc
     r = await admin.post(`/clients/${boreal}/echeances/marquer`, { key: 'das:2026-09', status: 'done' });
     assert.match(decodeURIComponent(r.headers.location), /marquée comme faite/);
     home = await admin.get('/accueil');
-    assert.match(home.body, /title="Retenues à la source — paies d’octobre 2026[^"]*"><b>16 nov\.<\/b>/);
+    assert.match(home.body, /title="Retenues à la source — paies d’octobre 2026[^"]*"><b>2026-11-16<\/b>/);
     // Échéance ajoutée à la main : visible dans « En attente » ; clé inconnue refusée
     await admin.get(`/clients/${boreal}/echeances`);
     await admin.post(`/clients/${boreal}/echeances`, { title: 'Répondre à Revenu Québec', date: '2026-10-09' });
     home = await admin.get('/accueil');
-    assert.match(home.body, /9 oct\. · Répondre à Revenu Québec/);
+    assert.match(home.body, /2026-10-09 · Répondre à Revenu Québec/);
     await admin.get(`/clients/${boreal}/echeances`);
     r = await admin.post(`/clients/${boreal}/echeances/marquer`, { key: 'das:1999-01', status: 'done' });
     assert.match(decodeURIComponent(r.headers.location), /Échéance introuvable/);
@@ -199,7 +199,7 @@ test('tableau de bord de l’équipe : clients séparés par type, prochaine éc
     t.db.prepare('DELETE FROM custom_deadlines').run();
     t.db.prepare('DELETE FROM deadline_marks').run();
     home = await admin.get('/accueil');
-    assert.match(home.body, /class="wq-due late"[^>]*><b>15 juil\.<\/b><span>en retard 79 j<\/span>/);
+    assert.match(home.body, /class="wq-due late"[^>]*><b>2026-07-15<\/b><span>en retard 79 j<\/span>/);
     assert.match(home.body, /\d échéances en retard/);
 
     // Tenue de livres : seulement ses clients assignés ; pas d'accès au cabinet
@@ -252,7 +252,7 @@ test('QuickBooks du cabinet : administrateur seulement, jamais un client ; somme
     // Facturation : Boréal reconnu par son nom (500 $ en retard depuis le 31 août) ; J. Tremblay pas encore lié
     let bill = await admin.get('/facturation');
     assert.match(bill.body, /Total impayé<\/small><b>870,50\s\$<\/b>/);
-    assert.match(bill.body, /Atelier Boréal inc\.[\s\S]*?620,50\s\$[\s\S]*?500,00\s\$[\s\S]*?depuis le 31 août 2026/);
+    assert.match(bill.body, /Atelier Boréal inc\.[\s\S]*?620,50\s\$[\s\S]*?500,00\s\$[\s\S]*?depuis le 2026-08-31/);
     assert.match(bill.body, /customerdetail\?nameId=11/);
     assert.match(bill.body, /Soldes non liés à un dossier BVY[\s\S]*J\. Tremblay/);
     assert.strictEqual((await lead.get('/facturation')).status, 200, 'le comptable principal voit la facturation');
@@ -286,7 +286,7 @@ test('QuickBooks du cabinet : administrateur seulement, jamais un client ; somme
     assert.strictEqual(t.db.prepare('SELECT kind FROM clients WHERE is_firm = 1').get().kind, 'entreprise', 'le cabinet reste une société');
     const adm = await admin.get('/admin');
     assert.match(adm.body, /Personnes et clients/);
-    assert.match(adm.body, /QBO du cabinet[\s\S]*Prochaines obligations de BVY[\s\S]*15 oct\./);
+    assert.match(adm.body, /QBO du cabinet[\s\S]*Prochaines obligations de BVY[\s\S]*2026-10-15/);
     await lead.get('/accueil');
     assert.strictEqual((await lead.post('/cabinet/profil', { gstFreq: 'none' })).status, 403);
     assert.ok(!/QBO du cabinet/.test((await lead.get('/admin')).body));

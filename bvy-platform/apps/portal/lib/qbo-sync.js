@@ -18,7 +18,7 @@ const sha = (s) => crypto.createHash('sha256').update(String(s)).digest('hex');
 const cents = (v) => Math.round(Number(v || 0) * 100);
 const ymd = (ms) => new Date(ms).toISOString().slice(0, 10);
 const money = (c) => new Intl.NumberFormat('fr-CA', { style: 'currency', currency: 'CAD' }).format(c / 100);
-const dateFr = (iso) => new Intl.DateTimeFormat('fr-CA', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${iso}T00:00:00Z`));
+const { isoDay: dateFr } = require('./dates.js');
 const monthFr = (y, m) => new Intl.DateTimeFormat('fr-CA', { month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(y, m, 1)));
 const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
 

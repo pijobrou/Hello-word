@@ -9,9 +9,7 @@ const { esc, appPage, pageHead, field, icon, csrfField } = require('./views.js')
 const { formatAmount, HEALTH, KINDS } = require('./portal.js');
 
 const TZ = 'America/Toronto';
-const dateFr = (iso) => (iso ? new Intl.DateTimeFormat('fr-CA', { dateStyle: 'long', timeZone: /^\d{4}-\d{2}-\d{2}$/.test(iso) ? 'UTC' : TZ }).format(new Date(iso)) : '');
-const dateTimeFr = (iso) => new Intl.DateTimeFormat('fr-CA', { dateStyle: 'medium', timeStyle: 'short', timeZone: TZ }).format(new Date(iso));
-const todayFr = () => new Intl.DateTimeFormat('fr-CA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: TZ }).format(new Date());
+const { isoDay: dateFr, isoDateTime: dateTimeFr, todayLabel: todayFr } = require('./dates.js');
 const size = (n) => (n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} Ko` : `${(n / 1024 / 1024).toFixed(1).replace('.', ',')} Mo`);
 const qboLink = (url, label = 'Voir dans QuickBooks') => (url
   ? `<a class="qbo-link" href="${esc(url)}" target="_blank" rel="noopener">${esc(label)} <span aria-hidden="true">↗</span><span class="sr-only">(nouvel onglet)</span></a>` : '');

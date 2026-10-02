@@ -31,7 +31,8 @@ function businessDay(date) {
 }
 const MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 const deMois = (m) => (/^[aeiouyéè]/i.test(MONTHS[m - 1]) ? `d’${MONTHS[m - 1]}` : `de ${MONTHS[m - 1]}`);
-const dayFr = (date) => { const [y, m, d] = date.split('-').map(Number); return `${d === 1 ? '1er' : d} ${MONTHS[m - 1]} ${y}`; };
+// Format choisi par le propriétaire : 2026-10-02
+const dayFr = (date) => date;
 
 function computeDeadlines(profile, today, { back = 90, ahead = 400 } = {}) {
   const p = profile || {};

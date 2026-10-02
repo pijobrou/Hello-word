@@ -224,7 +224,7 @@ test('suggestion envoyée au client, puis fermée toute seule quand c’est corr
     assert.match(decodeURIComponent(r.headers.location), /Tâche envoyée au client/);
     const task = t.db.prepare('SELECT * FROM tasks').get();
     assert.strictEqual(task.kind, 'question');
-    assert.match(task.title, /^Nous avons trouvé un paiement de 842,37\s\$ à Costco le 18 septembre 2026\. Était-ce une dépense d’entreprise \?$/);
+    assert.match(task.title, /^Nous avons trouvé un paiement de 842,37\s\$ à Costco le 2026-09-18\. Était-ce une dépense d’entreprise \?$/);
     assert.strictEqual(task.qbo_url, 'https://app.sandbox.qbo.intuit.com/app/expense?txnId=901');
 
     const marie = await t.login('marie@boreal.ca');
@@ -352,7 +352,7 @@ test('non catégorisé : opérations anciennes (février 2026) et de tous types 
     await staff.get(`/clients/${t.boreal.id}/quickbooks`);
     await staff.post(`/suggestions/${dep.id}/envoyer`);
     const task = t.db.prepare('SELECT title, choices FROM tasks ORDER BY id DESC').get();
-    assert.match(task.title, /^Nous avons trouvé un dépôt de 1\s500,00\s\$ le 11 février 2026\. D’où vient cet argent \?$/);
+    assert.match(task.title, /^Nous avons trouvé un dépôt de 1\s500,00\s\$ le 2026-02-11\. D’où vient cet argent \?$/);
     assert.deepStrictEqual(JSON.parse(task.choices), ['Une vente ou un revenu d’entreprise', 'Un apport personnel ou un prêt', 'Autre']);
   } finally { t.app.close(); }
 });

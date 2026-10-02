@@ -262,7 +262,7 @@ function homePage(s, { clients, flash }) {
 function accountPage(s, { sessions, pendingSecret, pendingUri, flash }) {
   const u = s.user;
   const csrf = csrfField(s);
-  const fmt = (ms) => new Intl.DateTimeFormat('fr-CA', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Toronto' }).format(new Date(ms));
+  const fmt = (ms) => require('./dates.js').isoDateTime(ms);
   const sessionRows = sessions.map((x) => `<tr><td>${esc(shortAgent(x.user_agent))}${x.id_hash === s.id_hash ? ' <span class="badge b-info">Cet appareil</span>' : ''}</td><td>${esc(fmt(x.last_seen))}</td>
     <td>${x.id_hash === s.id_hash ? '' : `<form method="post" action="/compte/sessions/fermer">${csrf}<input type="hidden" name="id" value="${esc(x.id_hash)}"><button class="btn btn-ghost btn-sm" type="submit">Fermer</button></form>`}</td></tr>`).join('');
 
@@ -363,7 +363,7 @@ function adminUserPage(s, { target, clients, assigned, flash }) {
 }
 
 function auditPage(s, { rows, names }) {
-  const fmt = (iso) => new Intl.DateTimeFormat('fr-CA', { dateStyle: 'short', timeStyle: 'medium', timeZone: 'America/Toronto' }).format(new Date(iso));
+  const fmt = (iso) => require('./dates.js').isoDateTime(iso, { seconds: true });
   const body = `${pageHead('Administration', 'Journal d’audit', 'Les 200 derniers événements. Ce journal ne peut être ni modifié ni effacé.')}
   <article class="card"><div class="table-wrap"><table class="table"><thead><tr><th scope="col">Date</th><th scope="col">Personne</th><th scope="col">Action</th><th scope="col">Cible</th><th scope="col">Adresse IP</th></tr></thead><tbody>
   ${rows.map((r) => `<tr><td class="t-mono">${esc(fmt(r.at))}</td><td>${esc(r.user_id ? names[r.user_id] || `#${r.user_id}` : '—')}</td><td>${esc(r.action)}</td><td>${esc(r.target || '')}</td><td class="t-mono">${esc(r.ip || '')}</td></tr>`).join('')}

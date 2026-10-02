@@ -111,7 +111,7 @@ test('tableau de bord : publié par BVY, vu par le client avec explication ; jam
     const marie = await t.login('marie@boreal.ca');
     const home = await marie.get('/accueil');
     assert.match(home.body, /48\s215,60\s\$/);
-    assert.match(home.body, /Chiffres au 30 septembre 2026/);
+    assert.match(home.body, /Chiffres au 2026-09-30/);
     assert.match(home.body, /À surveiller/);
     assert.match(home.body, /plus vite que vos revenus/);
     assert.match(home.body, /class="fill p85"/);

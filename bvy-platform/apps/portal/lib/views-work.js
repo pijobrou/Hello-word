@@ -8,13 +8,13 @@
 const { esc, appPage, pageHead, field, icon, csrfField } = require('./views.js');
 const { formatAmount } = require('./portal.js');
 const { KIND_ONE, GST_FREQ, dayFr } = require('./deadlines.js');
+const { isoDay, isoDateTime } = require('./dates.js');
 
 const MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 const URG = { late: 'b-act', week: 'b-watch', month: 'b-info', later: 'b-neutral' };
 const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
 
-const SHORT = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
-const shortDate = (date) => { const [y, m, d] = date.split('-').map(Number); const thisYear = new Date().getUTCFullYear(); return `${d} ${SHORT[m - 1]}${y !== thisYear ? ` ${y}` : ''}`; };
+const shortDate = (date) => isoDay(date);
 const BOOKS = { done: ['À jour', 'bk-done'], progress: ['En cours', 'bk-progress'], todo: ['Pas encore traité', 'bk-todo'] };
 
 // QuickBooks du client : connecté (vert), déconnecté (rouge), non relié (gris)
@@ -121,7 +121,7 @@ function billingPage(s, { data, firmQbo, flash }) {
   const kpis = `<div class="wq-kpis wq-kpis-3">
     ${tile('Total impayé', esc(formatAmount(data.total)), data.owing.length ? plural(data.owing.length, 'client doit', 'clients doivent') : 'aucun solde', '')}
     ${tile('En retard', esc(formatAmount(data.overdue)), data.overdue ? 'factures passées dues' : 'rien en retard', data.overdue ? 'down' : 'up')}
-    ${tile('Dernière lecture', data.syncedAt ? esc(new Intl.DateTimeFormat('fr-CA', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Toronto' }).format(new Date(data.syncedAt))) : '—', 'QuickBooks du cabinet, toutes les heures', '')}
+    ${tile('Dernière lecture', data.syncedAt ? esc(isoDateTime(data.syncedAt)) : '—', 'QuickBooks du cabinet, toutes les heures', '')}
   </div>`;
   const owing = data.owing.length ? `<div class="table-wrap"><table class="table"><thead><tr><th scope="col">Client</th><th scope="col">Type</th><th scope="col">Solde</th><th scope="col">En retard</th><th scope="col">Factures</th><th scope="col"><span class="sr-only">QuickBooks</span></th></tr></thead><tbody>
     ${data.owing.map((r) => `<tr><td><a class="link" href="/clients/${r.id}"><b>${esc(r.name)}</b></a></td><td>${esc(r.kind ? KIND_ONE[r.kind] : '—')}</td>
@@ -190,7 +190,7 @@ function firmPage(s, { qbo, enabled, deadlinesHtml, flash }) {
       <form class="mt-4" method="post" action="/cabinet/quickbooks/connecter">${csrf}<button class="btn btn-plum" type="submit">Relier le QuickBooks du cabinet</button></form>`
       : `<p><span class="badge ${connected ? (qbo.lastSyncStatus === 'failed' ? 'b-watch' : 'b-good') : 'b-act'}">${connected ? (qbo.lastSyncStatus === 'failed' ? 'Synchronisation en échec' : 'Connecté') : 'Déconnecté'}</span>
         ${qbo.companyName ? ` <b>${esc(qbo.companyName)}</b>` : ''}</p>
-      ${qbo.lastSyncAt ? `<p class="t-meta mt-4">Dernière lecture : ${esc(new Intl.DateTimeFormat('fr-CA', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Toronto' }).format(new Date(qbo.lastSyncAt)))}</p>` : ''}
+      ${qbo.lastSyncAt ? `<p class="t-meta mt-4">Dernière lecture : ${esc(isoDateTime(qbo.lastSyncAt))}</p>` : ''}
       ${qbo.lastError ? `<p class="t-meta">${esc(qbo.lastError)}</p>` : ''}
       <div class="btn-row mt-4">${connected ? `<form method="post" action="/cabinet/quickbooks/synchroniser">${csrf}<button class="btn btn-plum btn-sm" type="submit">Lire maintenant</button></form>` : `<form method="post" action="/cabinet/quickbooks/connecter">${csrf}<button class="btn btn-plum btn-sm" type="submit">Reconnecter</button></form>`}
         <a class="btn btn-outline btn-sm" href="/facturation">Voir la facturation</a>
