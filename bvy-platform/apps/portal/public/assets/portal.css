@@ -125,3 +125,51 @@ a.cd-kpi:focus-visible{outline:2px solid var(--bvy-focus);outline-offset:2px}
 .nowrap{white-space:nowrap}
 @media (max-width:1100px){.wq-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:640px){.wq-kpis{grid-template-columns:1fr 1fr}.wq-next{min-width:180px}}
+/* Colonnes d'échéances : pastille date + délai (rouge en retard, orange 7 jours, prune ce mois-ci, gris plus tard) */
+.wq-table td,.wq-table th{padding-left:12px;padding-right:12px}
+.wq-due{display:inline-flex;flex-direction:column;align-items:flex-start;min-width:78px;padding:5px 9px;border-radius:var(--bvy-radius-md);text-decoration:none;line-height:1.25;border:1px solid transparent}
+.wq-due b{font-size:var(--bvy-fs-small);font-weight:600;white-space:nowrap}
+.wq-due span{font-size:11px;white-space:nowrap}
+.wq-due.late{background:var(--bvy-act-bg);color:var(--bvy-act);border-color:var(--bvy-act)}
+.wq-due.week{background:var(--bvy-watch-bg);color:var(--bvy-watch)}
+.wq-due.month{background:var(--bvy-info-bg);color:var(--bvy-plum-700)}
+.wq-due.later{background:var(--bvy-surface-muted);color:var(--bvy-text-muted)}
+a.wq-due:hover{filter:brightness(.97);border-color:currentColor}
+.wq-na{color:var(--bvy-text-subtle)}
+.wq-sub{display:block;margin-top:4px;font-size:11px;color:var(--bvy-plum-600)}
+.wq-sub.late{color:var(--bvy-act);font-weight:600}
+.wq-stack{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.wq-qbo{text-decoration:none}
+/* Tenue de livres : 3 couleurs */
+.wq-books{margin:0}
+.wq-books select{appearance:none;-webkit-appearance:none;font:inherit;font-size:var(--bvy-fs-meta);font-weight:600;padding:6px 26px 6px 10px;border-radius:var(--bvy-radius-pill);border:1px solid transparent;cursor:pointer;background-repeat:no-repeat;background-position:right 9px center;background-size:9px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23555' stroke-width='1.5'/%3E%3C/svg%3E")}
+.wq-books select:focus-visible{outline:2px solid var(--bvy-focus);outline-offset:2px}
+.bk-done select{background-color:var(--bvy-good-bg);color:var(--bvy-good);border-color:var(--bvy-good)}
+.bk-progress select{background-color:var(--bvy-watch-bg);color:var(--bvy-watch);border-color:var(--bvy-watch)}
+.bk-todo select{background-color:var(--bvy-act-bg);color:var(--bvy-act);border-color:var(--bvy-act)}
+.wq-legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin:var(--bvy-space-2) 0 0;font-size:var(--bvy-fs-meta);color:var(--bvy-text-muted)}
+.wq-legend span{display:inline-flex;align-items:center;gap:6px}
+.wq-legend-sep{margin-left:8px;font-weight:600;color:var(--bvy-text)}
+.wq-dot{display:inline-block;width:10px;height:10px;border-radius:50%}
+.wq-dot.late,.wq-dot.bk-todo{background:var(--bvy-act)}
+.wq-dot.week,.wq-dot.bk-progress{background:var(--bvy-watch)}
+.wq-dot.month{background:var(--bvy-plum-600)}
+.wq-dot.later{background:var(--bvy-border-input)}
+.wq-dot.bk-done{background:var(--bvy-good)}
+.wq-kpis-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.wq-list{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
+.wq-list li{display:flex;align-items:center;gap:12px}
+.t-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--bvy-text-muted);margin:0}
+.wq-late+.t-meta{display:block}
+@media (max-width:640px){.wq-kpis-3{grid-template-columns:1fr}}
+/* Tableau plus compact : en-têtes sur deux lignes, cellules serrées */
+.wq-table thead th{white-space:normal;letter-spacing:.4px;line-height:1.3;padding-top:8px;padding-bottom:8px;vertical-align:bottom}
+.wq-table td,.wq-table th{padding-left:8px;padding-right:8px}
+.wq-table tbody th[scope=row]{min-width:120px;max-width:190px}
+.wq-books select{padding:5px 22px 5px 8px;background-position:right 7px center;font-size:12px;max-width:150px}
+.wq-due{min-width:0;padding:4px 7px}
+.wq-stack .badge{white-space:normal;text-align:left;font-size:11px}
+.wq-table tbody th[scope=row]{white-space:normal;overflow-wrap:anywhere}
+.wq-table td:nth-last-child(2){min-width:118px}
+.wq-books select{max-width:136px}
+.wq-list .wq-due{min-width:76px}

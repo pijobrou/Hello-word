@@ -205,11 +205,11 @@ test('messages : fil unique client ↔ BVY, non-lus, avis par courriel', async (
     await marie.post('/messages', { body: 'Bonjour, ma facture Hydro arrive la semaine prochaine.' });
     const staff = await t.login('owner@bvy.ca');
     const home = await staff.get('/accueil');
-    assert.match(home.body, /1 non lu/);
+    assert.match(home.body, /1 message non lu/);
     const thread = await staff.get(`/clients/${t.boreal.id}/messages`);
     assert.match(thread.body, /facture Hydro/);
     await staff.post(`/clients/${t.boreal.id}/messages`, { body: 'Merci Marie, nous la classerons à réception.' });
-    assert.ok(!/\d non lu/.test((await staff.get('/accueil')).body));
+    assert.ok(!/\d messages? non lus?/.test((await staff.get('/accueil')).body));
     const back = await marie.get('/accueil');
     assert.match(back.body, /aria-label="1 nouveaux messages"/);
     const mine = await marie.get('/messages');

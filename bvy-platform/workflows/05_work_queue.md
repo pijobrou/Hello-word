@@ -68,3 +68,16 @@ the rules do not cover. Overdue = date passed and not marked done (looked back 9
 - `npm test` green: deadline rules, grouping by type, isolation (assigned staff), firm receivables matched to
   clients, firm connection restricted to the administrator, firm never listed as a client.
 - Review package with desktop and mobile screenshots.
+
+## Owner feedback 2026-10-02 (second pass)
+
+- Left menu: **Facturation** (administrator and lead accountant) — who owes BVY, balance, overdue part, oldest due
+  date, link to the customer in BVY's QuickBooks; balances not linked to a client file listed separately.
+- Client groups kept (Entreprises / Travailleurs autonomes / Particuliers). Columns per client:
+  **Tenue de livres** (green = à jour, orange = en cours, red = pas encore traité; changed directly in the table),
+  **TPS/TVQ**, **Retenues à la source** (incl. T4/RL-1), **T2/CO-17** (filing, balance or REQ, whichever is next;
+  T1/TP-1 for self-employed and individuals), **CNESST**, **En attente** (tasks at the client, answers to process,
+  unread messages, custom deadlines), **QBO** (connected / disconnected / not linked). Particuliers: T1/TP-1 and
+  instalments. Each date is coloured: red overdue, orange ≤ 7 days, plum this month, grey later; « — » = not applicable.
+- Administration keeps **Personnes et clients** and adds **QBO du cabinet**, which shows BVY's own obligations
+  (fiscal profile of the firm, same rules, mark done / add).

@@ -19,23 +19,24 @@ const normName = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
 function createWorkqueue(db, { audit, now = () => Date.now() }) {
   const today = () => ymd(now());
   const isStaff = (u) => Boolean(u && STAFF_ROLES.includes(u.role) && u.status === 'active');
-  function requireStaff(actor, clientId) {
+  // allowFirm : la fiche du cabinet (obligations de BVY elle-même), administrateur seulement (canAccessClient).
+  function requireStaff(actor, clientId, { allowFirm = false } = {}) {
     if (!isStaff(actor) || !canAccessClient(db, actor, clientId)) throw new PortalError('Accès refusé.');
     const c = db.prepare('SELECT * FROM clients WHERE id = ?').get(Number(clientId));
-    if (!c || c.is_firm) throw new PortalError('Accès refusé.');
+    if (!c || (c.is_firm && !allowFirm)) throw new PortalError('Accès refusé.');
     return c;
   }
   const profileOf = (c) => ({ kind: c.kind, yearEndMonth: c.year_end_month, gstFreq: c.gst_freq, payroll: Boolean(c.payroll), installments: Boolean(c.installments) });
 
   /* ------------------------------------------------------ profil fiscal */
   function saveProfile(actor, clientId, form, ip) {
-    const c = requireStaff(actor, clientId);
-    const kind = String(form.kind || '');
+    const c = requireStaff(actor, clientId, { allowFirm: true });
+    const kind = c.is_firm ? 'entreprise' : String(form.kind || '');
     if (!KINDS[kind]) throw new PortalError('Choisissez le type de client : entreprise, travailleur autonome ou particulier.');
     const month = Number(form.yearEndMonth || 12);
     if (!Number.isInteger(month) || month < 1 || month > 12) throw new PortalError('Mois de fin d’exercice invalide.');
     const gst = ['none', 'monthly', 'quarterly', 'annual'].includes(form.gstFreq) ? form.gstFreq : 'none';
-    let billing = String(form.billingCustomerId || '').trim() || null;
+    let billing = c.is_firm ? null : String(form.billingCustomerId || '').trim() || null;
     if (billing && !db.prepare('SELECT 1 FROM firm_customers WHERE customer_id = ?').get(billing)) throw new PortalError('Client QuickBooks du cabinet introuvable.');
     const v = {
       kind,
@@ -49,6 +50,14 @@ function createWorkqueue(db, { audit, now = () => Date.now() }) {
     db.prepare(`UPDATE clients SET kind = ?, year_end_month = ?, gst_freq = ?, payroll = ?, installments = ?, profile_since = ?, billing_customer_id = ? WHERE id = ?`)
       .run(v.kind, v.year_end_month, v.gst_freq, v.payroll, v.installments, since, billing, c.id);
     audit({ userId: actor.id, action: 'client.profile', target: `client:${c.id}`, clientId: c.id, ip, details: { ...v, billing } });
+  }
+
+  /* --------------------------------------------- tenue de livres (3 couleurs) */
+  function setBooks(actor, clientId, status, ip) {
+    const c = requireStaff(actor, clientId);
+    if (!['todo', 'progress', 'done'].includes(status)) throw new PortalError('État de la tenue de livres invalide.');
+    db.prepare('UPDATE clients SET books_status = ?, books_updated_at = ?, books_updated_by = ? WHERE id = ?').run(status, new Date(now()).toISOString(), actor.id, c.id);
+    audit({ userId: actor.id, action: 'client.books', target: `client:${c.id}`, clientId: c.id, ip, details: { status } });
   }
 
   /* -------------------------------------------------------- échéances */
@@ -67,12 +76,12 @@ function createWorkqueue(db, { audit, now = () => Date.now() }) {
   const nextDeadline = (c, day = today()) => deadlinesFor(c, day).find((d) => !d.mark) || null;
 
   function listDeadlines(actor, clientId) {
-    const c = requireStaff(actor, clientId);
+    const c = requireStaff(actor, clientId, { allowFirm: true });
     return deadlinesFor(c);
   }
 
   function markDeadline(actor, clientId, key, status, ip) {
-    const c = requireStaff(actor, clientId);
+    const c = requireStaff(actor, clientId, { allowFirm: true });
     const k = String(key || '');
     if (!deadlinesFor(c).some((d) => d.key === k)) throw new PortalError('Échéance introuvable.');
     if (status === 'open') {
@@ -87,7 +96,7 @@ function createWorkqueue(db, { audit, now = () => Date.now() }) {
   }
 
   function addCustomDeadline(actor, clientId, { title, date }, ip) {
-    const c = requireStaff(actor, clientId);
+    const c = requireStaff(actor, clientId, { allowFirm: true });
     const t = String(title || '').replace(/\s+/g, ' ').trim().slice(0, 160);
     if (t.length < 3) throw new PortalError('Décrivez l’échéance.');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(String(date || '')) || Number.isNaN(Date.parse(`${date}T00:00:00Z`))) throw new PortalError('Date invalide.');
@@ -97,7 +106,7 @@ function createWorkqueue(db, { audit, now = () => Date.now() }) {
   }
 
   function deleteCustomDeadline(actor, clientId, id, ip) {
-    const c = requireStaff(actor, clientId);
+    const c = requireStaff(actor, clientId, { allowFirm: true });
     const r = db.prepare('DELETE FROM custom_deadlines WHERE id = ? AND client_id = ?').run(Number(id), c.id);
     if (!r.changes) throw new PortalError('Échéance introuvable.');
     db.prepare('DELETE FROM deadline_marks WHERE client_id = ? AND key = ?').run(c.id, `custom:${Number(id)}`);
@@ -138,9 +147,25 @@ function createWorkqueue(db, { audit, now = () => Date.now() }) {
     const customers = firmCustomers();
     const firm = firmClient();
     const rows = visibleClients(db, actor).map((c) => {
-      const next = c.kind ? nextDeadline(c, day) : null;
+      const list = c.kind ? deadlinesFor(c, day).filter((d) => !d.mark) : [];
+      const next = list[0] || null;
+      const pick = (re) => list.find((d) => re.test(d.key)) || null;
+      // Une colonne par obligation ; null = ne s'applique pas à ce client
+      const cols = {
+        taxes: c.kind && c.kind !== 'particulier' && c.gst_freq !== 'none' ? pick(/^taxes(pay)?:/) : null,
+        das: c.payroll && c.kind !== 'particulier' ? pick(/^(das|t4):/) : null,
+        t2: c.kind === 'entreprise' ? pick(/^(t2|t2pay|req):/) : null,
+        t1: c.kind === 'autonome' || c.kind === 'particulier' ? pick(/^t1(pay)?:/) : null,
+        cnesst: c.payroll && c.kind !== 'particulier' ? pick(/^cnesst:/) : null,
+        acompte: c.installments ? pick(/^acompte:/) : null,
+        other: list.find((d) => d.custom) || null,
+      };
+      const applies = { taxes: Boolean(c.kind && c.kind !== 'particulier' && c.gst_freq !== 'none'), das: Boolean(c.payroll && c.kind !== 'particulier'),
+        cnesst: Boolean(c.payroll && c.kind !== 'particulier'), acompte: Boolean(c.installments) };
       return {
-        id: c.id, name: c.name, kind: c.kind || null, next,
+        id: c.id, name: c.name, kind: c.kind || null, next, cols, applies,
+        late: list.filter((d) => d.urgency.level === 'late').length,
+        books: c.books_status || 'todo', booksAt: c.books_updated_at,
         owed: firm ? owedBy(c, receivables, customers) : null,
         waiting: db.prepare("SELECT COUNT(*) AS n FROM tasks WHERE client_id = ? AND status = 'open'").get(c.id).n,
         answered: db.prepare("SELECT COUNT(*) AS n FROM tasks WHERE client_id = ? AND status = 'answered'").get(c.id).n,
@@ -152,7 +177,11 @@ function createWorkqueue(db, { audit, now = () => Date.now() }) {
     const unset = rows.filter((r) => !r.kind).sort((a, b) => a.name.localeCompare(b.name, 'fr'));
     const nexts = rows.map((r) => r.next).filter(Boolean);
     const summary = {
-      late: nexts.filter((d) => d.urgency.level === 'late').length,
+      late: rows.reduce((n, r) => n + r.late, 0),
+      lateClients: rows.filter((r) => r.late).length,
+      books: { done: rows.filter((r) => r.kind && r.kind !== 'particulier' && r.books === 'done').length,
+        progress: rows.filter((r) => r.kind !== 'particulier' && r.books === 'progress').length,
+        todo: rows.filter((r) => r.kind !== 'particulier' && r.books === 'todo').length },
       week: nexts.filter((d) => d.urgency.level === 'week').length,
       owed: rows.reduce((s, r) => s + (r.owed && r.owed.balance ? r.owed.balance : 0), 0),
       owedClients: rows.filter((r) => r.owed && r.owed.balance > 0).length,
@@ -164,7 +193,35 @@ function createWorkqueue(db, { audit, now = () => Date.now() }) {
     return { groups, unset, summary, firm: firmInfo, total: rows.length };
   }
 
-  return { saveProfile, listDeadlines, markDeadline, addCustomDeadline, deleteCustomDeadline, nextDeadline, deadlinesFor,
+  /* ------------------------------------------------------- facturation */
+  // Qui doit quoi à BVY (QuickBooks du cabinet) : administrateur et comptable principal.
+  function billing(actor) {
+    if (!isStaff(actor) || !['admin', 'lead'].includes(actor.role)) throw new PortalError('Accès refusé.');
+    const firm = firmClient();
+    const receivables = firmReceivables();
+    const customers = firmCustomers();
+    const used = new Set();
+    const rows = visibleClients(db, actor).map((c) => {
+      const o = firm ? owedBy(c, receivables, customers) : null;
+      if (o) used.add(o.customerId);
+      return { id: c.id, name: c.name, kind: c.kind, owed: o };
+    });
+    const unlinked = receivables.filter((r) => !used.has(r.customer_id));
+    const owing = rows.filter((r) => r.owed && r.owed.balance > 0).sort((a, b) => b.owed.overdue - a.owed.overdue || b.owed.balance - a.owed.balance);
+    const total = receivables.reduce((n, r) => n + r.balance_cents, 0);
+    const overdue = receivables.reduce((n, r) => n + r.overdue_cents, 0);
+    return { firm: firm ? { id: firm.id } : null, owing, paid: rows.filter((r) => r.owed && !r.owed.balance), notFound: rows.filter((r) => !r.owed), unlinked, total, overdue,
+      syncedAt: receivables.length ? receivables[0].synced_at : null };
+  }
+
+  // Obligations de BVY (fiche du cabinet), pour l'administration
+  function firmDeadlines(actor) {
+    if (!actor || actor.role !== 'admin') throw new PortalError('Accès refusé.');
+    const f = firmClient();
+    return f && f.kind ? deadlinesFor(f) : [];
+  }
+
+  return { setBooks, billing, firmDeadlines, requireFirm: (actor) => requireStaff(actor, firmClient(true).id, { allowFirm: true }), saveProfile, listDeadlines, markDeadline, addCustomDeadline, deleteCustomDeadline, nextDeadline, deadlinesFor,
     firmClient, firmCustomers, firmReceivables, owedBy, dashboard, profileOf };
 }
 

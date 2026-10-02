@@ -13,6 +13,10 @@
       if (e.key === 'Escape' && sheet.classList.contains('open')) { sheet.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); btn.focus(); }
     });
   });
+  // Listes enregistrées dès qu'on les change (ex. : tenue de livres au tableau de bord)
+  document.querySelectorAll('select[data-autosubmit]').forEach(function (sel) {
+    sel.addEventListener('change', function () { if (sel.form) sel.form.submit(); });
+  });
   // Nom du fichier choisi dans une zone de dépôt
   document.querySelectorAll('.dropzone input[type=file]').forEach(function (input) {
     var label = input.closest('.dropzone').querySelector('[data-file]');

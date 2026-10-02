@@ -25,6 +25,7 @@ const multipart = require('./lib/multipart.js');
 const { qboConfigFromEnv, createQbo } = require('./lib/qbo.js');
 const { createQboService } = require('./lib/qbo-sync.js');
 const { createWorkqueue } = require('./lib/workqueue.js');
+const W = require('./lib/views-work.js');
 
 const COOKIE = '__Host-bvy_session';
 const MAX_BODY = 16 * 1024;
@@ -401,7 +402,12 @@ function createServer(options = {}) {
         const users = () => db.prepare('SELECT * FROM users ORDER BY status, name').all()
           .filter((x) => can(u, 'users.manage') || x.role === 'client');
         const clients = () => visibleClients(db, u);
-        const page = (flash, status = 200) => send200(res, V.adminPage(s, { users: users(), clients: clients(), flash }), status);
+        const firmCard = () => {
+          if (u.role !== 'admin') return '';
+          const f = workqueue.firmClient();
+          return W.firmCard(s, { qbo: f ? qboService.status(f.id) : null, deadlines: f ? workqueue.firmDeadlines(u) : [] });
+        };
+        const page = (flash, status = 200) => send200(res, V.adminPage(s, { users: users(), clients: clients(), flash, extra: firmCard() }), status);
 
         if (p === '/admin' && isGet) return page(flashOf(url));
         if (p === '/admin/journal' && isGet) {

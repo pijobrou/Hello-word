@@ -43,6 +43,10 @@ try { ({ chromium } = require('playwright')); } catch { ({ chromium } = require(
   const rec = db.prepare('INSERT INTO firm_receivables (customer_id, customer_name, balance_cents, overdue_cents, invoices, oldest_due, synced_at) VALUES (?, ?, ?, ?, ?, ?, ?)');
   [['11', 'Atelier Boréal inc.', 57500, 0, 1, null], ['12', 'Construction Laurentides ltée', 241500, 172500, 3, '2026-08-15'], ['13', 'Sophie Gagnon', 34500, 34500, 1, '2026-09-01'], ['14', 'Nadia Côté', 0, 0, 0, null]].forEach(([id, n, b, o, k, d]) => { cust.run(id, n); if (b) rec.run(id, n, b, o, k, d, t); });
   db.prepare('UPDATE clients SET billing_customer_id = ? WHERE id = ?').run('13', ids['Sophie Gagnon, graphiste']);
+  // Tenue de livres : vert / orange / rouge
+  for (const [n, st] of [['Atelier Boréal inc.', 'done'], ['Construction Laurentides ltée', 'todo'], ['Boutique Fleur de Sel inc.', 'progress'], ['Sophie Gagnon, graphiste', 'progress'], ['Marc Bélanger, électricien', 'done']]) wq.setBooks(admin, ids[n], st);
+  // Obligations de BVY elle-même
+  wq.saveProfile(admin, firm.id, { yearEndMonth: '12', gstFreq: 'quarterly', payroll: '1' });
   // QuickBooks des clients
   const qc = db.prepare(`INSERT INTO qbo_connections (client_id, realm_id, company_name, environment, access_enc, refresh_enc, access_expires, refresh_expires, status, connected_by, connected_at, last_sync_at, last_sync_status)
     VALUES (?, ?, ?, 'production', 'x', 'x', 0, 0, ?, ?, ?, ?, ?)`);
@@ -73,6 +77,12 @@ try { ({ chromium } = require('playwright')); } catch { ({ chromium } = require(
     if (await p.evaluate(() => document.documentElement.scrollWidth > innerWidth)) problems.push(`${vp} débordement échéances`, ...(process.env.OVF ? await require(process.env.OVF)(p) : []));
     await p.goto(`${B}/cabinet`); await p.waitForTimeout(300);
     await p.screenshot({ path: `${OUT}/03-quickbooks-du-cabinet-${vp}.png`, fullPage: true });
+    if (await p.evaluate(() => document.documentElement.scrollWidth > innerWidth)) problems.push(`${vp} débordement cabinet`);
+    await p.goto(`${B}/facturation`); await p.waitForTimeout(300);
+    await p.screenshot({ path: `${OUT}/04-facturation-${vp}.png`, fullPage: true });
+    if (await p.evaluate(() => document.documentElement.scrollWidth > innerWidth)) problems.push(`${vp} débordement facturation`);
+    await p.goto(`${B}/admin`); await p.waitForTimeout(300);
+    await p.screenshot({ path: `${OUT}/05-administration-${vp}.png`, fullPage: true });
     if (await p.evaluate(() => document.documentElement.scrollWidth > innerWidth)) problems.push(`${vp} débordement cabinet`, ...(process.env.OVF ? await require(process.env.OVF)(p) : []));
   }
   console.log('problèmes', problems); await b.close(); srv.close();

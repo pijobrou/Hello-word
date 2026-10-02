@@ -236,6 +236,12 @@ const MIGRATIONS = [
     synced_at      TEXT NOT NULL
   );
   `,
+  // 5 — état de la tenue de livres par client (vert / orange / rouge au tableau de bord)
+  `
+  ALTER TABLE clients ADD COLUMN books_status TEXT NOT NULL DEFAULT 'todo' CHECK (books_status IN ('todo','progress','done'));
+  ALTER TABLE clients ADD COLUMN books_updated_at TEXT;
+  ALTER TABLE clients ADD COLUMN books_updated_by INTEGER REFERENCES users(id);
+  `,
 ];
 
 function openDb(file) {

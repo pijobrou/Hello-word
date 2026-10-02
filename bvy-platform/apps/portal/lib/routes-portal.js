@@ -112,15 +112,28 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           const firm = workqueue.firmClient();
           return ok(firm && firm.id === cid ? '/cabinet' : `/clients/${cid}/quickbooks`, msg), true;
         }
-        /* QuickBooks du cabinet : administrateur seulement */
+        /* Facturation : qui doit quoi à BVY (administrateur et comptable principal) */
+        if (p === '/facturation' && GET) {
+          const data = workqueue.billing(u);
+          return send200(res, W.billingPage(s, { data, firmQbo: data.firm ? qboStatus(data.firm.id) : null, flash: flashOf(url) })), true;
+        }
+        /* QuickBooks et obligations du cabinet : administrateur seulement */
         if (p === '/cabinet' || p.startsWith('/cabinet/')) {
           if (u.role !== 'admin') throw new PortalError('Accès refusé.');
           if (p === '/cabinet' && GET) {
-            const firm = workqueue.firmClient();
-            const links = new Map();
-            for (const c of visibleClients(db, u)) { const o = workqueue.owedBy(c); if (o) links.set(o.customerId, c); }
-            return send200(res, W.firmPage(s, { qbo: firm ? qboStatus(firm.id) : null, enabled: Boolean(qboService && qboService.enabled),
-              receivables: firm ? workqueue.firmReceivables() : [], links, flash: flashOf(url) })), true;
+            const firm = workqueue.requireFirm(u);
+            const deadlinesHtml = W.staffDeadlines(s, { client: firm, deadlines: workqueue.listDeadlines(u, firm.id), shell: (x) => x, base: '/cabinet', firm: true });
+            return send200(res, W.firmPage(s, { qbo: qboStatus(firm.id), enabled: Boolean(qboService && qboService.enabled), deadlinesHtml, flash: flashOf(url) })), true;
+          }
+          const fd = p.match(/^\/cabinet\/(profil|echeances|echeances\/marquer|echeances\/(\d+)\/supprimer)$/);
+          if (fd && POST) {
+            const firm = workqueue.requireFirm(u);
+            const back = (msg) => ok('/cabinet#obligations', msg);
+            if (fd[1] === 'profil') { workqueue.saveProfile(u, firm.id, form, ip); return back('Profil fiscal de BVY enregistré.'), true; }
+            if (fd[1] === 'echeances') { workqueue.addCustomDeadline(u, firm.id, form, ip); return back('Échéance ajoutée.'), true; }
+            if (fd[1] === 'echeances/marquer') { workqueue.markDeadline(u, firm.id, form.key, form.status, ip); return back(form.status === 'open' ? 'Échéance rétablie.' : 'Échéance mise à jour.'), true; }
+            workqueue.deleteCustomDeadline(u, firm.id, fd[2], ip);
+            return back('Échéance supprimée.'), true;
           }
           const fq = p.match(/^\/cabinet\/quickbooks\/(connecter|synchroniser|deconnecter)$/);
           if (fq && POST) {
@@ -137,9 +150,14 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           }
         }
         /* échéances et profil fiscal d'un client */
-        const dl = p.match(/^\/clients\/(\d+)\/(profil|echeances|echeances\/marquer|echeances\/(\d+)\/supprimer)$/);
+        const dl = p.match(/^\/clients\/(\d+)\/(profil|tenue|echeances|echeances\/marquer|echeances\/(\d+)\/supprimer)$/);
         if (dl && POST) {
           const cid = Number(dl[1]);
+          if (dl[2] === 'tenue') {
+            workqueue.setBooks(u, cid, form.status, ip);
+            const c0 = portal.client(cid);
+            return ok('/accueil', `Tenue de livres de ${c0.name} : ${{ done: 'à jour', progress: 'en cours', todo: 'pas encore traitée' }[form.status]}.`), true;
+          }
           if (dl[2] === 'profil') { workqueue.saveProfile(u, cid, form, ip); return ok(`/clients/${cid}/echeances`, 'Profil fiscal enregistré : les échéances sont recalculées.'), true; }
           if (dl[2] === 'echeances') { workqueue.addCustomDeadline(u, cid, form, ip); return ok(`/clients/${cid}/echeances`, 'Échéance ajoutée.'), true; }
           if (dl[2] === 'echeances/marquer') {

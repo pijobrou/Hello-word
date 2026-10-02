@@ -151,6 +151,7 @@ function navItems(user, nav = {}) {
     return items;
   }
   const items = [{ href: '/accueil', label: 'Tableau de bord', short: 'Accueil', icon: 'i-home', tab: true }];
+  if (['admin', 'lead'].includes(user.role)) items.push({ href: '/facturation', label: 'Facturation', icon: 'i-wallet', tab: true });
   if (can(user, 'audit.view') || can(user, 'users.invite_client')) items.push({ href: '/admin', label: 'Administration', icon: 'i-lock', tab: true, short: 'Admin' });
   items.push({ href: '/compte', label: 'Mon compte', icon: 'i-lock', tab: true });
   return items;
@@ -291,7 +292,7 @@ function shortAgent(ua) {
 
 /* ------------------------------------------------------------ administration */
 
-function adminPage(s, { users, clients, flash }) {
+function adminPage(s, { users, clients, flash, extra = '' }) {
   const u = s.user;
   const csrf = csrfField(s);
   const roleOptions = Object.entries(ROLES)
@@ -306,6 +307,7 @@ function adminPage(s, { users, clients, flash }) {
     <td>${can(u, 'users.manage') ? `<a class="link" href="/admin/utilisateurs/${x.id}">Gérer</a>` : ''}</td></tr>`).join('');
 
   const body = `${pageHead('Administration', 'Personnes et clients', 'Invitez les personnes, créez les clients et choisissez qui voit quoi.')}
+  ${u.role === 'admin' ? '<nav class="subnav" aria-label="Administration"><a href="/admin" aria-current="page">Personnes et clients</a><a href="/cabinet">QBO du cabinet</a></nav>' : ''}
   <div class="cols-2">
     <article class="card"><div class="card-head"><h2 class="t-h3">Inviter une personne</h2></div>
       <form class="form" method="post" action="/admin/inviter">${csrf}
@@ -322,8 +324,9 @@ function adminPage(s, { users, clients, flash }) {
         <div class="btn-row"><button class="btn btn-outline" type="submit">Créer le client</button></div></form>
       <p class="t-meta mt-4">${clients.length} client${clients.length > 1 ? 's' : ''} actif${clients.length > 1 ? 's' : ''}.</p></article>` : ''}
   </div>
-  <article class="card mt-6"><div class="card-head"><h2 class="t-h3">Personnes</h2>${can(u, 'audit.view') ? '<a class="link" href="/admin/journal">Journal d’audit</a>' : ''}${u.role === 'admin' ? ' <a class="link" href="/cabinet">QuickBooks du cabinet</a>' : ''}</div>
-    <div class="table-wrap"><table class="table"><thead><tr><th scope="col">Personne</th><th scope="col">Rôle</th><th scope="col">État</th><th scope="col"><span class="sr-only">Action</span></th></tr></thead><tbody>${userRows}</tbody></table></div></article>`;
+  <article class="card mt-6"><div class="card-head"><h2 class="t-h3">Personnes</h2>${can(u, 'audit.view') ? '<a class="link" href="/admin/journal">Journal d’audit</a>' : ''}</div>
+    <div class="table-wrap"><table class="table"><thead><tr><th scope="col">Personne</th><th scope="col">Rôle</th><th scope="col">État</th><th scope="col"><span class="sr-only">Action</span></th></tr></thead><tbody>${userRows}</tbody></table></div></article>
+  ${extra}`;
   return appPage(s, { title: 'Administration', current: '/admin', body, flash });
 }
 

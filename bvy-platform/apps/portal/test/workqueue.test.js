@@ -154,33 +154,53 @@ test('tableau de bord de l’équipe : clients séparés par type, prochaine éc
 
     let home = await admin.get('/accueil');
     assert.match(home.body, /id="g-entreprise"[\s\S]*Atelier Boréal inc\.[\s\S]*id="g-autonome"[\s\S]*Marie Autonome[\s\S]*id="g-particulier"[\s\S]*Jean Tremblay[\s\S]*id="g-unset"[\s\S]*Sans Type/);
-    assert.match(home.body, /Dans 13 jours<\/span>\s*<span class="wq-date">15 octobre 2026<\/span><a class="wq-what"[^>]*>Retenues à la source — paies de septembre 2026/);
-    assert.match(home.body, /1 demande sans réponse/);
-    assert.match(home.body, /Reliez le QuickBooks du cabinet/);
+    // Colonnes des entreprises : tenue de livres, TPS/TVQ, retenues, T2/CO-17, CNESST, en attente, QBO
+    assert.match(home.body, /<th scope="col">Tenue de livres<\/th><th scope="col">TPS\/TVQ<\/th><th scope="col">Retenues à la source<\/th><th scope="col">T2 \/ CO-17<\/th><th scope="col">CNESST<\/th>/);
+    // Retenues : paies de septembre → 15 octobre (dans 13 jours) ; TPS/TVQ : 2 novembre ; T2 : 30 juin 2027 ; CNESST : 15 mars 2027
+    const row = home.body.slice(home.body.indexOf('Atelier Boréal inc.'), home.body.indexOf('</tr>', home.body.indexOf('Atelier Boréal inc.')));
+    assert.match(row, /title="Retenues à la source — paies de septembre 2026[^"]*"><b>15 oct\.<\/b><span>dans 13 j<\/span>/);
+    assert.match(row, /title="TPS\/TVQ — trimestre terminé le 30 septembre 2026[^"]*"><b>2 nov\.<\/b>/);
+    // Colonne T2/CO-17 : la plus proche entre production, solde d'impôt et REQ → solde du 1er mars 2027
+    assert.match(row, /title="Solde d’impôt de la société \(exercice terminé le 31 décembre 2026\)[^"]*"><b>1 mars 2027<\/b>/);
+    assert.match(row, /CNESST — déclaration des salaires 2026[^"]*"><b>15 mars 2027<\/b>/);
+    assert.match(row, /<option value="todo" selected>Pas encore traité<\/option>/);
+    assert.match(row, /1 tâche chez le client/);
+    assert.match(row, /badge b-neutral">Non relié/);
+    // Particuliers : T1/TP-1 et acomptes ; pas de TPS/TVQ ni de tenue de livres
+    assert.match(home.body, /id="g-particulier"[\s\S]*?<th scope="col">T1 \/ TP-1<\/th><th scope="col">Acomptes provisionnels<\/th><th scope="col">En attente/);
     assert.match(home.body, /Compléter le profil fiscal/);
+    assert.match(home.body, /href="\/facturation"/, 'menu Facturation');
 
-    // Marquer « Fait » : la prochaine échéance avance
+    // Tenue de livres : vert / orange / rouge, changé depuis le tableau de bord
+    r = await admin.post(`/clients/${boreal}/tenue`, { status: 'done' });
+    assert.match(decodeURIComponent(r.headers.location), /Tenue de livres de Atelier Boréal inc\. : à jour/);
+    home = await admin.get('/accueil');
+    assert.match(home.body, /wq-books bk-done[\s\S]*?<option value="done" selected>À jour/);
+    r = await admin.post(`/clients/${boreal}/tenue`, { status: 'n-importe' });
+    assert.match(decodeURIComponent(r.headers.location), /invalide/);
+
+    // Marquer « Fait » : la colonne des retenues passe aux paies d'octobre
     await admin.get(`/clients/${boreal}/echeances`);
     r = await admin.post(`/clients/${boreal}/echeances/marquer`, { key: 'das:2026-09', status: 'done' });
     assert.match(decodeURIComponent(r.headers.location), /marquée comme faite/);
     home = await admin.get('/accueil');
-    assert.match(home.body, /TPS\/TVQ — trimestre terminé le 30 septembre 2026/);
-    // Échéance ajoutée à la main ; clé inconnue refusée
+    assert.match(home.body, /title="Retenues à la source — paies d’octobre 2026[^"]*"><b>16 nov\.<\/b>/);
+    // Échéance ajoutée à la main : visible dans « En attente » ; clé inconnue refusée
     await admin.get(`/clients/${boreal}/echeances`);
     await admin.post(`/clients/${boreal}/echeances`, { title: 'Répondre à Revenu Québec', date: '2026-10-09' });
     home = await admin.get('/accueil');
-    assert.match(home.body, /Dans 7 jours[\s\S]*Répondre à Revenu Québec/);
+    assert.match(home.body, /9 oct\. · Répondre à Revenu Québec/);
     await admin.get(`/clients/${boreal}/echeances`);
     r = await admin.post(`/clients/${boreal}/echeances/marquer`, { key: 'das:1999-01', status: 'done' });
     assert.match(decodeURIComponent(r.headers.location), /Échéance introuvable/);
 
-    // Échéance en retard une fois le profil plus ancien
+    // Échéances en retard une fois le profil plus ancien
     t.db.prepare("UPDATE clients SET profile_since = '2026-01-01' WHERE id = ?").run(boreal);
     t.db.prepare('DELETE FROM custom_deadlines').run();
     t.db.prepare('DELETE FROM deadline_marks').run();
     home = await admin.get('/accueil');
-    assert.match(home.body, /badge b-act">En retard de \d+ jours/);
-    assert.match(home.body, /Échéances en retard<\/small><b>1<\/b>/);
+    assert.match(home.body, /class="wq-due late"[^>]*><b>15 juil\.<\/b><span>en retard 79 j<\/span>/);
+    assert.match(home.body, /\d échéances en retard/);
 
     // Tenue de livres : seulement ses clients assignés ; pas d'accès au cabinet
     const julieId = t.db.prepare("SELECT id FROM users WHERE email = 'julie@bvy.ca'").get().id;
@@ -194,6 +214,9 @@ test('tableau de bord de l’équipe : clients séparés par type, prochaine éc
     await julie.get('/accueil');
     r = await julie.post(`/clients/${boreal}/profil`, { kind: 'particulier' });
     assert.strictEqual(r.status, 403);
+    assert.strictEqual((await julie.post(`/clients/${boreal}/tenue`, { status: 'done' })).status, 403);
+    assert.strictEqual((await julie.get('/facturation')).status, 403);
+    assert.ok(!/href="\/facturation"/.test(jh.body), 'pas de Facturation pour la tenue de livres');
   } finally { t.app.close(); }
 });
 
@@ -224,13 +247,16 @@ test('QuickBooks du cabinet : administrateur seulement, jamais un client ; somme
 
     const cab = await admin.get('/cabinet');
     assert.match(cab.body, /BVY Accounting &amp; Tax Services/);
-    assert.match(cab.body, /620,50\s\$/);
-    assert.match(cab.body, /J\. Tremblay[\s\S]*Non lié/);
+    assert.match(cab.body, /Obligations de BVY/);
 
-    // Tableau de bord : Boréal reconnu par son nom (500 $ en retard depuis le 31 août) ; Tremblay pas encore lié
+    // Facturation : Boréal reconnu par son nom (500 $ en retard depuis le 31 août) ; J. Tremblay pas encore lié
+    let bill = await admin.get('/facturation');
+    assert.match(bill.body, /Total impayé<\/small><b>870,50\s\$<\/b>/);
+    assert.match(bill.body, /Atelier Boréal inc\.[\s\S]*?620,50\s\$[\s\S]*?500,00\s\$[\s\S]*?depuis le 31 août 2026/);
+    assert.match(bill.body, /customerdetail\?nameId=11/);
+    assert.match(bill.body, /Soldes non liés à un dossier BVY[\s\S]*J\. Tremblay/);
+    assert.strictEqual((await lead.get('/facturation')).status, 200, 'le comptable principal voit la facturation');
     let home = await admin.get('/accueil');
-    assert.match(home.body, /620,50\s\$<\/b>\s*<span class="wq-late">dont 500,00\s\$ en retard depuis le 31 août 2026/);
-    assert.match(home.body, /Non trouvé/);
     assert.match(home.body, /Impayé à BVY<\/small><b>620,50\s\$<\/b>/);
     // Le cabinet n'est jamais présenté comme un client
     assert.ok(!/QuickBooks du cabinet<\/a><\/th>|BVY — QuickBooks du cabinet/.test(home.body));
@@ -243,19 +269,33 @@ test('QuickBooks du cabinet : administrateur seulement, jamais un client ; somme
     await admin.get(`/clients/${id('Jean Tremblay')}/echeances`);
     r = await admin.post(`/clients/${id('Jean Tremblay')}/profil`, { kind: 'particulier', billingCustomerId: '12' });
     assert.match(decodeURIComponent(r.headers.location), /Profil fiscal enregistré/);
+    bill = await admin.get('/facturation');
+    assert.match(bill.body, /Jean Tremblay[\s\S]*?250,00\s\$/);
+    assert.ok(!/Soldes non liés/.test(bill.body));
     home = await admin.get('/accueil');
-    assert.match(home.body, /250,00\s\$<\/b><span class="t-meta">1 facture, pas en retard/);
     assert.match(home.body, /Impayé à BVY<\/small><b>870,50\s\$<\/b>/);
     // Client QuickBooks inconnu refusé
     await admin.get(`/clients/${id('Jean Tremblay')}/echeances`);
     r = await admin.post(`/clients/${id('Jean Tremblay')}/profil`, { kind: 'particulier', billingCustomerId: '999' });
     assert.match(decodeURIComponent(r.headers.location), /introuvable/);
 
+    // Obligations de BVY elle-même (profil fiscal du cabinet), visibles à l'administration
+    await admin.get('/cabinet');
+    r = await admin.post('/cabinet/profil', { yearEndMonth: '12', gstFreq: 'quarterly', payroll: '1', kind: 'particulier' });
+    assert.match(decodeURIComponent(r.headers.location), /Profil fiscal de BVY enregistré/);
+    assert.strictEqual(t.db.prepare('SELECT kind FROM clients WHERE is_firm = 1').get().kind, 'entreprise', 'le cabinet reste une société');
+    const adm = await admin.get('/admin');
+    assert.match(adm.body, /Personnes et clients/);
+    assert.match(adm.body, /QBO du cabinet[\s\S]*Prochaines obligations de BVY[\s\S]*15 oct\./);
+    await lead.get('/accueil');
+    assert.strictEqual((await lead.post('/cabinet/profil', { gstFreq: 'none' })).status, 403);
+    assert.ok(!/QBO du cabinet/.test((await lead.get('/admin')).body));
+
     // Déconnexion : plus de montants affichés
     await admin.get('/cabinet');
     r = await admin.post('/cabinet/quickbooks/deconnecter');
     assert.match(decodeURIComponent(r.headers.location), /déconnecté/);
-    home = await admin.get('/accueil');
-    assert.match(home.body, /Reliez le QuickBooks du cabinet/);
+    bill = await admin.get('/facturation');
+    assert.match(bill.body, /Le QuickBooks du cabinet n’est pas relié|QuickBooks du cabinet déconnecté/);
   } finally { t.app.close(); }
 });
