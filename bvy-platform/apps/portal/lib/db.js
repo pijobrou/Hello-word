@@ -242,6 +242,55 @@ const MIGRATIONS = [
   ALTER TABLE clients ADD COLUMN books_updated_at TEXT;
   ALTER TABLE clients ADD COLUMN books_updated_by INTEGER REFERENCES users(id);
   `,
+  // 6 — paie (workflow 12) : calendrier, employés (noms seulement), paies et leur historique
+  `
+  CREATE TABLE payroll_schedules (
+    client_id      INTEGER PRIMARY KEY REFERENCES clients(id),
+    frequency      TEXT NOT NULL CHECK (frequency IN ('weekly','biweekly','semimonthly','monthly')),
+    next_pay_date  TEXT NOT NULL,
+    lead_days      INTEGER NOT NULL DEFAULT 3 CHECK (lead_days BETWEEN 1 AND 14),
+    qbo_url        TEXT,
+    active         INTEGER NOT NULL DEFAULT 1,
+    updated_by     INTEGER REFERENCES users(id),
+    updated_at     TEXT NOT NULL
+  );
+  CREATE TABLE employees (
+    id          INTEGER PRIMARY KEY,
+    client_id   INTEGER NOT NULL REFERENCES clients(id),
+    name        TEXT NOT NULL,
+    pay_type    TEXT NOT NULL DEFAULT 'hourly' CHECK (pay_type IN ('hourly','salary')),
+    active      INTEGER NOT NULL DEFAULT 1,
+    created_at  TEXT NOT NULL
+  );
+  CREATE TABLE pay_runs (
+    id               INTEGER PRIMARY KEY,
+    client_id        INTEGER NOT NULL REFERENCES clients(id),
+    pay_date         TEXT NOT NULL,
+    status           TEXT NOT NULL DEFAULT 'waiting' CHECK (status IN ('waiting','hours_received','validation','preparing','ready','done')),
+    hours            TEXT,
+    timesheet_doc_id INTEGER REFERENCES documents(id),
+    gross_cents      INTEGER,
+    net_cents        INTEGER,
+    remit_cents      INTEGER,
+    employees_paid   INTEGER,
+    client_comment   TEXT,
+    hours_task_id    INTEGER REFERENCES tasks(id),
+    approval_task_id INTEGER REFERENCES tasks(id),
+    created_at       TEXT NOT NULL,
+    updated_at       TEXT NOT NULL,
+    UNIQUE (client_id, pay_date)
+  );
+  CREATE TABLE pay_run_events (
+    id          INTEGER PRIMARY KEY,
+    run_id      INTEGER NOT NULL REFERENCES pay_runs(id),
+    from_status TEXT,
+    to_status   TEXT NOT NULL,
+    user_id     INTEGER REFERENCES users(id),
+    note        TEXT,
+    at          TEXT NOT NULL
+  );
+  ALTER TABLE tasks ADD COLUMN pay_run_id INTEGER REFERENCES pay_runs(id);
+  `,
 ];
 
 function openDb(file) {

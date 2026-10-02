@@ -1,6 +1,6 @@
 # Workflow 12 — Payroll
 
-**Status:** `WAITING_FOR_OWNER_APPROVAL` (plan written 2026-10-02, nothing built yet).
+**Status:** plan approved by the owner on 2026-10-02 (« exécuter 12_payroll.md »); built and tested the same day (`lib/payroll.js`, `lib/views-payroll.js`, `test/payroll.test.js`); review package `review/portal-payroll/`. `WAITING_FOR_OWNER_APPROVAL` of the screens before real clients use it.
 **Owner approval required:** yes — new client and staff screens (major UX).
 
 ## Objective
@@ -88,3 +88,12 @@ A pay can go back one step with a reason (e.g. hours corrected). Every change is
 - `npm test` green: state machine (allowed / refused transitions), schedule → automatic pay creation, client hours
   entry and timesheet upload, approval and refusal, role isolation (bookkeeping/tax have no access), client isolation.
 - Review package with desktop and mobile screenshots (staff Paie screen, client hours entry, client approval).
+
+## Build notes (2026-10-02)
+
+- Pays are created by `payrollTick()` (portal start, every hour, and when the schedule is saved or the Paie screen
+  opens); idempotent (one pay per client and date); a pay date already past when the schedule is set is not created.
+- Monthly schedule: the next date keeps the day of the month, capped at the month end (31 Jan → 28 Feb → 28 Mar).
+- Timesheets accepted: PDF, JPG, PNG and Excel (.xlsx, recognised by content, not by name).
+- « En retard » on the staff screen: pay date within one day and the pay not yet « Prête ».
+- Emails never contain amounts: « BVY a besoin des heures de paie… », « Votre paie du … est prête à approuver ».

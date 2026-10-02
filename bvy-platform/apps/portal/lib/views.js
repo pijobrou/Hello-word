@@ -163,6 +163,7 @@ function navItems(user, nav = {}) {
     return items;
   }
   const items = [{ href: '/accueil', label: 'Tableau de bord', short: 'Accueil', icon: 'i-home', tab: true }];
+  if (['admin', 'lead', 'payroll'].includes(user.role)) items.push({ href: '/paie', label: 'Paie', icon: 'i-users', tab: true });
   if (['admin', 'lead'].includes(user.role)) items.push({ href: '/facturation', label: 'Facturation', icon: 'i-wallet', tab: true });
   if (can(user, 'audit.view') || can(user, 'users.invite_client')) items.push({ href: '/admin', label: 'Administration', icon: 'i-lock', tab: true, short: 'Admin' });
   items.push({ href: '/compte', label: 'Mon compte', icon: 'i-lock', tab: true });

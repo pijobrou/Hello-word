@@ -175,3 +175,15 @@ a.wq-due:hover{filter:brightness(.97);border-color:currentColor}
 .wq-list .wq-due{min-width:76px}
 .wq-table abbr{text-decoration:none;cursor:help}
 .wq-books select{max-width:none;min-width:142px}
+/* Paie (workflow 12) */
+.emp-list{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.emp-list li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:6px 0;border-bottom:1px solid var(--bvy-border)}
+.pay-sum{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0 0}
+.pay-sum div{background:var(--bvy-bg-app);border:1px solid var(--bvy-border);border-radius:var(--bvy-radius-md);padding:10px 12px}
+.pay-sum dt{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--bvy-text-muted)}
+.pay-sum dd{margin:4px 0 0;font-family:var(--bvy-font-display);font-size:22px;font-weight:600;color:var(--bvy-plum-700);font-variant-numeric:tabular-nums}
+.pay-events{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:var(--bvy-fs-small)}
+.hours-table .input{min-width:72px;padding:8px 10px}
+.hours-table td:last-child .input{min-width:140px}
+.hours-table tbody th[scope=row]{font:inherit;text-transform:none;letter-spacing:0;background:transparent;color:var(--bvy-text);font-weight:600}
+@media (max-width:640px){.pay-sum{grid-template-columns:1fr}}

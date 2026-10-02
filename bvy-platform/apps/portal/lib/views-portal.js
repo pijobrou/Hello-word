@@ -31,7 +31,10 @@ function taskItem(t, s, { compact = false, staff = false } = {}) {
     qboLink(t.qbo_url),
   ].filter(Boolean).join('');
   let action = '';
-  if (t.status === 'open' && !staff && !compact) {
+  if (t.pay_run_id && !staff) {
+    // Paie : heures et approbation se font sur la fiche de la paie
+    action = t.status === 'open' ? `<div class="btn-row task-form"><a class="btn btn-plum btn-sm" href="/paie/${t.pay_run_id}">${t.kind === 'approval' ? 'Voir et approuver la paie' : 'Entrer les heures'}</a></div>` : '';
+  } else if (t.status === 'open' && !staff && !compact) {
     if (t.kind === 'question') {
       action = `<form class="task-form" method="post" action="/a-faire/${t.id}/repondre">${csrf}
         <fieldset><legend class="label">Votre réponse</legend><div class="choices">
@@ -61,7 +64,7 @@ function taskItem(t, s, { compact = false, staff = false } = {}) {
     <span class="todo-ico">${icon(t.status === 'open' ? KIND_ICON[t.kind] : 'i-ok')}</span>
     <div><p class="todo-title">${esc(t.title)}</p>${t.detail ? `<p class="todo-why">${esc(t.detail)}</p>` : ''}
       <p class="todo-meta">${meta}</p>${t.answer ? `<p class="answer"><b>Réponse :</b> ${esc(t.answer)}</p>` : ''}${action}</div>
-    ${staffActions || (compact && t.status === 'open' ? `<div class="todo-actions"><a class="btn btn-plum btn-sm" href="/a-faire#t${t.id}">Faire</a></div>` : '')}</li>`;
+    ${staffActions || (compact && t.status === 'open' ? `<div class="todo-actions"><a class="btn btn-plum btn-sm" href="${t.pay_run_id ? `/paie/${t.pay_run_id}` : `/a-faire#t${t.id}`}">Faire</a></div>` : '')}</li>`;
 }
 
 // « il y a 5 min » pour la barre du tableau de bord
@@ -86,7 +89,7 @@ function dashKpi(label, block, href) {
     : `<div class="cd-kpi">${inner}</div>`;
 }
 
-function clientHome(s, { client, snap, tasks, nav, flash, sync = null }) {
+function clientHome(s, { client, snap, tasks, nav, flash, sync = null, pays = [] }) {
   const first = esc(s.user.name.split(' ')[0]);
   const open = tasks.filter((t) => t.status === 'open');
   const qbo = nav.qboUrl;
@@ -102,7 +105,7 @@ function clientHome(s, { client, snap, tasks, nav, flash, sync = null }) {
   const todo = `<section class="cd-panel" aria-labelledby="h-todo"><h2 id="h-todo">À faire ${open.length
     ? `<span class="badge b-watch">${open.length} action${open.length > 1 ? 's' : ''}</span>`
     : '<span class="badge b-good">● À jour</span>'}</h2>
-    ${open.length ? `<ul class="cd-todo">${open.slice(0, 5).map((t) => `<li><a class="t" href="/a-faire#t${t.id}"><span class="box" aria-hidden="true"></span>${esc(t.title)}</a>${t.qbo_url ? `<a class="qbo" href="${esc(t.qbo_url)}" target="_blank" rel="noopener">Voir ↗<span class="sr-only"> dans QuickBooks (nouvel onglet)</span></a>` : ''}</li>`).join('')}</ul>
+    ${open.length ? `<ul class="cd-todo">${open.slice(0, 5).map((t) => `<li><a class="t" href="${t.pay_run_id ? `/paie/${t.pay_run_id}` : `/a-faire#t${t.id}`}"><span class="box" aria-hidden="true"></span>${esc(t.title)}</a>${t.qbo_url ? `<a class="qbo" href="${esc(t.qbo_url)}" target="_blank" rel="noopener">Voir ↗<span class="sr-only"> dans QuickBooks (nouvel onglet)</span></a>` : ''}</li>`).join('')}</ul>
       <p class="cd-more"><a class="link" href="/a-faire">${open.length > 5 ? `Voir les ${open.length} actions` : 'Tout voir et répondre'}</a></p>`
     : '<p class="muted">Tout est à jour de votre côté. Une question ? <a class="link" href="/messages">Écrivez à BVY</a>.</p>'}</section>`;
 
@@ -115,8 +118,9 @@ function clientHome(s, { client, snap, tasks, nav, flash, sync = null }) {
         ? `<li><span>${esc(c.label)}</span><span class="${c.tone === 'down' ? 'dn' : c.tone === 'up' ? 'up' : ''}">${esc(c.delta)}</span></li>`
         : `<li class="long"><span>${esc(c.what)}</span></li>`)).join('')}</ul>
       ${snap.changes.some((c) => c.label && c.why) ? `<p class="cd-foot">${esc(((snap.changes.find((c) => c.label && /^Compar/.test(c.why || '')) || {}).why || '').replace(/\s*\([^)]*\)/, ''))}</p>` : ''}</section>` : '';
-    const work = snap.work.length ? `<section class="cd-panel" aria-labelledby="h-work"><h2 id="h-work">BVY travaille sur</h2>
-      <div class="cd-bars">${snap.work.map((w) => `<div class="cd-barrow"><span>${esc(w.name)}</span>${w.progress === null
+    const payRows = pays.map((r) => `<div class="cd-barrow"><span><a class="link" href="/paie/${r.id}">Paie du ${esc(r.pay_date)}</a></span><span class="track" aria-hidden="true"><span class="fill p${[0, 20, 40, 60, 80, 100][['waiting', 'hours_received', 'validation', 'preparing', 'ready', 'done'].indexOf(r.status)]}"></span></span><span>${esc(r.label.toLowerCase())}</span></div>`).join('');
+    const work = snap.work.length || pays.length ? `<section class="cd-panel" aria-labelledby="h-work"><h2 id="h-work">BVY travaille sur</h2>
+      <div class="cd-bars">${payRows}${snap.work.map((w) => `<div class="cd-barrow"><span>${esc(w.name)}</span>${w.progress === null
         ? `<span class="track" aria-hidden="true"><span class="fill p0"></span></span><span>${esc(w.status)}</span>`
         : `<span class="track" role="progressbar" aria-label="${esc(w.name)}" aria-valuenow="${w.progress}" aria-valuemin="0" aria-valuemax="100"><span class="fill p${Math.round(w.progress / 5) * 5}"></span></span><span>${w.progress} %</span>`}</div>`).join('')}</div></section>` : '';
     body = `<div class="cd">
@@ -208,7 +212,8 @@ function staffClientShell(s, client, tab, inner, flash, counts = {}) {
   const qboHome = q ? (q.environment === 'sandbox' ? 'https://app.sandbox.qbo.intuit.com/app/homepage' : 'https://app.qbo.intuit.com/app/homepage') : null;
   const qboHead = client.qbo_url ? qboLink(client.qbo_url, 'Ouvrir QuickBooks')
     : q ? `${qboLink(qboHome, 'Ouvrir QuickBooks')} ${q.status === 'connected' ? '' : '<span class="badge b-act">Reconnexion nécessaire</span>'}` : 'QuickBooks non relié';
-  const tabs = [['', 'Tableau de bord'], ['/echeances', 'Échéances'], ['/quickbooks', `QuickBooks${counts.suggestions ? ` (${counts.suggestions})` : ''}`], ['/taches', `Tâches${counts.tasks ? ` (${counts.tasks})` : ''}`], ['/documents', 'Documents'], ['/messages', `Messages${counts.unread ? ` (${counts.unread})` : ''}`]];
+  const payTab = client.payroll && ['admin', 'lead', 'payroll'].includes(s.user.role) ? [['/paie', 'Paie']] : [];
+  const tabs = [['', 'Tableau de bord'], ['/echeances', 'Échéances'], ...payTab, ['/quickbooks', `QuickBooks${counts.suggestions ? ` (${counts.suggestions})` : ''}`], ['/taches', `Tâches${counts.tasks ? ` (${counts.tasks})` : ''}`], ['/documents', 'Documents'], ['/messages', `Messages${counts.unread ? ` (${counts.unread})` : ''}`]];
   const body = `${pageHead('Dossier client', client.name, qboHead)}
     <nav class="subnav" aria-label="Sections du dossier">${tabs.map(([p, l]) => `<a href="/clients/${client.id}${p}"${p === tab ? ' aria-current="page"' : ''}>${esc(l)}</a>`).join('')}</nav>
     ${inner}`;

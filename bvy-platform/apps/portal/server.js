@@ -25,6 +25,7 @@ const multipart = require('./lib/multipart.js');
 const { qboConfigFromEnv, createQbo } = require('./lib/qbo.js');
 const { createQboService } = require('./lib/qbo-sync.js');
 const { createWorkqueue } = require('./lib/workqueue.js');
+const { createPayroll } = require('./lib/payroll.js');
 const W = require('./lib/views-work.js');
 
 const COOKIE = '__Host-bvy_session';
@@ -179,7 +180,17 @@ function createServer(options = {}) {
   const qbo = qboCfg ? (qboCfg.authorizeUrl ? qboCfg : createQbo(qboCfg, { now: options.now })) : null;
   const qboService = createQboService(db, { qbo, portal, audit: acc.audit, now: options.now });
   const workqueue = createWorkqueue(db, { audit: acc.audit, now: options.now });
-  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue });
+  const payroll = createPayroll(db, { audit: acc.audit, now: options.now });
+  // Paie (workflow 12) : crée les paies dont les heures doivent être demandées et prévient le client (toutes les heures).
+  function payrollTick() {
+    try {
+      for (const r of payroll.ensureRuns()) notifyClient(r.clientId, null, `BVY a besoin des heures de paie pour la paie du ${r.payDate}`);
+    } catch (err) { console.error('Paie :', err.message); }
+  }
+  const payrollTimer = setInterval(payrollTick, 60 * 60_000);
+  payrollTimer.unref();
+  setImmediate(payrollTick);
+  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick });
 
   async function serveAsset(req, res, pathname) {
     const name = path.basename(pathname);
@@ -222,8 +233,8 @@ function createServer(options = {}) {
         const ctype = String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
         try {
           if (ctype === 'multipart/form-data') {
-            // Téléversement : seulement pour une personne connectée, sur les routes de documents.
-            if (!s || !s.mfa_done || !/^\/(documents|clients\/\d+\/documents)$/.test(p)) { req.resume(); return send200(res, V.errorPage(415, 'Requête invalide.'), 415); }
+            // Téléversement : seulement pour une personne connectée, sur les routes de documents (et les heures de paie).
+            if (!s || !s.mfa_done || !/^\/(documents|clients\/\d+\/documents|paie\/\d+\/heures)$/.test(p)) { req.resume(); return send200(res, V.errorPage(415, 'Requête invalide.'), 415); }
             const boundary = multipart.boundaryOf(req.headers['content-type']);
             if (!boundary) throw Object.assign(new Error('multipart'), { status: 400 });
             const parsed = multipart.parseMultipart(await multipart.readBody(req, MAX_UPLOAD + 64 * 1024), boundary);
@@ -477,6 +488,8 @@ function createServer(options = {}) {
   server.db = db;
   server.qboService = qboService;
   server.workqueue = workqueue;
+  server.payroll = payroll;
+  server.payrollTick = payrollTick;
   server.accounts = acc;
   server.config = cfg;
   server.on('close', () => authLimiter.stop());

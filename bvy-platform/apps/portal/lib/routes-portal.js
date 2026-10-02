@@ -11,8 +11,9 @@ const { PortalError } = require('./portal.js');
 const P = require('./views-portal.js');
 const V = require('./views.js');
 const W = require('./views-work.js');
+const PV = require('./views-payroll.js');
 
-function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue }) {
+function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {} }) {
   const isStaff = (u) => STAFF_ROLES.includes(u.role);
 
   const qboStatus = (clientId) => (qboService ? qboService.status(clientId) : null);
@@ -41,7 +42,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
       if (p === '/accueil' && GET) {
         if (u.role === 'client') {
           const client = portal.client(u.client_id);
-          return send200(res, P.clientHome(s, { client, snap: portal.getSnapshot(u, u.client_id), tasks: portal.listTasks(u, u.client_id, { open: true }), nav: clientNav(u), flash: flashOf(url), sync: qboStatus(u.client_id) })), true;
+          return send200(res, P.clientHome(s, { client, snap: portal.getSnapshot(u, u.client_id), tasks: portal.listTasks(u, u.client_id, { open: true }), nav: clientNav(u), flash: flashOf(url), sync: qboStatus(u.client_id), pays: payroll ? payroll.openRunsFor(u.client_id) : [] })), true;
         }
         const data = workqueue.dashboard(u, { qboStatus, suggestions: (id) => (qboService ? qboService.newSuggestionCount(id) : 0), unread: (id) => portal.unreadCount(u, id) });
         return send200(res, W.staffDashboard(s, { data, flash: flashOf(url) })), true;
@@ -63,6 +64,24 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           portal.saveDocument(u, cid, file && { name: file.filename, data: file.data }, { note: form.note, taskId: form.taskId || null }, ip);
           notifyTeam(cid, 'Nouveau document envoyé par le client');
           return ok(form.taskId ? '/a-faire' : '/documents', 'Document reçu. Merci !'), true;
+        }
+        /* paie : heures et approbation */
+        const pr = p.match(/^\/paie\/(\d+)(\/(?:heures|decision))?$/);
+        if (pr) {
+          const run = payroll.runFor(u, pr[1]);
+          if (!pr[2] && GET) return send200(res, PV.payRunClient(s, { run, employees: payroll.employees(cid), nav: clientNav(u), flash: flashOf(url) })), true;
+          if (pr[2] === '/heures' && POST) {
+            const file = (form._files || []).find((f) => f.field === 'file' && f.data && f.data.length);
+            const docId = file ? portal.saveDocument(u, cid, { name: file.filename, data: file.data }, { note: `Feuille de temps — paie du ${run.pay_date}` }, ip) : null;
+            payroll.submitHours(u, run.id, form, docId, ip);
+            notifyTeam(cid, `Heures de paie reçues (paie du ${run.pay_date})`);
+            return ok(`/paie/${run.id}`, 'Merci, vos heures sont envoyées à BVY.'), true;
+          }
+          if (pr[2] === '/decision' && POST) {
+            payroll.decide(u, run.id, form, ip);
+            notifyTeam(cid, form.decision === 'approve' ? `Paie du ${run.pay_date} approuvée par le client` : `Paie du ${run.pay_date} refusée par le client`);
+            return ok(`/paie/${run.id}`, form.decision === 'approve' ? 'Merci, la paie est approuvée.' : 'Votre commentaire est envoyé à BVY.'), true;
+          }
         }
         if (p === '/rapports' && GET) return send200(res, P.clientReports(s, { docs: portal.listDocuments(u, cid, { category: 'report' }), nav: clientNav(u) })), true;
         if (p === '/messages' && GET) {
@@ -111,6 +130,36 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           try { await qboService.sync(cid, 'connect', u); msg += ' Première synchronisation terminée.'; } catch (err) { msg += ` La première synchronisation a échoué : ${err.message}`; }
           const firm = workqueue.firmClient();
           return ok(firm && firm.id === cid ? '/cabinet' : `/clients/${cid}/quickbooks`, msg), true;
+        }
+        /* Paie (workflow 12) : administrateur, comptable principal, paie */
+        if (p === '/paie' && GET) {
+          if (!payroll.canStaff(u)) throw new PortalError('Accès refusé.');
+          payrollTick();
+          return send200(res, PV.payrollBoard(s, { board: payroll.board(u), flash: flashOf(url) })), true;
+        }
+        const ps = p.match(/^\/paie\/(\d+)(\/(?:sommaire|etat))?$/);
+        if (ps) {
+          const run = payroll.runFor(u, ps[1]);
+          if (!ps[2] && GET) {
+            return send200(res, PV.payRunStaff(s, { run, client: portal.client(run.client_id), events: payroll.events(run.id), qboUrl: payroll.qboUrlFor(run.client_id), flash: flashOf(url) })), true;
+          }
+          if (ps[2] === '/sommaire' && POST) {
+            const before = run.status;
+            payroll.saveSummary(u, run.id, form, ip);
+            if (before === 'hours_received') notifyClient(run.client_id, u.id, `Votre paie du ${run.pay_date} est prête à approuver`);
+            return ok(`/paie/${run.id}`, before === 'hours_received' ? 'Sommaire envoyé : le client doit approuver la paie.' : 'Sommaire corrigé.'), true;
+          }
+          if (ps[2] === '/etat' && POST) {
+            payroll.move(u, run.id, form.action, form.note, ip);
+            return ok(`/paie/${run.id}`, 'État de la paie mis à jour.'), true;
+          }
+        }
+        const pc = p.match(/^\/clients\/(\d+)\/paie(\/(?:calendrier|employes|employes\/(\d+)\/(desactiver|reactiver)))?$/);
+        if (pc && POST) {
+          const cid = Number(pc[1]);
+          if (pc[2] === '/calendrier') { payroll.saveSchedule(u, cid, form, ip); payrollTick(); return ok(`/clients/${cid}/paie`, 'Calendrier de paie enregistré.'), true; }
+          if (pc[2] === '/employes') { payroll.addEmployee(u, cid, form, ip); return ok(`/clients/${cid}/paie`, 'Employé ajouté.'), true; }
+          if (pc[4]) { payroll.setEmployeeActive(u, cid, pc[3], pc[4] === 'reactiver', ip); return ok(`/clients/${cid}/paie`, pc[4] === 'reactiver' ? 'Employé rétabli.' : 'Employé retiré.'), true; }
         }
         /* Facturation : qui doit quoi à BVY (administrateur et comptable principal) */
         if (p === '/facturation' && GET) {
@@ -189,13 +238,18 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           await qboService.disconnect(u, cid, ip);
           return ok(`/clients/${cid}/quickbooks`, 'QuickBooks déconnecté : les autorisations sont retirées.'), true;
         }
-        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances))?$/);
+        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie))?$/);
         if (c) {
           const cid = Number(c[1]);
           const sub = c[2] || '';
           portal.listTasks(u, cid, { open: true }); // contrôle d'accès (lève PortalError sinon)
           const client = portal.client(cid);
           if (!client || client.is_firm) return send200(res, V.errorPage(404, 'Ce dossier n’existe pas.'), 404), true;
+          if (sub === '/paie' && GET) {
+            if (!payroll.canStaff(u)) throw new PortalError('Accès refusé.');
+            return send200(res, PV.clientPayrollTab(s, { client, schedule: payroll.schedule(cid), employees: payroll.employees(cid, { all: true }), runs: payroll.runsForClient(u, cid),
+              qboUrl: payroll.qboUrlFor(cid), shell: (inner) => P.staffClientShell(s, client, '/paie', inner, flashOf(url), counts(u, cid)) })), true;
+          }
           if (sub === '/echeances' && GET) {
             const firm = workqueue.firmClient();
             const fq = firm ? qboStatus(firm.id) : null;

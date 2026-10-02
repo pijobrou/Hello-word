@@ -57,6 +57,11 @@ function sniff(buf) {
   if (buf.length >= 5 && buf.subarray(0, 5).toString('latin1') === '%PDF-') return { mime: 'application/pdf', ext: 'pdf' };
   if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return { mime: 'image/jpeg', ext: 'jpg' };
   if (buf.length >= 8 && buf.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return { mime: 'image/png', ext: 'png' };
+  // Classeur Excel (.xlsx) : archive ZIP contenant [Content_Types].xml et le dossier xl/ (feuilles de temps)
+  if (buf.length >= 4 && buf[0] === 0x50 && buf[1] === 0x4b && buf[2] === 0x03 && buf[3] === 0x04) {
+    const head = buf.subarray(0, Math.min(buf.length, 65536)).toString('latin1');
+    if (head.includes('[Content_Types].xml') && head.includes('xl/')) return { mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', ext: 'xlsx' };
+  }
   return null;
 }
 
@@ -207,7 +212,7 @@ function createPortal(db, { dataDir, audit, now = () => Date.now() }) {
     if (!file || !file.data || !file.data.length) throw new PortalError('Choisissez un fichier.');
     if (file.data.length > MAX_UPLOAD) throw new PortalError('Fichier trop volumineux (20 Mo au maximum).');
     const type = sniff(file.data);
-    if (!type) throw new PortalError('Format non accepté : envoyez un PDF, une photo JPG ou une image PNG.');
+    if (!type) throw new PortalError('Format non accepté : envoyez un PDF, une photo JPG ou PNG, ou un classeur Excel (.xlsx).');
     const cat = staff && category === 'report' ? 'report' : 'document';
     let task = null;
     if (taskId) {
