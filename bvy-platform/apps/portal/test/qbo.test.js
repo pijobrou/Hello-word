@@ -187,7 +187,10 @@ test('connexion OAuth, première synchronisation, tableau de bord et suggestions
 
     const marie = await t.login('marie@boreal.ca');
     const home = await marie.get('/accueil');
-    assert.match(home.body, /QuickBooks connecté/);
+    assert.match(home.body, /QuickBooks synchronisé · (à l’instant|il y a |le )/);
+    assert.match(home.body, /1 facture en retard</);
+    assert.match(home.body, /<span>Revenus<\/span><span class="up">\+ 8 %<\/span>/);
+    assert.match(home.body, /<span>Dépenses<\/span><span class="dn">\+ 12 %<\/span>/);
     assert.match(home.body, /Chiffres synchronisés avec QuickBooks/);
     assert.match(home.body, /48\s215,60\s\$/);
     assert.ok(!home.body.includes('Costco'), 'rien n’est montré au client sans le clic de l’équipe');

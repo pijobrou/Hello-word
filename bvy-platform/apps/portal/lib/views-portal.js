@@ -24,15 +24,6 @@ const KIND_ICON = { question: 'i-question', document: 'i-upload', approval: 'i-o
 
 /* ================================================================ CLIENT */
 
-function kpi(label, iconName, block, foot) {
-  const has = block && block.amount !== null && block.amount !== undefined;
-  return `<article class="card kpi">
-    <p class="kpi-label">${icon(iconName)}${esc(label)}</p>
-    <p class="t-amount${has ? '' : ' empty'}">${has ? esc(formatAmount(block.amount)) : 'À venir'}</p>
-    <p class="kpi-why">${block && block.note ? esc(block.note) : has ? '' : 'BVY ajoutera ce chiffre à la prochaine mise à jour.'}</p>
-    ${foot ? `<div class="card-foot">${foot}</div>` : ''}</article>`;
-}
-
 function taskItem(t, s, { compact = false, staff = false } = {}) {
   const csrf = csrfField(s);
   const meta = [
@@ -75,48 +66,85 @@ function taskItem(t, s, { compact = false, staff = false } = {}) {
     ${staffActions || (compact && t.status === 'open' ? `<div class="todo-actions"><a class="btn btn-plum btn-sm" href="/a-faire#t${t.id}">Faire</a></div>` : '')}</li>`;
 }
 
+// « il y a 5 min » pour la barre du tableau de bord
+function ago(iso) {
+  const min = Math.round((Date.now() - Date.parse(iso)) / 60000);
+  if (!(min >= 0)) return `le ${dateTimeFr(iso)}`;
+  if (min < 1) return 'à l’instant';
+  if (min < 60) return `il y a ${min} min`;
+  if (min < 24 * 60) return `il y a ${Math.round(min / 60)} h`;
+  return `le ${dateTimeFr(iso)}`;
+}
+
+// Chiffre du tableau de bord client : libellé, montant, une ligne courte colorée (comme sur le site).
+function dashKpi(label, block, href) {
+  const has = block && block.amount !== null && block.amount !== undefined;
+  const line = block && (block.hint || block.note);
+  const tone = block && block.tone === 'down' ? ' down' : block && block.tone === 'up' ? ' up' : '';
+  const inner = `<small>${esc(label)}</small><b${has ? '' : ' class="empty"'}>${has ? esc(formatAmount(block.amount)) : 'À venir'}</b>
+    <em class="${tone.trim()}">${line ? esc(line) : has ? '' : 'Ajouté à la prochaine mise à jour'}</em>`;
+  return href
+    ? `<a class="cd-kpi" href="${esc(href)}" target="_blank" rel="noopener" title="Voir dans QuickBooks (nouvel onglet)">${inner}</a>`
+    : `<div class="cd-kpi">${inner}</div>`;
+}
+
 function clientHome(s, { client, snap, tasks, nav, flash, sync = null }) {
   const first = esc(s.user.name.split(' ')[0]);
   const open = tasks.filter((t) => t.status === 'open');
-  const intro = open.length
-    ? `<b>${open.length} chose${open.length > 1 ? 's demandent' : ' demande'}</b> votre attention.`
-    : 'Rien ne demande votre attention pour le moment.';
   const qbo = nav.qboUrl;
-  const syncLine = sync ? `<p class="sync" role="status"><span class="dot${sync.status === 'connected' && sync.lastSyncStatus !== 'failed' ? '' : ' watch'}" aria-hidden="true"></span><span>${sync.status === 'connected'
-    ? `<b>QuickBooks connecté</b>${sync.lastSyncAt ? ` · dernière synchronisation le ${esc(dateTimeFr(sync.lastSyncAt))}` : ''}`
-    : '<b>Connexion QuickBooks à renouveler</b> · BVY s’en occupe ; vos derniers chiffres restent affichés avec leur date'}</span></p>` : '';
-  const blocks = snap ? `
-    <p class="t-meta">${snap.source === 'qbo'
-    ? `Chiffres synchronisés avec QuickBooks le ${esc(dateTimeFr(snap.updatedAt))}. Le détail complet est dans QuickBooks.`
-    : `Chiffres au ${esc(dateFr(snap.asOf))}, mis à jour par BVY${snap.updatedBy ? ` (${esc(snap.updatedBy)})` : ''}.${qbo ? ' Le détail complet est dans QuickBooks.' : ''}`}</p>
-    <div class="kpis">
-      ${kpi('Argent disponible', 'i-wallet', snap.cash, qboLink(qbo))}
-      ${kpi('Vos clients vous doivent', 'i-in', snap.receivable, qboLink(qbo))}
-      ${kpi('Factures à payer', 'i-out', snap.payable, qboLink(qbo))}
-    </div>
-    <div class="dash-grid"><div class="stack">
-      ${snap.health ? `<article class="card"><div class="card-head"><h2 class="t-h3">Santé financière</h2></div>
-        <div class="health"><div class="health-state">${healthBadge(snap.health.state)}</div><div><p class="health-why">${esc(snap.health.why)}</p></div></div></article>` : ''}
-      ${snap.changes.length ? `<article class="card"><div class="card-head"><h2 class="t-h3">Ce qui a changé</h2></div>
-        <ul class="changes">${snap.changes.map((c) => `<li class="change"><span class="change-what">${esc(c.what)}</span>${c.why ? `<span class="change-why">${esc(c.why)}</span>` : ''}</li>`).join('')}</ul></article>` : ''}
-    </div><div class="stack">
-      <article class="card" id="a-faire"><div class="card-head"><h2 class="t-h3">À faire</h2><a class="link" href="/a-faire">Tout voir</a></div>
-        ${open.length ? `<ul class="todo-list">${open.slice(0, 3).map((t) => taskItem(t, s, { compact: true })).join('')}</ul>` : `<p>${icon('i-ok')} Tout est à jour de votre côté.</p>`}</article>
-      ${snap.work.length ? `<article class="card"><div class="card-head"><h2 class="t-h3">BVY travaille sur</h2></div>
-        <ul class="work-list">${snap.work.map((w) => `<li class="work"><span class="work-name">${esc(w.name)}</span><span class="work-status">${w.progress === null ? esc(w.status) : `${w.progress} %`}</span>${w.progress === null ? '' : `<span class="progress" role="progressbar" aria-label="${esc(w.name)}" aria-valuenow="${w.progress}" aria-valuemin="0" aria-valuemax="100"><span class="p${Math.round(w.progress / 5) * 5}"></span></span>`}</li>`).join('')}</ul></article>` : ''}
-    </div></div>`
-    : `<div class="cols-2">
-      <article class="card"><div class="card-head"><h2 class="t-h3">Votre tableau de bord se prépare</h2></div>
-        <p>BVY ajoutera ici votre argent disponible, ce que vos clients vous doivent, vos factures à payer et l’état de santé de votre entreprise, avec une explication en mots simples.</p></article>
-      <article class="card"><div class="card-head"><h2 class="t-h3">À faire</h2><a class="link" href="/a-faire">Tout voir</a></div>
-        ${open.length ? `<ul class="todo-list">${open.slice(0, 3).map((t) => taskItem(t, s, { compact: true })).join('')}</ul>` : `<p>Rien pour l’instant. Une question ? <a class="link" href="/messages">Écrivez à BVY</a>.</p>`}</article></div>`;
-  const body = `<div class="page-head"><div>
-      <p class="t-eyebrow"><span>${esc(todayFr())}</span></p>
-      <h1 class="t-display">Bonjour ${first}.</h1>
-      ${syncLine}<p>Voici où en est ${esc(client.name)}${/\.$/.test(client.name) ? '' : '.'} ${intro}</p></div>
-      ${open.length ? `<div class="btn-row"><a class="btn btn-plum" href="/a-faire">Voir mes tâches ${icon('i-arrow', 'i i-sm')}</a></div>` : ''}</div>
-    ${blocks}`;
-  return appPage(s, { title: 'Accueil', current: '/accueil', body, flash, nav });
+  const okSync = sync && sync.status === 'connected' && sync.lastSyncStatus !== 'failed';
+  const syncTxt = sync
+    ? (sync.status === 'connected'
+      ? `QuickBooks synchronisé${sync.lastSyncAt ? ` · ${esc(ago(sync.lastSyncAt))}` : ''}`
+      : 'Connexion QuickBooks à renouveler · BVY s’en occupe')
+    : (snap ? `Mis à jour par BVY le ${esc(dateFr(snap.asOf))}` : '');
+  const bar = `<div class="cd-bar"><span class="cd-who"><img src="/assets/bvy-logo-96.png" alt="" width="26" height="26">${esc(client.name)}</span>
+    ${syncTxt ? `<span class="cd-sync" role="status"><span class="dot${!sync || okSync ? '' : ' watch'}" aria-hidden="true"></span>${syncTxt}</span>` : ''}</div>`;
+
+  const todo = `<section class="cd-panel" aria-labelledby="h-todo"><h2 id="h-todo">À faire ${open.length
+    ? `<span class="badge b-watch">${open.length} action${open.length > 1 ? 's' : ''}</span>`
+    : '<span class="badge b-good">● À jour</span>'}</h2>
+    ${open.length ? `<ul class="cd-todo">${open.slice(0, 5).map((t) => `<li><a class="t" href="/a-faire#t${t.id}"><span class="box" aria-hidden="true"></span>${esc(t.title)}</a>${t.qbo_url ? `<a class="qbo" href="${esc(t.qbo_url)}" target="_blank" rel="noopener">Voir ↗<span class="sr-only"> dans QuickBooks (nouvel onglet)</span></a>` : ''}</li>`).join('')}</ul>
+      <p class="cd-more"><a class="link" href="/a-faire">${open.length > 5 ? `Voir les ${open.length} actions` : 'Tout voir et répondre'}</a></p>`
+    : '<p class="muted">Tout est à jour de votre côté. Une question ? <a class="link" href="/messages">Écrivez à BVY</a>.</p>'}</section>`;
+
+  let body;
+  if (snap) {
+    const health = snap.health ? `<section class="cd-panel" aria-labelledby="h-sante"><h2 id="h-sante">Santé financière ${healthBadge(snap.health.state)}</h2>
+      <p>${esc(snap.health.why)}</p></section>` : '';
+    const changes = snap.changes.length ? `<section class="cd-panel" aria-labelledby="h-chg"><h2 id="h-chg">Ce qui a changé</h2>
+      <ul class="cd-changes">${snap.changes.map((c) => (c.label
+        ? `<li><span>${esc(c.label)}</span><span class="${c.tone === 'down' ? 'dn' : c.tone === 'up' ? 'up' : ''}">${esc(c.delta)}</span></li>`
+        : `<li class="long"><span>${esc(c.what)}</span></li>`)).join('')}</ul>
+      ${snap.changes.some((c) => c.label && c.why) ? `<p class="cd-foot">${esc(((snap.changes.find((c) => c.label && /^Compar/.test(c.why || '')) || {}).why || '').replace(/\s*\([^)]*\)/, ''))}</p>` : ''}</section>` : '';
+    const work = snap.work.length ? `<section class="cd-panel" aria-labelledby="h-work"><h2 id="h-work">BVY travaille sur</h2>
+      <div class="cd-bars">${snap.work.map((w) => `<div class="cd-barrow"><span>${esc(w.name)}</span>${w.progress === null
+        ? `<span class="track" aria-hidden="true"><span class="fill p0"></span></span><span>${esc(w.status)}</span>`
+        : `<span class="track" role="progressbar" aria-label="${esc(w.name)}" aria-valuenow="${w.progress}" aria-valuemin="0" aria-valuemax="100"><span class="fill p${Math.round(w.progress / 5) * 5}"></span></span><span>${w.progress} %</span>`}</div>`).join('')}</div></section>` : '';
+    body = `<div class="cd">
+      ${bar}
+      <div class="cd-body">
+        <div class="cd-kpis">
+          ${dashKpi('Argent disponible', snap.cash, qbo)}
+          ${dashKpi('Vos clients vous doivent', snap.receivable, qbo)}
+          ${dashKpi('Factures à payer', snap.payable, qbo)}
+        </div>
+        ${health}
+        ${todo}
+        ${changes || work ? `<div class="cd-2">${changes}${work}</div>` : ''}
+      </div>
+      <p class="cd-note">${snap.source === 'qbo'
+    ? `Chiffres synchronisés avec QuickBooks le ${esc(dateTimeFr(snap.updatedAt))}.${qbo ? ' Touchez un chiffre pour le voir dans QuickBooks.' : ''}`
+    : `Chiffres au ${esc(dateFr(snap.asOf))}, mis à jour par BVY${snap.updatedBy ? ` (${esc(snap.updatedBy)})` : ''}.`}</p>
+    </div>`;
+  } else {
+    body = `<div class="cd">${bar}<div class="cd-body">
+      <section class="cd-panel"><h2>Votre tableau de bord se prépare</h2>
+        <p>BVY ajoutera ici votre argent disponible, ce que vos clients vous doivent, vos factures à payer et la santé de votre entreprise, expliquée en mots simples.</p></section>
+      ${todo}</div></div>`;
+  }
+  const head = `<div class="cd-hello"><p class="t-eyebrow"><span>${esc(todayFr())}</span></p><h1 class="t-h1">Bonjour ${first}.</h1></div>`;
+  return appPage(s, { title: 'Accueil', current: '/accueil', body: head + body, flash, nav });
 }
 
 function clientTasks(s, { tasks, nav, flash }) {

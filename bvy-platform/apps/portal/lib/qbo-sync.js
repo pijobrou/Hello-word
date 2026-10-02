@@ -140,21 +140,30 @@ function createQboService(db, { qbo, portal, audit, now = () => Date.now() }) {
         for (const [label, a, b] of [['Revenus', totals.income[0], totals.income[1]], ['Dépenses', totals.expenses[0], totals.expenses[1]]]) {
           if (a === null || b === null) continue;
           const pct = a ? Math.round(((b - a) / Math.abs(a)) * 100) : null;
+          const up = b >= a;
           changes.push({
             what: `${label} de ${m2} : ${money(b)}${pct === null ? '' : ` (${pct >= 0 ? '+' : '−'} ${Math.abs(pct)} %)`}`,
             why: `Comparé à ${m1} (${money(a)}), selon QuickBooks.`,
+            // Forme courte du tableau de bord client : « Revenus   + 8 % »
+            label, delta: pct === null ? money(b) : `${pct >= 0 ? '+' : '−'} ${Math.abs(pct)} %`,
+            tone: label === 'Revenus' ? (up ? 'up' : 'down') : (up ? 'down' : 'up'),
           });
         }
       }
-      if (late.length) changes.push({ what: `${plural(late.length, 'facture en retard', 'factures en retard')} de plus de 30 jours`, why: `${money(lateSum)} attendus : un rappel au client peut aider.` });
+      if (late.length) changes.push({ what: `${plural(late.length, 'facture en retard', 'factures en retard')} de plus de 30 jours`, why: `${money(lateSum)} attendus : un rappel au client peut aider.`, label: 'Factures en retard', delta: String(late.length), tone: 'down' });
 
       const prev = db.prepare('SELECT data FROM client_snapshots WHERE client_id = ?').get(id);
       const keep = prev ? JSON.parse(prev.data) : {};
       const data = {
         asOf: today,
-        cash: { amount: cash, note: `Dans ${plural(banks.length, 'compte bancaire', 'comptes bancaires')}, selon QuickBooks.` },
-        receivable: { amount: recv, note: invoices.length ? `${plural(invoices.length, 'facture impayée', 'factures impayées')}${late.length ? `, dont ${late.length} en retard de plus de 30 jours (${money(lateSum)})` : ''}.` : 'Aucune facture impayée.' },
-        payable: { amount: pay, note: bills.length ? `${plural(bills.length, 'facture de fournisseur', 'factures de fournisseurs')}${soon.length ? `, dont ${soon.length} à payer d’ici 30 jours` : ''}.` : 'Aucune facture à payer.' },
+        // note : la phrase complète ; hint/tone : la ligne courte colorée du tableau de bord client
+        cash: { amount: cash, note: `Dans ${plural(banks.length, 'compte bancaire', 'comptes bancaires')}, selon QuickBooks.`,
+          hint: plural(banks.length, 'compte bancaire', 'comptes bancaires'), tone: '' },
+        receivable: { amount: recv, note: invoices.length ? `${plural(invoices.length, 'facture impayée', 'factures impayées')}${late.length ? `, dont ${late.length} en retard de plus de 30 jours (${money(lateSum)})` : ''}.` : 'Aucune facture impayée.',
+          hint: late.length ? plural(late.length, 'facture en retard', 'factures en retard') : invoices.length ? plural(invoices.length, 'facture impayée', 'factures impayées') : 'Aucune facture impayée',
+          tone: late.length ? 'down' : 'up' },
+        payable: { amount: pay, note: bills.length ? `${plural(bills.length, 'facture de fournisseur', 'factures de fournisseurs')}${soon.length ? `, dont ${soon.length} à payer d’ici 30 jours` : ''}.` : 'Aucune facture à payer.',
+          hint: soon.length ? `${soon.length} à payer d’ici 30 jours` : bills.length ? plural(bills.length, 'facture de fournisseur', 'factures de fournisseurs') : 'Rien à payer', tone: '' },
         health: keep.health || null, // toujours expliquée par l'équipe
         changes,
         work: keep.work || [],

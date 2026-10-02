@@ -22,11 +22,16 @@ try { ({ chromium } = require('playwright')); } catch { ({ chromium } = require(
   db.prepare(`INSERT INTO qbo_connections (client_id, realm_id, company_name, environment, access_enc, refresh_enc, access_expires, refresh_expires, status, connected_by, connected_at, last_sync_at, last_sync_status)
     VALUES (?, '9130', 'Atelier Boréal inc.', 'sandbox', 'x', 'x', 0, 0, 'connected', ?, ?, ?, 'ok')`).run(c.id, admin.id, t, t);
   db.prepare("INSERT INTO client_snapshots (client_id, data, updated_at, source) VALUES (?, ?, ?, 'qbo')").run(c.id, JSON.stringify({ asOf: t.slice(0, 10),
-    cash: { amount: 4821560, note: 'Dans 2 comptes bancaires, selon QuickBooks.' }, receivable: { amount: 315000, note: '2 factures impayées, dont 1 en retard de plus de 30 jours (2 150,00 $).' },
-    payable: { amount: 87645, note: '1 facture de fournisseur, dont 1 à payer d’ici 30 jours.' },
+    cash: { amount: 4821560, note: 'Dans 2 comptes bancaires, selon QuickBooks.', hint: '2 comptes bancaires', tone: '' },
+    receivable: { amount: 315000, note: '2 factures impayées, dont 1 en retard de plus de 30 jours (2 150,00 $).', hint: '1 facture en retard', tone: 'down' },
+    payable: { amount: 87645, note: '1 facture de fournisseur, dont 1 à payer d’ici 30 jours.', hint: '1 à payer d’ici 30 jours', tone: '' },
     health: { state: 'watch', why: 'Vos dépenses ont augmenté de 12 % en septembre, plus vite que vos revenus (+ 8 %). Votre encaisse reste solide.' },
-    changes: [{ what: 'Revenus de septembre : 10 800,00 $ (+ 8 %)', why: 'Comparé à août (10 000,00 $), selon QuickBooks.' }, { what: 'Dépenses de septembre : 7 840,00 $ (+ 12 %)', why: 'Comparé à août (7 000,00 $), selon QuickBooks.' }, { what: '1 facture en retard de plus de 30 jours', why: '2 150,00 $ attendus : un rappel au client peut aider.' }],
-    work: [{ name: 'Tenue de livres — septembre', progress: 85, status: '' }, { name: 'TPS/TVQ — 3e trimestre', progress: null, status: 'en attente de la tenue de livres' }] }), t);
+    changes: [{ what: 'Revenus de septembre : 10 800,00 $ (+ 8 %)', why: 'Comparé à août (10 000,00 $), selon QuickBooks.', label: 'Revenus', delta: '+ 8 %', tone: 'up' }, { what: 'Dépenses de septembre : 7 840,00 $ (+ 12 %)', why: 'Comparé à août (7 000,00 $), selon QuickBooks.', label: 'Dépenses', delta: '+ 12 %', tone: 'down' }, { what: '1 facture en retard de plus de 30 jours', why: '2 150,00 $ attendus : un rappel au client peut aider.', label: 'Factures en retard', delta: '1', tone: 'down' }],
+    work: [{ name: 'Tenue de livres — septembre', progress: 85, status: '' }, { name: 'Rapprochement bancaire', progress: 65, status: '' }, { name: 'TPS/TVQ — 3e trimestre', progress: null, status: 'en attente' }, { name: 'Paie', progress: 100, status: '' }] }), t);
+  const task = db.prepare("INSERT INTO tasks (client_id, kind, title, choices, qbo_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
+  task.run(c.id, 'question', 'Confirmer un paiement Costco de 842,37 $', JSON.stringify(['Oui, dépense d’entreprise', 'Non, personnel', 'Autre']), 'https://app.sandbox.qbo.intuit.com/app/expense?txnId=901', admin.id, t);
+  task.run(c.id, 'document', 'Téléverser la facture Bell de mars', null, null, admin.id, t);
+  task.run(c.id, 'approval', 'Approuver les heures de paie', null, null, admin.id, t);
   const ins = db.prepare(`INSERT INTO qbo_items (client_id, kind, qbo_type, qbo_id, txn_date, amount_cents, counterparty, detail, qbo_url, first_seen, last_seen) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
   ins.run(c.id, 'uncategorized', 'Purchase', '901', '2026-09-18', 84237, 'Costco', 'Achat magasin', 'https://app.sandbox.qbo.intuit.com/app/expense?txnId=901', t, t);
   ins.run(c.id, 'uncategorized', 'Purchase', '905', '2026-09-24', 12999, 'Amazon', null, 'https://app.sandbox.qbo.intuit.com/app/expense?txnId=905', t, t);

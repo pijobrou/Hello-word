@@ -67,3 +67,8 @@ now link to the portal.
   submissions (now treated as GET, regression test added). Portal answers over HTTPS.
 - 2026-10-01 — Owner's administrator account created on production (`sudo bvy-portail create-admin`); owner
   confirmed a successful two-step login on https://portail.bvyaccountingtax.ca.
+- 2026-10-02 — Owner asked that the client home look like the dashboard preview on the website home page. Client
+  home redesigned to match it (company bar with sync status, three figures with a short coloured line, Santé
+  financière, À faire with checkboxes and « Voir ↗ », Ce qui a changé, BVY travaille sur). QuickBooks sync now also
+  stores the short lines (`hint`/`tone`, change `label`/`delta`/`tone`). Screenshots: `review/portal-qbo/03-*`.
+  Waiting for the owner's approval of the new look.

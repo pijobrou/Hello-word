@@ -114,7 +114,7 @@ test('tableau de bord : publié par BVY, vu par le client avec explication ; jam
     assert.match(home.body, /Chiffres au 30 septembre 2026/);
     assert.match(home.body, /À surveiller/);
     assert.match(home.body, /plus vite que vos revenus/);
-    assert.match(home.body, /class="p85"/);
+    assert.match(home.body, /class="fill p85"/);
     assert.match(home.body, /en attente de la tenue de livres/);
     assert.ok(!/style="/.test(home.body), 'aucun style en ligne');
 
