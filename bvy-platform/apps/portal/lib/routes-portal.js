@@ -12,8 +12,9 @@ const P = require('./views-portal.js');
 const V = require('./views.js');
 const W = require('./views-work.js');
 const PV = require('./views-payroll.js');
+const TV = require('./views-salestax.js');
 
-function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {} }) {
+function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax }) {
   const isStaff = (u) => STAFF_ROLES.includes(u.role);
 
   const qboStatus = (clientId) => (qboService ? qboService.status(clientId) : null);
@@ -83,6 +84,17 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
             return ok(`/paie/${run.id}`, form.decision === 'approve' ? 'Merci, la paie est approuvée.' : 'Votre commentaire est envoyé à BVY.'), true;
           }
         }
+        /* TPS/TVQ : approbation de la déclaration */
+        const tx = p.match(/^\/tps-tvq\/(\d+)(\/decision)?$/);
+        if (tx) {
+          const r = salestax.returnFor(u, tx[1]);
+          if (!tx[2] && GET) return send200(res, TV.taxReturnClient(s, { r, period: salestax.periodOf(r), nav: clientNav(u), flash: flashOf(url) })), true;
+          if (tx[2] && POST) {
+            salestax.decide(u, r.id, form, ip);
+            notifyTeam(cid, form.decision === 'approve' ? 'Déclaration de TPS/TVQ approuvée par le client' : 'Déclaration de TPS/TVQ refusée par le client');
+            return ok(`/tps-tvq/${r.id}`, form.decision === 'approve' ? 'Merci, la déclaration est approuvée.' : 'Votre commentaire est envoyé à BVY.'), true;
+          }
+        }
         if (p === '/rapports' && GET) return send200(res, P.clientReports(s, { docs: portal.listDocuments(u, cid, { category: 'report' }), nav: clientNav(u) })), true;
         if (p === '/messages' && GET) {
           const messages = portal.listMessages(u, cid);
@@ -130,6 +142,25 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           try { await qboService.sync(cid, 'connect', u); msg += ' Première synchronisation terminée.'; } catch (err) { msg += ` La première synchronisation a échoué : ${err.message}`; }
           const firm = workqueue.firmClient();
           return ok(firm && firm.id === cid ? '/cabinet' : `/clients/${cid}/quickbooks`, msg), true;
+        }
+        /* TPS/TVQ (workflow 13) : administrateur, comptable principal, tenue de livres, fiscalité */
+        if (p === '/tps-tvq' && GET) {
+          if (!salestax.canStaff(u)) throw new PortalError('Accès refusé.');
+          payrollTick();
+          return send200(res, TV.taxBoard(s, { board: salestax.board(u), flash: flashOf(url) })), true;
+        }
+        const tr = p.match(/^\/tps-tvq\/(\d+)(\/(?:etape|montants))?$/);
+        if (tr) {
+          const r = salestax.returnFor(u, tr[1]);
+          if (!tr[2] && GET) {
+            return send200(res, TV.taxReturnStaff(s, { r, client: portal.client(r.client_id), period: salestax.periodOf(r), events: salestax.events(r.id), booksReady: salestax.booksReady(r.client_id), flash: flashOf(url) })), true;
+          }
+          if (tr[2] === '/montants' && POST) { salestax.saveFigures(u, r.id, form, ip); return ok(`/tps-tvq/${r.id}`, 'Montants enregistrés.'), true; }
+          if (tr[2] === '/etape' && POST) {
+            const out = salestax.advance(u, r.id, form, ip);
+            if (out && out.notifyClient) notifyClient(r.client_id, u.id, 'Votre déclaration de TPS/TVQ est prête à approuver');
+            return ok(`/tps-tvq/${r.id}`, 'Déclaration mise à jour.'), true;
+          }
         }
         /* Paie (workflow 12) : administrateur, comptable principal, paie */
         if (p === '/paie' && GET) {
@@ -238,13 +269,17 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           await qboService.disconnect(u, cid, ip);
           return ok(`/clients/${cid}/quickbooks`, 'QuickBooks déconnecté : les autorisations sont retirées.'), true;
         }
-        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie))?$/);
+        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie|tps-tvq))?$/);
         if (c) {
           const cid = Number(c[1]);
           const sub = c[2] || '';
           portal.listTasks(u, cid, { open: true }); // contrôle d'accès (lève PortalError sinon)
           const client = portal.client(cid);
           if (!client || client.is_firm) return send200(res, V.errorPage(404, 'Ce dossier n’existe pas.'), 404), true;
+          if (sub === '/tps-tvq' && GET) {
+            if (!salestax.canStaff(u)) throw new PortalError('Accès refusé.');
+            return send200(res, TV.clientTaxTab(s, { client, returns: salestax.forClient(u, cid), shell: (inner) => P.staffClientShell(s, client, '/tps-tvq', inner, flashOf(url), counts(u, cid)) })), true;
+          }
           if (sub === '/paie' && GET) {
             if (!payroll.canStaff(u)) throw new PortalError('Accès refusé.');
             const year = new Date().getUTCFullYear();

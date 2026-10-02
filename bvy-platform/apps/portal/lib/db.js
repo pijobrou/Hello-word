@@ -295,6 +295,44 @@ const MIGRATIONS = [
   `
   ALTER TABLE pay_runs ADD COLUMN breakdown TEXT;
   `,
+  // 8 — déclarations de TPS/TVQ (workflow 13)
+  `
+  CREATE TABLE tax_returns (
+    id               INTEGER PRIMARY KEY,
+    client_id        INTEGER NOT NULL REFERENCES clients(id),
+    deadline_key     TEXT NOT NULL,
+    period_start     TEXT NOT NULL,
+    period_end       TEXT NOT NULL,
+    due_date         TEXT NOT NULL,
+    status           TEXT NOT NULL DEFAULT 'books' CHECK (status IN ('books','validation','calc','review','approval','filed')),
+    checklist        TEXT,
+    sales_cents      INTEGER,
+    gst_cents        INTEGER,
+    itc_cents        INTEGER,
+    qst_cents        INTEGER,
+    itr_cents        INTEGER,
+    prepared_by      INTEGER REFERENCES users(id),
+    reviewed_by      INTEGER REFERENCES users(id),
+    client_comment   TEXT,
+    client_approved  INTEGER NOT NULL DEFAULT 0,
+    approval_task_id INTEGER REFERENCES tasks(id),
+    confirmation     TEXT,
+    filed_at         TEXT,
+    created_at       TEXT NOT NULL,
+    updated_at       TEXT NOT NULL,
+    UNIQUE (client_id, deadline_key)
+  );
+  CREATE TABLE tax_return_events (
+    id          INTEGER PRIMARY KEY,
+    return_id   INTEGER NOT NULL REFERENCES tax_returns(id),
+    from_status TEXT,
+    to_status   TEXT NOT NULL,
+    user_id     INTEGER REFERENCES users(id),
+    note        TEXT,
+    at          TEXT NOT NULL
+  );
+  ALTER TABLE tasks ADD COLUMN tax_return_id INTEGER REFERENCES tax_returns(id);
+  `,
 ];
 
 function openDb(file) {
