@@ -1,6 +1,6 @@
 # Workflow 05 — Staff dashboard and work queue (first slice)
 
-**Status:** building (requested by the owner 2026-10-02). `WAITING_FOR_OWNER_APPROVAL` once the review package is ready.
+**Status:** `STATUS: APPROVED` by the owner on 2026-10-02 (first slice: grouped dashboard, computed deadlines, Facturation, QBO du cabinet, dates as YYYY-MM-DD). Review package: `review/portal-work/`.
 **Owner approval required:** yes (major staff UX).
 
 ## Objective
