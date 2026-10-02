@@ -49,7 +49,7 @@ function authPage(title, body, flash) {
     <a class="auth-brand" href="/"><img src="/assets/bvy-logo-96.png" alt="" width="44" height="44"><span><b>BVY</b><small>Portail sécurisé</small></span></a>
     ${alerts(flash)}
     ${body}
-    <p class="auth-foot">Besoin d’aide ? Écrivez à <a href="mailto:bvypjb@protonmail.com">bvypjb@protonmail.com</a>.</p>
+    <p class="auth-foot">Besoin d’aide ? Écrivez à <a href="mailto:bvypjb@protonmail.com">bvypjb@protonmail.com</a>.<br><a href="https://bvyaccountingtax.ca/conditions/">Conditions d’utilisation</a> · <a href="https://bvyaccountingtax.ca/confidentialite/">Confidentialité</a></p>
   </div>
 </main>
 </body>
