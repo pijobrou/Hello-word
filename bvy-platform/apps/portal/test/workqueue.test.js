@@ -155,7 +155,7 @@ test('tableau de bord de l’équipe : clients séparés par type, prochaine éc
     let home = await admin.get('/accueil');
     assert.match(home.body, /id="g-entreprise"[\s\S]*Atelier Boréal inc\.[\s\S]*id="g-autonome"[\s\S]*Marie Autonome[\s\S]*id="g-particulier"[\s\S]*Jean Tremblay[\s\S]*id="g-unset"[\s\S]*Sans Type/);
     // Colonnes des entreprises : tenue de livres, TPS/TVQ, retenues, T2/CO-17, CNESST, en attente, QBO
-    assert.match(home.body, /<th scope="col">Tenue de livres<\/th><th scope="col">TPS\/TVQ<\/th><th scope="col">Retenues à la source<\/th><th scope="col">T2 \/ CO-17<\/th><th scope="col">CNESST<\/th>/);
+    assert.match(home.body, /<th scope="col">Tenue de livres<\/th><th scope="col">TPS\/TVQ<\/th><th scope="col"><abbr title="Retenues à la source \(et T4\/RL-1\)">RS<\/abbr><\/th><th scope="col">T2 \/ CO-17<\/th><th scope="col">CNESST<\/th>/);
     // Retenues : paies de septembre → 15 octobre (dans 13 jours) ; TPS/TVQ : 2 novembre ; T2 : 30 juin 2027 ; CNESST : 15 mars 2027
     const row = home.body.slice(home.body.indexOf('Atelier Boréal inc.'), home.body.indexOf('</tr>', home.body.indexOf('Atelier Boréal inc.')));
     assert.match(row, /title="Retenues à la source — paies de septembre 2026[^"]*"><b>15 oct\.<\/b><span>dans 13 j<\/span>/);

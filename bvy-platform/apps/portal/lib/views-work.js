@@ -54,8 +54,8 @@ function waitingCell(r) {
 
 // Colonnes selon le type de client
 const COLUMNS = {
-  entreprise: [['books', 'Tenue de livres'], ['taxes', 'TPS/TVQ'], ['das', 'Retenues à la source'], ['t2', 'T2 / CO-17'], ['cnesst', 'CNESST']],
-  autonome: [['books', 'Tenue de livres'], ['taxes', 'TPS/TVQ'], ['das', 'Retenues à la source'], ['t1', 'T1 / TP-1'], ['cnesst', 'CNESST']],
+  entreprise: [['books', 'Tenue de livres'], ['taxes', 'TPS/TVQ'], ['das', 'RS', 'Retenues à la source (et T4/RL-1)'], ['t2', 'T2 / CO-17'], ['cnesst', 'CNESST']],
+  autonome: [['books', 'Tenue de livres'], ['taxes', 'TPS/TVQ'], ['das', 'RS', 'Retenues à la source (et T4/RL-1)'], ['t1', 'T1 / TP-1'], ['cnesst', 'CNESST']],
   particulier: [['t1', 'T1 / TP-1'], ['acompte', 'Acomptes provisionnels']],
   unset: [],
 };
@@ -69,14 +69,14 @@ function groupTable(s, g) {
     return dueCell(r.cols[key], r.id, applies);
   };
   return `<div class="table-wrap"><table class="table wq-table"><thead><tr><th scope="col">Client</th>
-    ${cols.map(([, l]) => `<th scope="col">${esc(l)}</th>`).join('')}${g.kind === 'unset' ? '<th scope="col">Profil fiscal</th>' : ''}<th scope="col">En attente</th><th scope="col">QBO</th></tr></thead><tbody>
+    ${cols.map(([, l, full]) => `<th scope="col">${full ? `<abbr title="${esc(full)}">${esc(l)}</abbr>` : esc(l)}</th>`).join('')}${g.kind === 'unset' ? '<th scope="col">Profil fiscal</th>' : ''}<th scope="col">En attente</th><th scope="col">QBO</th></tr></thead><tbody>
     ${g.rows.map((r) => `<tr><th scope="row"><a class="link" href="/clients/${r.id}"><b>${esc(r.name)}</b></a>${r.late ? `<span class="wq-sub late">${plural(r.late, 'échéance en retard', 'échéances en retard')}</span>` : ''}</th>
       ${cols.map(([k]) => `<td>${cell(r, k)}</td>`).join('')}${g.kind === 'unset' ? `<td><a class="link" href="/clients/${r.id}/echeances">Compléter le profil fiscal</a></td>` : ''}
       <td>${waitingCell(r)}</td><td>${qboCell(r.qbo, r.suggestions, r.id)}</td></tr>`).join('')}
     </tbody></table></div>`;
 }
 
-const LEGEND = `<p class="wq-legend"><span><i class="wq-dot late"></i>En retard</span><span><i class="wq-dot week"></i>7 jours ou moins</span><span><i class="wq-dot month"></i>Ce mois-ci</span><span><i class="wq-dot later"></i>Plus tard</span><span>— ne s’applique pas</span>
+const LEGEND = `<p class="wq-legend"><span><i class="wq-dot late"></i>En retard</span><span><i class="wq-dot week"></i>7 jours ou moins</span><span><i class="wq-dot month"></i>Ce mois-ci</span><span><i class="wq-dot later"></i>Plus tard</span><span>— ne s’applique pas</span><span>RS = retenues à la source</span>
   <span class="wq-legend-sep">Tenue de livres :</span><span><i class="wq-dot bk-done"></i>À jour</span><span><i class="wq-dot bk-progress"></i>En cours</span><span><i class="wq-dot bk-todo"></i>Pas encore traité</span></p>`;
 
 function staffDashboard(s, { data, flash }) {

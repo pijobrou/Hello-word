@@ -70,15 +70,29 @@ function fakeIntuit(clock) {
         { Id: '35', Name: 'Desjardins opérations', AccountType: 'Bank', CurrentBalance: 40000.6 },
         { Id: '36', Name: 'Épargne', AccountType: 'Bank', CurrentBalance: 8215 },
         { Id: '80', Name: 'Uncategorized Expense', AccountType: 'Expense', CurrentBalance: 0 },
+        { Id: '81', Name: 'Revenus non catégorisés', AccountType: 'Income', CurrentBalance: 0 },
         { Id: '60', Name: 'Fournitures', AccountType: 'Expense' },
       ] } });
       if (/from Invoice/.test(q)) return json(200, { QueryResponse: { Invoice: [
         { Id: '501', DocNumber: '1042', Balance: 2150, DueDate: '2026-08-17', CustomerRef: { name: 'Client X' } },
         { Id: '502', DocNumber: '1043', Balance: 1000, DueDate: '2026-10-15', CustomerRef: { name: 'Client Y' } },
       ] } });
-      if (/from Bill/.test(q)) return json(200, { QueryResponse: { Bill: [{ Id: '701', Balance: 876.45, DueDate: '2026-10-20' }] } });
+      if (/from Bill where Balance/.test(q)) return json(200, { QueryResponse: { Bill: [{ Id: '701', Balance: 876.45, DueDate: '2026-10-20' }] } });
+      if (/from Deposit/.test(q)) {
+        assert.match(q, /TxnDate >= '2025-01-01' startposition 1 maxresults 1000/);
+        return json(200, { QueryResponse: { Deposit: st.older ? [
+          { Id: '601', TxnDate: '2026-02-11', PrivateNote: 'Virement Interac', Line: [{ Amount: 1500, DetailType: 'DepositLineDetail', DepositLineDetail: { AccountRef: { value: '81' } } }] },
+        ] : [] } });
+      }
+      if (/from JournalEntry/.test(q)) return json(200, { QueryResponse: {} });
+      if (/from Bill where TxnDate/.test(q)) return json(200, { QueryResponse: { Bill: st.older ? [
+        { Id: '702', TxnDate: '2026-02-20', VendorRef: { name: 'Hydro-Québec' }, Line: [{ Amount: 312.4, DetailType: 'AccountBasedExpenseLineDetail', AccountBasedExpenseLineDetail: { AccountRef: { value: '80' } } }] },
+      ] : [] } });
       if (/from Purchase/.test(q)) {
-        assert.match(q, /TxnDate >= '2026-07-03'/);
+        assert.match(q, /TxnDate >= '2025-01-01' startposition 1 maxresults 1000/);
+        if (st.older) return json(200, { QueryResponse: { Purchase: [
+          { Id: '880', TxnDate: '2026-02-05', PaymentType: 'CreditCard', EntityRef: { name: 'Staples' }, Line: [{ Amount: 64.99, DetailType: 'AccountBasedExpenseLineDetail', AccountBasedExpenseLineDetail: { AccountRef: { value: '80' } } }] },
+        ] } });
         return json(200, { QueryResponse: { Purchase: [
           { Id: '901', TxnDate: '2026-09-18', PaymentType: 'CreditCard', EntityRef: { name: 'Costco' }, PrivateNote: 'Achat magasin',
             Line: [{ Amount: 842.37, DetailType: 'AccountBasedExpenseLineDetail', AccountBasedExpenseLineDetail: { AccountRef: { value: st.uncategorizedLine ? '80' : '60' } } }] },
@@ -318,5 +332,27 @@ test('403 d’Intuit (ApplicationAuthorizationFailed, format « fault » minuscu
     assert.ok(!/: erreur/.test(msg), 'plus de « erreur » sans explication');
     const conn = t.db.prepare('SELECT status, last_sync_status FROM qbo_connections').get();
     assert.strictEqual(conn.last_sync_status, 'failed');
+  } finally { t.app.close(); }
+});
+
+test('non catégorisé : opérations anciennes (février 2026) et de tous types — achats, factures, dépôts', async () => {
+  const t = await setup();
+  try {
+    t.fake.st.older = true;
+    const staff = await t.login('owner@bvy.ca');
+    const state = await connect(t, staff, t.boreal.id);
+    await staff.get(`/quickbooks/retour?code=code-intuit&state=${encodeURIComponent(state)}&realmId=9130`);
+    const items = t.db.prepare("SELECT qbo_type, txn_date, amount_cents, counterparty, qbo_url FROM qbo_items WHERE kind = 'uncategorized' ORDER BY txn_date").all();
+    assert.deepStrictEqual(items.map((i) => [i.qbo_type, i.txn_date, i.amount_cents]), [['Purchase', '2026-02-05', 6499], ['Deposit', '2026-02-11', 150000], ['Bill', '2026-02-20', 31240]]);
+    assert.match(items[1].qbo_url, /\/app\/deposit\?txnId=601$/);
+    assert.match(items[2].qbo_url, /\/app\/bill\?txnId=702$/);
+    assert.strictEqual(items[2].counterparty, 'Hydro-Québec');
+    // Un dépôt devient une question claire pour le client
+    const dep = t.db.prepare("SELECT id FROM qbo_items WHERE qbo_type = 'Deposit'").get();
+    await staff.get(`/clients/${t.boreal.id}/quickbooks`);
+    await staff.post(`/suggestions/${dep.id}/envoyer`);
+    const task = t.db.prepare('SELECT title, choices FROM tasks ORDER BY id DESC').get();
+    assert.match(task.title, /^Nous avons trouvé un dépôt de 1\s500,00\s\$ le 11 février 2026\. D’où vient cet argent \?$/);
+    assert.deepStrictEqual(JSON.parse(task.choices), ['Une vente ou un revenu d’entreprise', 'Un apport personnel ou un prêt', 'Autre']);
   } finally { t.app.close(); }
 });

@@ -54,7 +54,7 @@ what needs attention, and the work is organised from QBO data — while QBO stay
 
 | Suggestion | Detection | Client wording |
 |---|---|---|
-| `uncategorized` | Expense lines posted to an uncategorised / « Ask My Accountant » account (last 90 days) | « Nous avons trouvé un paiement de 842,37 $ à Costco le 18 septembre. Était-ce une dépense d’entreprise ? » |
+| `uncategorized` | Lines posted to an uncategorised / « Ask My Accountant » account in purchases, bills, deposits and journal entries since 1 January of the previous year (all pages). Deposits become « D’où vient cet argent ? » | « Nous avons trouvé un paiement de 842,37 $ à Costco le 18 septembre. Était-ce une dépense d’entreprise ? » |
 | `overdue_invoice` | Invoice unpaid more than 30 days after its due date | « La facture n° 1042 à Client X (2 150,00 $) est en retard de 45 jours. » (information) |
 
 ## Validation rules and security
@@ -92,3 +92,7 @@ what needs attention, and the work is organised from QBO data — while QBO stay
 - 2026-10-02 — Root cause of the 403: Production keys with `QBO_ENV=sandbox`. Owner set `QBO_ENV=production`,
   reconnected, and the first client is connected to its real QuickBooks Online company (read-only). The QBOA consent
   screen lists the firm first; client companies are reached with « Rechercher pour un client ».
+- 2026-10-02 — Owner found uncategorised operations dated February 2026 that were not suggested: the scan only
+  covered purchases of the last 90 days. Now: since 1 January of the previous year, paginated, and also bills,
+  deposits and journal entries (regression test with February operations). Limit, stated to the owner: bank-feed
+  transactions still « À examiner » (not yet accepted in QBO) are not exposed by the Intuit API and cannot be read.

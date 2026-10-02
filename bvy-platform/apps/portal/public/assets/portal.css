@@ -173,3 +173,4 @@ a.wq-due:hover{filter:brightness(.97);border-color:currentColor}
 .wq-table td:nth-last-child(2){min-width:118px}
 .wq-books select{max-width:136px}
 .wq-list .wq-due{min-width:76px}
+.wq-table abbr{text-decoration:none;cursor:help}

@@ -126,8 +126,12 @@ function createQboService(db, { qbo, portal, audit, now = () => Date.now() }) {
       const uncategorized = new Set(accounts.filter((a) => UNCATEGORIZED_RE.test(a.Name || '') || UNCATEGORIZED_RE.test(a.FullyQualifiedName || '')).map((a) => String(a.Id)));
       const invoices = (await qbo.query(realm, token, "select * from Invoice where Balance > '0' maxresults 1000")).Invoice || [];
       const bills = (await qbo.query(realm, token, "select * from Bill where Balance > '0' maxresults 1000")).Bill || [];
-      const since = ymd(now() - 90 * DAY);
-      const purchases = (await qbo.query(realm, token, `select * from Purchase where TxnDate >= '${since}' maxresults 1000`)).Purchase || [];
+      // Non catégorisé : depuis le 1er janvier de l'an dernier (exercices encore ouverts), toutes les pages.
+      const since = ymd(Date.UTC(new Date(now()).getUTCFullYear() - 1, 0, 1));
+      const purchases = await queryAll(realm, token, 'Purchase', `TxnDate >= '${since}'`);
+      const billsScan = uncategorized.size ? await queryAll(realm, token, 'Bill', `TxnDate >= '${since}'`) : [];
+      const deposits = uncategorized.size ? await queryAll(realm, token, 'Deposit', `TxnDate >= '${since}'`) : [];
+      const journals = uncategorized.size ? await queryAll(realm, token, 'JournalEntry', `TxnDate >= '${since}'`) : [];
 
       // Revenus et dépenses des deux derniers mois complets (jamais le mois en cours, incomplet).
       const d = new Date(now());
@@ -192,14 +196,22 @@ function createQboService(db, { qbo, portal, audit, now = () => Date.now() }) {
             status = CASE WHEN qbo_items.status = 'resolved' THEN 'new' ELSE qbo_items.status END`)
           .run(id, it.kind, it.qbo_type, it.qbo_id, it.txn_date, it.amount_cents, it.counterparty, it.detail, it.qbo_url, iso(), iso());
       };
-      for (const p of purchases) {
-        const lines = (p.Line || []).filter((l) => l.AccountBasedExpenseLineDetail && uncategorized.has(String(l.AccountBasedExpenseLineDetail.AccountRef && l.AccountBasedExpenseLineDetail.AccountRef.value)));
-        if (!lines.length) continue;
-        upsert({ kind: 'uncategorized', qbo_type: 'Purchase', qbo_id: String(p.Id), txn_date: p.TxnDate,
-          amount_cents: lines.reduce((s, l) => s + cents(l.Amount), 0), counterparty: (p.EntityRef && p.EntityRef.name) || null,
-          detail: p.PrivateNote || lines.map((l) => l.Description).filter(Boolean).join(' · ') || null,
-          qbo_url: `${app}/app/${p.PaymentType === 'Check' ? 'check' : 'expense'}?txnId=${encodeURIComponent(p.Id)}` });
-      }
+      // Lignes imputées à un compte « non catégorisé », quel que soit le type d'opération
+      const onUncat = (l, detailKey) => l[detailKey] && uncategorized.has(String(l[detailKey].AccountRef && l[detailKey].AccountRef.value));
+      const scan = (list, type, detailKey, url, who) => {
+        for (const t of list) {
+          const lines = (t.Line || []).filter((l) => onUncat(l, detailKey));
+          if (!lines.length) continue;
+          upsert({ kind: 'uncategorized', qbo_type: type, qbo_id: String(t.Id), txn_date: t.TxnDate,
+            amount_cents: lines.reduce((n, l) => n + Math.abs(cents(l.Amount)), 0), counterparty: who(t, lines),
+            detail: t.PrivateNote || lines.map((l) => l.Description).filter(Boolean).join(' · ') || null,
+            qbo_url: `${app}/app/${url(t)}?txnId=${encodeURIComponent(t.Id)}` });
+        }
+      };
+      scan(purchases, 'Purchase', 'AccountBasedExpenseLineDetail', (t) => (t.PaymentType === 'Check' ? 'check' : 'expense'), (t) => (t.EntityRef && t.EntityRef.name) || null);
+      scan(billsScan, 'Bill', 'AccountBasedExpenseLineDetail', () => 'bill', (t) => (t.VendorRef && t.VendorRef.name) || null);
+      scan(deposits, 'Deposit', 'DepositLineDetail', () => 'deposit', (t, lines) => { const e = lines.map((l) => l.DepositLineDetail.Entity).find(Boolean); return (e && e.name) || null; });
+      scan(journals, 'JournalEntry', 'JournalEntryLineDetail', () => 'journal', (t, lines) => { const e = lines.map((l) => l.JournalEntryLineDetail.Entity && l.JournalEntryLineDetail.Entity.EntityRef).find(Boolean); return (e && e.name) || null; });
       for (const i of late) {
         upsert({ kind: 'overdue_invoice', qbo_type: 'Invoice', qbo_id: String(i.Id), txn_date: i.DueDate, amount_cents: cents(i.Balance),
           counterparty: (i.CustomerRef && i.CustomerRef.name) || null, detail: i.DocNumber ? `Facture n° ${i.DocNumber}` : null,
@@ -217,7 +229,7 @@ function createQboService(db, { qbo, portal, audit, now = () => Date.now() }) {
         resolved += 1;
       }
 
-      const stats = { banks: banks.length, invoices: invoices.length, late: late.length, bills: bills.length, purchases: purchases.length, resolved };
+      const stats = { banks: banks.length, invoices: invoices.length, late: late.length, bills: bills.length, purchases: purchases.length, scanned: purchases.length + billsScan.length + deposits.length + journals.length, since, resolved };
       db.prepare("UPDATE sync_jobs SET status = 'ok', finished_at = ?, stats = ? WHERE id = ?").run(iso(), JSON.stringify(stats), job);
       db.prepare("UPDATE qbo_connections SET last_sync_at = ?, last_sync_status = 'ok', last_error = NULL WHERE client_id = ?").run(iso(), id);
       audit({ userId: actor ? actor.id : null, action: 'qbo.sync', target: `client:${id}`, clientId: id, details: { trigger, ...stats } });
@@ -228,6 +240,17 @@ function createQboService(db, { qbo, portal, audit, now = () => Date.now() }) {
       db.prepare("UPDATE qbo_connections SET last_sync_status = 'failed', last_error = ? WHERE client_id = ?").run(msg, id);
       throw err instanceof PortalError ? err : new PortalError(`Synchronisation en échec : ${msg}`);
     }
+  }
+
+  // Toutes les pages d'une requête (1 000 par page, 20 pages au plus)
+  async function queryAll(realm, token, entity, where) {
+    const out = [];
+    for (let start = 1, page = 0; page < 20; page++, start += 1000) {
+      const rows = (await qbo.query(realm, token, `select * from ${entity} where ${where} startposition ${start} maxresults 1000`))[entity] || [];
+      out.push(...rows);
+      if (rows.length < 1000) break;
+    }
+    return out;
   }
 
   // Factures ouvertes du cabinet, regroupées par client QuickBooks (solde, partie en retard, plus vieille échéance).
@@ -283,8 +306,11 @@ function createQboService(db, { qbo, portal, audit, now = () => Date.now() }) {
     const it = itemFor(actor, itemId);
     if (it.status !== 'new') throw new PortalError('Cette suggestion a déjà été traitée.');
     const amt = it.amount_cents === null ? '' : money(it.amount_cents);
-    const input = it.kind === 'uncategorized'
-      ? { kind: 'question', title: `Nous avons trouvé un paiement de ${amt}${it.counterparty ? ` à ${it.counterparty}` : ''}${it.txn_date ? ` le ${dateFr(it.txn_date)}` : ''}. Était-ce une dépense d’entreprise ?`,
+    const input = it.kind === 'uncategorized' && it.qbo_type === 'Deposit'
+      ? { kind: 'question', title: `Nous avons trouvé un dépôt de ${amt}${it.counterparty ? ` de ${it.counterparty}` : ''}${it.txn_date ? ` le ${dateFr(it.txn_date)}` : ''}. D’où vient cet argent ?`,
+        detail: it.detail ? `Description dans QuickBooks : ${it.detail}` : '', qboUrl: it.qbo_url, choices: ['Une vente ou un revenu d’entreprise', 'Un apport personnel ou un prêt', 'Autre'].join('\n') }
+      : it.kind === 'uncategorized'
+      ? { kind: 'question', title: `Nous avons trouvé ${it.qbo_type === 'JournalEntry' ? 'une écriture' : 'un paiement'} de ${amt}${it.counterparty ? ` à ${it.counterparty}` : ''}${it.txn_date ? ` le ${dateFr(it.txn_date)}` : ''}. Était-ce une dépense d’entreprise ?`,
         detail: it.detail ? `Description dans QuickBooks : ${it.detail}` : '', qboUrl: it.qbo_url }
       : { kind: 'info', title: `${it.detail || 'Une facture'}${it.counterparty ? ` à ${it.counterparty}` : ''} (${amt}) est en retard de ${Math.max(31, Math.floor((now() - Date.parse(`${it.txn_date}T00:00:00Z`)) / DAY))} jours.`,
         detail: 'Un rappel à votre client peut aider. Écrivez-nous si vous souhaitez que BVY prépare le message de relance.', qboUrl: it.qbo_url };
