@@ -97,7 +97,8 @@ function staffDashboard(s, { data, flash }) {
     ${tile('Tenue de livres', `${m.books.done} / ${m.books.done + m.books.progress + m.books.todo}`, `à jour · ${m.books.progress} en cours · ${m.books.todo} pas traité${m.books.todo > 1 ? 's' : ''}`, m.books.todo ? 'down' : 'up')}
     ${canBill ? tile('Impayé à BVY', firmConnected ? esc(formatAmount(m.owed)) : '—', firmConnected ? (m.owed ? `${plural(m.owedClients, 'client', 'clients')}${m.overdue ? ` · ${esc(formatAmount(m.overdue))} en retard` : ''}` : 'tout est payé') : 'QuickBooks du cabinet non relié', firmConnected && m.overdue ? 'down' : '', '/facturation')
     : tile('En attente des clients', String(m.waiting), m.waiting ? plural(m.waiting, 'tâche ouverte', 'tâches ouvertes') : 'rien en attente')}
-    ${tile('QBO à vérifier', String(m.qboIssues), m.qboIssues ? 'déconnecté ou en échec' : 'tout est synchronisé', m.qboIssues ? 'down' : 'up')}
+    ${tile('QBO à vérifier', String(m.qboIssues), m.qboIssues ? 'déconnecté ou en échec' : 'tout est synchronisé', m.qboIssues ? 'down' : 'up', '/anomalies?gravite=system&etat=active')}
+    ${tile('Anomalies urgentes', String(m.urgent || 0), m.urgent ? 'trésorerie, échéances, paie, factures' : 'rien d’urgent', m.urgent ? 'down' : 'up', '/anomalies?gravite=urgent&etat=active')}
   </div>`;
   const all = [...groups, ...(unset.length ? [{ kind: 'unset', label: 'Type à préciser', rows: unset }] : [])];
   const jump = `<nav class="subnav" aria-label="Types de clients">${all.map((g) => `<a href="#g-${g.kind}">${esc(g.label)} (${g.rows.length})</a>`).join('')}</nav>`;

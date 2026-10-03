@@ -1,6 +1,6 @@
 # Workflow 10 — Communication
 
-**Status:** `STATUS: WAITING_FOR_OWNER_APPROVAL` — built and tested 2026-10-03 (`npm test` 46/46; review package `review/portal-inbox/`).
+**Status:** `STATUS: APPROVED` by the owner on 2026-10-03 (« ok on va au point 2 »; built and tested 2026-10-03, `npm test` 46/46; review package `review/portal-inbox/`).
 **Owner approval required:** yes — automatic reminders sent to clients.
 
 ## Objective

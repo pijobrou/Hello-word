@@ -166,6 +166,7 @@ function navItems(user, nav = {}) {
   const items = [
     { href: '/accueil', label: 'Tableau de bord', short: 'Tableau', icon: 'i-home' },
     { href: '/reception', label: 'Réception', icon: 'i-in', count: nav.inbox },
+    { href: '/anomalies', label: 'Anomalies', icon: 'i-alert', count: nav.urgent },
   ];
   if (['admin', 'lead', 'bookkeeper', 'tax'].includes(user.role)) items.push({ href: '/tps-tvq', label: 'TPS/TVQ', icon: 'i-clip' });
   if (['admin', 'lead', 'tax'].includes(user.role)) items.push({ href: '/impots', label: 'Impôts', icon: 'i-receipt' });
@@ -186,7 +187,7 @@ function appPage(s, { title, current, body, flash, nav = {} }) {
   const link = (it, cls) => {
     const cur = it.href === current || (current && current.startsWith(it.href + '/')) ? ' aria-current="page"' : '';
     if (it.qbo) return `<a class="${cls} nav-qbo" href="${esc(it.href)}" target="_blank" rel="noopener">${icon(it.icon)}${esc(it.label)}<span class="ext" aria-hidden="true">↗</span><span class="sr-only">(s’ouvre dans un nouvel onglet)</span></a>`;
-    return `<a class="${cls}" href="${it.href}"${cur}>${icon(it.icon)}${esc(cls === 'tab' && it.short ? it.short : it.label)}${countBadge(it.count, it.href === '/messages' ? 'nouveaux messages' : it.href === '/reception' ? 'éléments à traiter' : 'tâches')}</a>`;
+    return `<a class="${cls}" href="${it.href}"${cur}>${icon(it.icon)}${esc(cls === 'tab' && it.short ? it.short : it.label)}${countBadge(it.count, it.href === '/messages' ? 'nouveaux messages' : it.href === '/reception' ? 'éléments à traiter' : it.href === '/anomalies' ? 'anomalies urgentes' : 'tâches')}</a>`;
   };
   const navHtml = items.map((it) => `<li>${link(it, 'nav-item')}</li>`).join('');
   const tabItems = items.filter((it) => it.tab);

@@ -401,6 +401,57 @@ const MIGRATIONS = [
   );
   CREATE INDEX task_reminders_client ON task_reminders(client_id, sent_at);
   `,
+  // 11 — Anomalies (workflow 06) et validation par le client (workflow 08)
+  `
+  CREATE TABLE anomalies (
+    id            INTEGER PRIMARY KEY,
+    client_id     INTEGER NOT NULL REFERENCES clients(id),
+    type          TEXT NOT NULL,
+    severity      TEXT NOT NULL CHECK (severity IN ('urgent','system','standard')),
+    source        TEXT NOT NULL CHECK (source IN ('rule','qbo')),
+    ref           TEXT NOT NULL,
+    title         TEXT NOT NULL,
+    explanation   TEXT NOT NULL,
+    action        TEXT NOT NULL,
+    amount_cents  INTEGER,
+    txn_date      TEXT,
+    counterparty  TEXT,
+    qbo_url       TEXT,
+    data          TEXT,
+    status        TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','in_progress','waiting_client','answered','resolved','dismissed')),
+    owner_id      INTEGER REFERENCES users(id),
+    task_id       INTEGER REFERENCES tasks(id),
+    resolution    TEXT,
+    resolved_by   INTEGER REFERENCES users(id),
+    resolved_at   TEXT,
+    first_seen    TEXT NOT NULL,
+    last_seen     TEXT NOT NULL,
+    UNIQUE (client_id, ref)
+  );
+  CREATE INDEX anomalies_open ON anomalies(status, severity);
+  CREATE TABLE anomaly_events (
+    id          INTEGER PRIMARY KEY,
+    anomaly_id  INTEGER NOT NULL REFERENCES anomalies(id),
+    from_status TEXT,
+    to_status   TEXT NOT NULL,
+    user_id     INTEGER REFERENCES users(id),
+    note        TEXT,
+    at          TEXT NOT NULL
+  );
+  CREATE TABLE client_decisions (
+    id           INTEGER PRIMARY KEY,
+    client_id    INTEGER NOT NULL REFERENCES clients(id),
+    counterparty TEXT NOT NULL,
+    question     TEXT NOT NULL,
+    answer       TEXT NOT NULL,
+    task_id      INTEGER REFERENCES tasks(id),
+    answered_at  TEXT NOT NULL
+  );
+  CREATE INDEX client_decisions_party ON client_decisions(client_id, counterparty);
+  ALTER TABLE tasks ADD COLUMN anomaly_id INTEGER REFERENCES anomalies(id);
+  ALTER TABLE tasks ADD COLUMN counterparty TEXT;
+  ALTER TABLE tasks ADD COLUMN question_type TEXT;
+  `,
 ];
 
 function openDb(file) {

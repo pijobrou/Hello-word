@@ -22,7 +22,7 @@ const { isoDay: dateFr } = require('./dates.js');
 const monthFr = (y, m) => new Intl.DateTimeFormat('fr-CA', { month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(y, m, 1)));
 const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
 
-function createQboService(db, { qbo, portal, audit, now = () => Date.now() }) {
+function createQboService(db, { qbo, portal, audit, now = () => Date.now(), onFindings = null }) {
   const iso = () => new Date(now()).toISOString();
   const isStaff = (u) => Boolean(u && STAFF_ROLES.includes(u.role));
   function requireStaff(actor, clientId) {
@@ -227,6 +227,20 @@ function createQboService(db, { qbo, portal, audit, now = () => Date.now() }) {
           db.prepare("UPDATE tasks SET status = 'done', answer = COALESCE(answer, 'Corrigé dans QuickBooks') WHERE id = ? AND status IN ('open','answered')").run(it.task_id);
         }
         resolved += 1;
+      }
+
+      // Anomalies (workflow 06) : doublons et paiements inhabituels parmi les paiements lus.
+      if (onFindings) {
+        const billMap = new Map([...bills, ...billsScan].map((b) => [String(b.Id), b]));
+        // Montant total ; à défaut, somme des lignes
+        const total = (t) => Math.abs(t.TotalAmt !== undefined && t.TotalAmt !== null ? cents(t.TotalAmt) : (t.Line || []).reduce((n, l) => n + cents(l.Amount || 0), 0));
+        const txns = [
+          ...purchases.map((t) => ({ type: 'Purchase', id: String(t.Id), date: t.TxnDate, amount: total(t), party: (t.EntityRef && t.EntityRef.name) || null,
+            url: `${app}/app/${t.PaymentType === 'Check' ? 'check' : 'expense'}?txnId=${encodeURIComponent(t.Id)}` })),
+          ...[...billMap.values()].map((b) => ({ type: 'Bill', id: String(b.Id), date: b.TxnDate, amount: total(b), party: (b.VendorRef && b.VendorRef.name) || null,
+            url: `${app}/app/bill?txnId=${encodeURIComponent(b.Id)}` })),
+        ];
+        try { onFindings(id, txns, today); } catch (err) { console.error('Anomalies :', err.message); }
       }
 
       const stats = { banks: banks.length, invoices: invoices.length, late: late.length, bills: bills.length, purchases: purchases.length, scanned: purchases.length + billsScan.length + deposits.length + journals.length, since, resolved };

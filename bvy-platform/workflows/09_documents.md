@@ -1,6 +1,6 @@
 # Workflow 09 — Documents
 
-**Status:** `STATUS: WAITING_FOR_OWNER_APPROVAL` — built and tested 2026-10-03 (`npm test` 46/46; review package `review/portal-inbox/`).
+**Status:** `STATUS: APPROVED` by the owner on 2026-10-03 (« ok on va au point 2 »; built and tested 2026-10-03, `npm test` 46/46; review package `review/portal-inbox/`).
 **Owner approval required:** yes — new staff screen « Réception » and changes to the client documents page.
 
 ## Objective

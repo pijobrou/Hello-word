@@ -238,7 +238,7 @@ function staffClientShell(s, client, tab, inner, flash, counts = {}) {
     ...(client.payroll && ['admin', 'lead', 'payroll'].includes(s.user.role) ? [['/paie', 'Paie']] : []),
     ...(client.kind && ['admin', 'lead', 'tax'].includes(s.user.role) ? [['/impots', 'Impôts']] : []),
   ];
-  const tabs = [['', 'Tableau de bord'], ['/echeances', 'Échéances'], ...payTab, ['/quickbooks', `QuickBooks${counts.suggestions ? ` (${counts.suggestions})` : ''}`], ['/taches', `Tâches${counts.tasks ? ` (${counts.tasks})` : ''}`], ['/documents', `Documents${counts.toFile ? ` (${counts.toFile})` : ''}`], ['/messages', `Messages${counts.unread ? ` (${counts.unread})` : ''}`], ['/historique', 'Historique']];
+  const tabs = [['', 'Tableau de bord'], ['/echeances', 'Échéances'], ...payTab, ['/quickbooks', `QuickBooks${counts.suggestions ? ` (${counts.suggestions})` : ''}`], ['/taches', `Tâches${counts.tasks ? ` (${counts.tasks})` : ''}`], ['/anomalies', `Anomalies${counts.anomalies ? ` (${counts.anomalies})` : ''}`], ['/documents', `Documents${counts.toFile ? ` (${counts.toFile})` : ''}`], ['/messages', `Messages${counts.unread ? ` (${counts.unread})` : ''}`], ['/historique', 'Historique']];
   const body = `${pageHead('Dossier client', client.name, qboHead)}
     <nav class="subnav" aria-label="Sections du dossier">${tabs.map(([p, l]) => `<a href="/clients/${client.id}${p}"${p === tab ? ' aria-current="page"' : ''}>${esc(l)}</a>`).join('')}</nav>
     ${inner}`;

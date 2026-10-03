@@ -15,8 +15,9 @@ const PV = require('./views-payroll.js');
 const TV = require('./views-salestax.js');
 const IV = require('./views-incometax.js');
 const RV = require('./views-inbox.js');
+const AV = require('./views-anomalies.js');
 
-function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax, inbox }) {
+function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax, inbox, anomalies }) {
   const isStaff = (u) => STAFF_ROLES.includes(u.role);
 
   const qboStatus = (clientId) => (qboService ? qboService.status(clientId) : null);
@@ -31,13 +32,14 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
 
   function counts(u, clientId) {
     return { tasks: portal.openTaskCount(u, clientId), unread: portal.unreadCount(u, clientId), suggestions: qboService ? qboService.newSuggestionCount(clientId) : 0, qbo: qboStatus(clientId),
-      toFile: db.prepare('SELECT COUNT(*) AS n FROM documents WHERE client_id = ? AND filed = 0').get(Number(clientId)).n };
+      toFile: db.prepare('SELECT COUNT(*) AS n FROM documents WHERE client_id = ? AND filed = 0').get(Number(clientId)).n, anomalies: anomalies.openCount(clientId) };
   }
 
   // Courriel de rappel : jamais de titre ni de montant, seulement le nombre d'éléments en attente.
   const reminderSubject = (n) => `Rappel : ${n} élément${n > 1 ? 's' : ''} vous attend${n > 1 ? 'ent' : ''} dans votre portail BVY`;
   // Retour après une action : seulement vers une page interne connue.
-  const backTo = (v, fallback) => (/^\/(reception|clients\/\d+\/(documents|taches))$/.test(String(v || '')) ? v : fallback);
+  const backTo = (v, fallback) => (/^\/(reception|anomalies|clients\/\d+\/(documents|taches|anomalies))$/.test(String(v || '')) ? v : fallback);
+  const anomalyFilter = (url) => ({ severity: url.searchParams.get('gravite') || '', status: url.searchParams.get('etat') === 'closed' ? 'closed' : 'active' });
 
   async function handle(ctx) {
     const { req, res, p, s, form, ip, send200, redirect, flashOf, url } = ctx;
@@ -54,6 +56,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           return send200(res, P.clientHome(s, { client, snap: portal.getSnapshot(u, u.client_id), tasks: portal.listTasks(u, u.client_id, { open: true }), nav: clientNav(u), flash: flashOf(url), sync: qboStatus(u.client_id), pays: payroll ? payroll.openRunsFor(u.client_id) : [] })), true;
         }
         const data = workqueue.dashboard(u, { qboStatus, suggestions: (id) => (qboService ? qboService.newSuggestionCount(id) : 0), unread: (id) => portal.unreadCount(u, id) });
+        data.summary.urgent = anomalies.urgentCount(u);
         return send200(res, W.staffDashboard(s, { data, flash: flashOf(url) })), true;
       }
 
@@ -64,6 +67,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
         const m = p.match(/^\/a-faire\/(\d+)\/repondre$/);
         if (m && POST) {
           const t = portal.answerTask(u, m[1], form, ip);
+          anomalies.onAnswer(t); // mémoire des réponses (workflow 08) et anomalie « Réponse reçue »
           notifyTeam(cid, `Réponse du client : ${t.title}`);
           return ok('/a-faire', 'Merci, votre réponse est envoyée à BVY.'), true;
         }
@@ -165,6 +169,23 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           const task = portal.taskFor(u, t[1]);
           portal.closeTask(u, task.id, form.status, ip);
           return ok(backTo(form.back, `/clients/${task.client_id}/taches`), form.status === 'cancelled' ? 'Tâche annulée.' : 'Tâche terminée.'), true;
+        }
+        /* Anomalies (workflow 06) et questions au client (workflow 08) */
+        if (p === '/anomalies' && GET) {
+          const filter = anomalyFilter(url);
+          return send200(res, AV.anomaliesPage(s, { items: anomalies.list(u, filter), filter, questionFor: anomalies.questionFor, flash: flashOf(url) })), true;
+        }
+        const an = p.match(/^\/anomalies\/(\d+)\/(prendre|resoudre|ignorer|precedente|rouvrir|demander)$/);
+        if (an && POST) {
+          if (an[2] === 'demander') {
+            const r = anomalies.ask(u, an[1], form, ip);
+            notifyClient(r.clientId, u.id, 'Vous avez une nouvelle question de BVY dans votre portail');
+            return ok(backTo(form.back, `/clients/${r.clientId}/anomalies`), 'Question envoyée au client ; il est prévenu par courriel.'), true;
+          }
+          const action = { prendre: 'take', resoudre: 'resolve', ignorer: 'dismiss', precedente: 'previous', rouvrir: 'reopen' }[an[2]];
+          const cid = anomalies.act(u, an[1], action, form, ip);
+          const msg = { take: 'Vous êtes responsable de cette anomalie.', resolve: 'Anomalie résolue.', dismiss: 'Anomalie ignorée : elle ne sera plus signalée.', previous: 'Anomalie résolue avec la réponse précédente du client.', reopen: 'Anomalie rouverte.' }[action];
+          return ok(backTo(form.back, `/clients/${cid}/anomalies`), msg), true;
         }
         /* Réception et rappels (workflows 09 et 10) */
         if (p === '/reception' && GET) return send200(res, RV.inboxPage(s, { data: inbox.inbox(u), flash: flashOf(url) })), true;
@@ -340,7 +361,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           await qboService.disconnect(u, cid, ip);
           return ok(`/clients/${cid}/quickbooks`, 'QuickBooks déconnecté : les autorisations sont retirées.'), true;
         }
-        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie|tps-tvq|impots|historique))?$/);
+        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie|tps-tvq|impots|historique|anomalies))?$/);
         if (c) {
           const cid = Number(c[1]);
           const sub = c[2] || '';
@@ -387,6 +408,11 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           if (sub === '/taches' && GET) {
             const tasks = portal.listTasks(u, cid).map((t) => ({ ...t, next_reminder: inbox.nextReminder(t) }));
             return send200(res, P.staffTasks(s, { client, tasks, flash: flashOf(url), counts: counts(u, cid) })), true;
+          }
+          if (sub === '/anomalies' && GET) {
+            const filter = anomalyFilter(url);
+            return send200(res, AV.clientAnomaliesTab(s, { client, items: anomalies.list(u, { ...filter, clientId: cid }), filter, questionFor: anomalies.questionFor,
+              shell: (inner) => P.staffClientShell(s, client, '/anomalies', inner, flashOf(url), counts(u, cid)) })), true;
           }
           if (sub === '/historique' && GET) {
             return send200(res, RV.historyTab(s, { events: inbox.timeline(u, cid), shell: (inner) => P.staffClientShell(s, client, '/historique', inner, flashOf(url), counts(u, cid)) })), true;

@@ -97,6 +97,9 @@ function fakeIntuit(clock) {
           { Id: '901', TxnDate: '2026-09-18', PaymentType: 'CreditCard', EntityRef: { name: 'Costco' }, PrivateNote: 'Achat magasin',
             Line: [{ Amount: 842.37, DetailType: 'AccountBasedExpenseLineDetail', AccountBasedExpenseLineDetail: { AccountRef: { value: st.uncategorizedLine ? '80' : '60' } } }] },
           { Id: '902', TxnDate: '2026-09-20', PaymentType: 'Cash', Line: [{ Amount: 50, DetailType: 'AccountBasedExpenseLineDetail', AccountBasedExpenseLineDetail: { AccountRef: { value: '60' } } }] },
+          // Même achat Costco saisi une deuxième fois le lendemain : doublon (workflow 06)
+          { Id: '903', TxnDate: '2026-09-19', PaymentType: 'CreditCard', EntityRef: { name: 'Costco' }, TotalAmt: 842.37,
+            Line: [{ Amount: 842.37, DetailType: 'AccountBasedExpenseLineDetail', AccountBasedExpenseLineDetail: { AccountRef: { value: '60' } } }] },
         ] } });
       }
     }
@@ -256,6 +259,11 @@ test('jetons renouvelés (rotation conservée) ; autorisation retirée → recon
     await staff.get(`/quickbooks/retour?code=code-intuit&state=${encodeURIComponent(state)}&realmId=9130`);
     t.clock.advance(2 * 3600_000);
     await t.app.qboService.sync(t.boreal.id, 'schedule');
+    // Anomalies (workflow 06) : le doublon Costco est trouvé dans les paiements lus
+    const dup = t.app.db.prepare("SELECT * FROM anomalies WHERE client_id = ? AND type = 'duplicate'").get(t.boreal.id);
+    assert.ok(dup, 'doublon détecté à la synchronisation');
+    assert.strictEqual(dup.ref, 'dup:Purchase:901+Purchase:903');
+    assert.strictEqual(dup.amount_cents, 84237);
     assert.strictEqual(t.fake.st.refreshes, 1);
     assert.strictEqual(t.qbo.decrypt(t.db.prepare('SELECT refresh_enc FROM qbo_connections').get().refresh_enc), 'ref-2');
 

@@ -11,7 +11,7 @@ const DAY = 86_400_000;
   const NOW = Date.UTC(2026, 9, 19, 14, 0); // lundi 2026-10-19, 10 h
   const ago = (d, h = 0) => new Date(NOW - d * DAY - h * 3600_000).toISOString();
   const mails = []; const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'shots09-'));
-  const probe = createServer({ port: 0, dataDir, smtp: null, sendMail: async () => {}, publicUrl: 'http://localhost:1' });
+  const probe = createServer({ port: 0, dataDir: fs.mkdtempSync(path.join(os.tmpdir(), 'probe-')), smtp: null, sendMail: async () => {}, publicUrl: 'http://localhost:1' });
   await new Promise((r) => probe.listen(0, '127.0.0.1', r)); const port = probe.address().port; probe.close();
   const srv = createServer({ port, dataDir, smtp: null, sendMail: async (m) => mails.push(m), publicUrl: `http://localhost:${port}`, now: () => NOW });
   await new Promise((r) => srv.listen(port, '127.0.0.1', r));

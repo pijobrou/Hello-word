@@ -7,7 +7,7 @@ let chromium;
 try { ({ chromium } = require('playwright')); } catch { ({ chromium } = require(path.resolve(__dirname, '../../apps/website/node_modules/playwright'))); }
 (async () => {
   const NOW = Date.UTC(2027, 1, 10, 15, 0); const mails = []; const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'shots14-'));
-  const probe = createServer({ port: 0, dataDir, smtp: null, sendMail: async () => {}, publicUrl: 'http://localhost:1' });
+  const probe = createServer({ port: 0, dataDir: fs.mkdtempSync(path.join(os.tmpdir(), 'probe-')), smtp: null, sendMail: async () => {}, publicUrl: 'http://localhost:1' });
   await new Promise((r) => probe.listen(0, '127.0.0.1', r)); const port = probe.address().port; probe.close();
   const srv = createServer({ port, dataDir, smtp: null, sendMail: async (m) => mails.push(m), publicUrl: `http://localhost:${port}`, now: () => NOW });
   await new Promise((r) => srv.listen(port, '127.0.0.1', r));

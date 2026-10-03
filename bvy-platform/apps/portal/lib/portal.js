@@ -92,7 +92,8 @@ function createPortal(db, { dataDir, audit, now = () => Date.now() }) {
     const id = requireAccess(actor, clientId);
     const row = db.prepare(`SELECT s.*, u.name AS updated_by_name FROM client_snapshots s
       LEFT JOIN users u ON u.id = s.updated_by WHERE s.client_id = ?`).get(id);
-    return row ? { ...JSON.parse(row.data), updatedAt: row.updated_at, updatedBy: row.updated_by_name, source: row.source || 'manual' } : null;
+    // Valeurs par défaut : un instantané incomplet ne doit jamais casser l'accueil du client.
+    return row ? { cash: {}, receivable: {}, payable: {}, health: null, changes: [], work: [], ...JSON.parse(row.data), updatedAt: row.updated_at, updatedBy: row.updated_by_name, source: row.source || 'manual' } : null;
   }
 
   // Lignes « Libellé | explication » → [{ what, why }]

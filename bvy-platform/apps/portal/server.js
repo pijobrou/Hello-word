@@ -29,6 +29,7 @@ const { createPayroll } = require('./lib/payroll.js');
 const { createSalesTax } = require('./lib/salestax.js');
 const { createIncomeTax } = require('./lib/incometax.js');
 const { createInbox } = require('./lib/inbox.js');
+const { createAnomalies, findDuplicates, findUnusual } = require('./lib/anomalies.js');
 const W = require('./lib/views-work.js');
 
 const COOKIE = '__Host-bvy_session';
@@ -181,12 +182,15 @@ function createServer(options = {}) {
   // QuickBooks Online (workflow 04) : actif seulement si l'application Intuit est configurée (ou un faux client en test).
   const qboCfg = options.qbo !== undefined ? options.qbo : qboConfigFromEnv(process.env, cfg.publicUrl);
   const qbo = qboCfg ? (qboCfg.authorizeUrl ? qboCfg : createQbo(qboCfg, { now: options.now })) : null;
-  const qboService = createQboService(db, { qbo, portal, audit: acc.audit, now: options.now });
+  let anomalies = null; // créé plus bas (il a besoin des échéances) ; la synchronisation QuickBooks lui passe les paiements lus
+  const qboService = createQboService(db, { qbo, portal, audit: acc.audit, now: options.now,
+    onFindings: (clientId, txns, day) => anomalies && anomalies.setQboFindings(clientId, [...findDuplicates(txns, day), ...findUnusual(txns, day)]) });
   const workqueue = createWorkqueue(db, { audit: acc.audit, now: options.now });
   const payroll = createPayroll(db, { audit: acc.audit, now: options.now });
   const salestax = createSalesTax(db, { audit: acc.audit, now: options.now, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day) });
   const incometax = createIncomeTax(db, { audit: acc.audit, now: options.now, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day) });
   const inbox = createInbox(db, { audit: acc.audit, now: options.now, portal });
+  anomalies = createAnomalies(db, { audit: acc.audit, now: options.now, portal, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day), qbo: () => qboService });
   // Paie (workflow 12) : crée les paies dont les heures doivent être demandées et prévient le client (toutes les heures).
   function payrollTick() {
     try {
@@ -194,13 +198,14 @@ function createServer(options = {}) {
       salestax.ensureReturns(); // TPS/TVQ : une déclaration par période terminée (aucun avis au client à cette étape)
       for (const f of incometax.ensureFiles()) if (f.form === 't1') notifyClient(f.clientId, null, `BVY a besoin de vos documents pour vos impôts (${f.label})`);
       // Rappels (workflow 10) : un courriel par client, sans titre ni montant, en semaine de 9 h à 17 h.
+      anomalies.scanAll(); // Anomalies (workflow 06) : règles du dossier, chaque heure
       for (const r of inbox.runReminders()) notifyClient(r.clientId, null, `Rappel : ${r.count} élément${r.count > 1 ? 's' : ''} vous attend${r.count > 1 ? 'ent' : ''} dans votre portail BVY`);
     } catch (err) { console.error('Paie :', err.message); }
   }
   const payrollTimer = setInterval(payrollTick, 60 * 60_000);
   payrollTimer.unref();
   setImmediate(payrollTick);
-  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick, salestax, incometax, inbox });
+  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick, salestax, incometax, inbox, anomalies });
 
   async function serveAsset(req, res, pathname) {
     const name = path.basename(pathname);
@@ -369,7 +374,7 @@ function createServer(options = {}) {
       /* ----- pages protégées ----- */
       if (!s || !s.mfa_done) return redirect(res, s ? '/verification' : '/connexion');
       const u = s.user;
-      if (STAFF_ROLES.includes(u.role)) s.nav = { inbox: inbox.count(u) }; // pastille « Réception »
+      if (STAFF_ROLES.includes(u.role)) s.nav = { inbox: inbox.count(u), urgent: anomalies.urgentCount(u) }; // pastilles « Réception » et « Anomalies »
 
       if (await portalRoutes.handle({ req, res, p, url, s, form, ip, send200, redirect, flashOf, audit: acc.audit, securityHeaders: SECURITY_HEADERS })) return;
 
@@ -498,13 +503,14 @@ function createServer(options = {}) {
 
   server.db = db;
   server.portal = portal;
-  server.qboService = qboService;
   server.workqueue = workqueue;
   server.payroll = payroll;
   server.salestax = salestax;
   server.incometax = incometax;
   server.payrollTick = payrollTick;
   server.inbox = inbox;
+  server.anomalies = anomalies;
+  server.qboService = qboService;
   server.accounts = acc;
   server.config = cfg;
   server.on('close', () => authLimiter.stop());
