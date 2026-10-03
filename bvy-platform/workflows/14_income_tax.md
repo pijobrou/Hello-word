@@ -1,6 +1,6 @@
 # Workflow 14 — Income tax (T2/CO-17, T1/TP-1, T2125)
 
-**Status:** `STATUS: WAITING_FOR_OWNER_APPROVAL` — built and tested 2026-10-03 (`npm test` 43/43; review package `review/portal-incometax/`).
+**Status:** `STATUS: APPROVED` by the owner on 2026-10-03 (built and tested 2026-10-03; `npm test` 43/43; review package `review/portal-incometax/`).
 **Owner approval required:** yes — new staff and client screens.
 
 ## Objective
