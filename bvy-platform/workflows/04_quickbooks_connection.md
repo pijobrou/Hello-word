@@ -1,7 +1,6 @@
 # Workflow 04 — QuickBooks Online connection
 
-**Status:** built and tested 2026-10-01 (fake Intuit API), `WAITING_FOR_OWNER_APPROVAL` before production clients — requested by the owner 2026-10-01: « les tâches et autres à faire proviennent
-surtout des données de leur compte QBO »).
+**Status:** `STATUS: APPROVED` by the owner on 2026-10-03, after the first real client was connected in production (2026-10-02).
 **Owner approval required:** before connecting real client companies in production (production launch).
 
 ## Objective

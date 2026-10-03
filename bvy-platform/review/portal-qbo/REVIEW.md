@@ -1,6 +1,6 @@
 # Dossier de revue — phase 4 : connexion QuickBooks Online
 
-`STATUS: WAITING_FOR_OWNER_APPROVAL` (avant de connecter de vrais clients en production)
+`STATUS: APPROVED (2026-10-03)` (avant de connecter de vrais clients en production)
 
 Date : 1er octobre 2026. Procédure : `workflows/04_quickbooks_connection.md`. Code : `apps/portal/lib/qbo.js`,
 `apps/portal/lib/qbo-sync.js`. Captures avec des données fictives.
@@ -43,4 +43,4 @@ déconnecter ; déconnexion = révocation chez Intuit ; tout est inscrit au jour
 - Détection limitée pour l’instant à deux types d’éléments ; d’autres (documents manquants, doublons,
   rapprochements) viendront avec les anomalies (workflow 06).
 
-`STATUS: WAITING_FOR_OWNER_APPROVAL`
+`STATUS: APPROVED (2026-10-03)`

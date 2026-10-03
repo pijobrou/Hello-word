@@ -1,6 +1,6 @@
 # Workflow 12 — Payroll
 
-**Status:** plan approved by the owner on 2026-10-02 (« exécuter 12_payroll.md »); built and tested the same day (`lib/payroll.js`, `lib/views-payroll.js`, `test/payroll.test.js`); review package `review/portal-payroll/`. `WAITING_FOR_OWNER_APPROVAL` of the screens before real clients use it.
+**Status:** `STATUS: APPROVED` by the owner on 2026-10-03 (built 2026-10-02 with the detailed pay summary; review package `review/portal-payroll/`). Assumptions accepted with the approval: regular remitters (15th of the following month); CNESST premiums paid to Revenu Québec with source deductions.
 **Owner approval required:** yes — new client and staff screens (major UX).
 
 ## Objective

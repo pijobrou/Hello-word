@@ -72,3 +72,4 @@ now link to the portal.
   financière, À faire with checkboxes and « Voir ↗ », Ce qui a changé, BVY travaille sur). QuickBooks sync now also
   stores the short lines (`hint`/`tone`, change `label`/`delta`/`tone`). Screenshots: `review/portal-qbo/03-*`.
   Waiting for the owner's approval of the new look.
+- 2026-10-03 — Owner approved the redesigned client home (website dashboard look): `STATUS: APPROVED`.

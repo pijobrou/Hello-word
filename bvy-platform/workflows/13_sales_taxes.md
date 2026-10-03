@@ -1,6 +1,6 @@
 # Workflow 13 — GST/QST (TPS/TVQ)
 
-**Status:** built and tested 2026-10-02 (`lib/salestax.js`, `lib/views-salestax.js`, `test/salestax.test.js`; review package `review/portal-salestax/`). `WAITING_FOR_OWNER_APPROVAL`.
+**Status:** `STATUS: APPROVED` by the owner on 2026-10-03 (built and tested 2026-10-02; review package `review/portal-salestax/`).
 **Owner approval required:** yes — new staff and client screens.
 
 ## Objective
