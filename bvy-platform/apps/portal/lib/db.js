@@ -490,6 +490,50 @@ const MIGRATIONS = [
   );
   ALTER TABLE tasks ADD COLUMN gov_request_id INTEGER REFERENCES gov_requests(id);
   `,
+  // 13 — Santé financière (workflow 15) et résumés automatiques (workflow 16)
+  `
+  CREATE TABLE client_health (
+    client_id   INTEGER PRIMARY KEY REFERENCES clients(id),
+    state       TEXT CHECK (state IN ('good','watch','action')),
+    why         TEXT,
+    comment     TEXT,
+    updated_by  INTEGER REFERENCES users(id),
+    updated_at  TEXT NOT NULL
+  );
+  -- La santé saisie à la main dans le tableau de bord devient l'évaluation de l'équipe
+  INSERT INTO client_health (client_id, state, why, updated_by, updated_at)
+    SELECT client_id, json_extract(data, '$.health.state'), json_extract(data, '$.health.why'), updated_by, updated_at
+    FROM client_snapshots WHERE json_extract(data, '$.health.state') IN ('good','watch','action');
+  CREATE TABLE summaries (
+    id            INTEGER PRIMARY KEY,
+    client_id     INTEGER NOT NULL REFERENCES clients(id),
+    period_type   TEXT NOT NULL CHECK (period_type IN ('month','quarter','year')),
+    period_start  TEXT NOT NULL,
+    period_end    TEXT NOT NULL,
+    label         TEXT NOT NULL,
+    status        TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published')),
+    data          TEXT NOT NULL,
+    intro         TEXT,
+    figures       TEXT,
+    version       INTEGER NOT NULL DEFAULT 0,
+    created_by    INTEGER REFERENCES users(id),
+    created_at    TEXT NOT NULL,
+    updated_at    TEXT NOT NULL,
+    published_by  INTEGER REFERENCES users(id),
+    published_at  TEXT,
+    UNIQUE (client_id, period_type, period_start)
+  );
+  CREATE TABLE summary_versions (
+    id            INTEGER PRIMARY KEY,
+    summary_id    INTEGER NOT NULL REFERENCES summaries(id),
+    version       INTEGER NOT NULL,
+    data          TEXT NOT NULL,
+    intro         TEXT,
+    figures       TEXT,
+    published_by  INTEGER REFERENCES users(id),
+    published_at  TEXT NOT NULL
+  );
+  `,
 ];
 
 function openDb(file) {

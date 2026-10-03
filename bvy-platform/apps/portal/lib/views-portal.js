@@ -105,7 +105,17 @@ function dashKpi(label, block, href) {
     : `<div class="cd-kpi">${inner}</div>`;
 }
 
-function clientHome(s, { client, snap, tasks, nav, flash, sync = null, pays = [], gov = [] }) {
+// Santé financière (workflow 15) : état global, chaque indicateur avec sa raison, mot de BVY.
+function healthPanel(h) {
+  if (!h || !h.state) return '';
+  return `<section class="cd-panel" aria-labelledby="h-sante"><h2 id="h-sante">Santé financière ${healthBadge(h.state)}</h2>
+    ${h.override ? `<p>${esc(h.why)}</p><p class="cd-foot">Évaluée par BVY${h.noteBy ? ` (${esc(h.noteBy)})` : ''} le ${esc(dateFr(h.noteAt))}.</p>` : ''}
+    ${h.comment ? `<p class="hl-comment"><b>Le mot de BVY :</b> ${esc(h.comment)}</p>` : ''}
+    <ul class="hl-list">${h.indicators.map((i) => `<li class="hl-${i.state}"><span class="hl-dot" aria-hidden="true"></span><span><b>${esc(i.label)}</b> · ${esc(HEALTH[i.state])}<br><small>${esc(i.why)}</small></span></li>`).join('')}</ul></section>`;
+}
+
+function clientHome(s, { client, snap, tasks, nav, flash, sync = null, pays = [], gov = [], health: hl = null }) {
+  const health = healthPanel(hl);
   const first = esc(s.user.name.split(' ')[0]);
   const open = tasks.filter((t) => t.status === 'open');
   const qbo = nav.qboUrl;
@@ -131,8 +141,6 @@ function clientHome(s, { client, snap, tasks, nav, flash, sync = null, pays = []
     const govRows = gov.map((g) => `<div class="cd-barrow wide"><span>${esc(g.title)}<br><small>réponse due le ${esc(g.due)}</small></span><span class="track" aria-hidden="true"><span class="fill p${g.progress}"></span></span><span>${esc(g.step)}</span></div>`).join('');
   let body;
   if (snap) {
-    const health = snap.health ? `<section class="cd-panel" aria-labelledby="h-sante"><h2 id="h-sante">Santé financière ${healthBadge(snap.health.state)}</h2>
-      <p>${esc(snap.health.why)}</p></section>` : '';
     const changes = snap.changes.length ? `<section class="cd-panel" aria-labelledby="h-chg"><h2 id="h-chg">Ce qui a changé</h2>
       <ul class="cd-changes">${snap.changes.map((c) => (c.label
         ? `<li><span>${esc(c.label)}</span><span class="${c.tone === 'down' ? 'dn' : c.tone === 'up' ? 'up' : ''}">${esc(c.delta)}</span></li>`
@@ -163,6 +171,7 @@ function clientHome(s, { client, snap, tasks, nav, flash, sync = null, pays = []
       <section class="cd-panel"><h2>Votre tableau de bord se prépare</h2>
         <p>BVY ajoutera ici votre argent disponible, ce que vos clients vous doivent, vos factures à payer et la santé de votre entreprise, expliquée en mots simples.</p></section>
       ${todo}
+      ${health}
       ${govRows || payRows ? `<section class="cd-panel" aria-labelledby="h-work"><h2 id="h-work">BVY travaille sur</h2><div class="cd-bars">${govRows}${payRows}</div></section>` : ''}</div></div>`;
   }
   const head = `<div class="cd-hello"><p class="t-eyebrow"><span>${esc(todayFr())}</span></p><h1 class="t-h1">Bonjour ${first}.</h1></div>`;
@@ -210,9 +219,11 @@ function clientDocuments(s, { docs, nav, flash, type = '' }) {
   return appPage(s, { title: 'Documents', current: '/documents', body, flash, nav });
 }
 
-function clientReports(s, { docs, nav }) {
+function clientReports(s, { docs, nav, summaries = [] }) {
+  const sums = summaries.length ? `<article class="card"><div class="card-head"><h2 class="t-h3">Vos résumés</h2></div>
+    <ul class="rc-rows">${summaries.map((x) => `<li><a class="link" href="/rapports/resume/${x.id}">${esc(x.label)}</a><span class="t-meta">${esc({ month: 'Mensuel', quarter: 'Trimestriel', year: 'Annuel' }[x.period_type])} · ${esc(dateFr(x.published_at))}</span></li>`).join('')}</ul></article>` : '';
   const body = `${pageHead('Rapports', 'Vos rapports', 'Résumés, états financiers et déclarations préparés par BVY.')}
-    <article class="card">${docTable(docs)}</article>`;
+    ${sums}<article class="card${sums ? ' mt-6' : ''}"><div class="card-head"><h2 class="t-h3">Fichiers</h2></div>${docTable(docs)}</article>`;
   return appPage(s, { title: 'Rapports', current: '/rapports', body, nav });
 }
 
@@ -242,7 +253,7 @@ function staffClientShell(s, client, tab, inner, flash, counts = {}) {
     ...(client.payroll && ['admin', 'lead', 'payroll'].includes(s.user.role) ? [['/paie', 'Paie']] : []),
     ...(client.kind && ['admin', 'lead', 'tax'].includes(s.user.role) ? [['/impots', 'Impôts']] : []),
   ];
-  const tabs = [['', 'Tableau de bord'], ['/echeances', 'Échéances'], ...payTab, ['/quickbooks', `QuickBooks${counts.suggestions ? ` (${counts.suggestions})` : ''}`], ['/taches', `Tâches${counts.tasks ? ` (${counts.tasks})` : ''}`], ['/anomalies', `Anomalies${counts.anomalies ? ` (${counts.anomalies})` : ''}`], ['/gouvernement', `Gouvernement${counts.gov ? ` (${counts.gov})` : ''}`], ['/documents', `Documents${counts.toFile ? ` (${counts.toFile})` : ''}`], ['/messages', `Messages${counts.unread ? ` (${counts.unread})` : ''}`], ['/historique', 'Historique']];
+  const tabs = [['', 'Tableau de bord'], ['/echeances', 'Échéances'], ...payTab, ['/quickbooks', `QuickBooks${counts.suggestions ? ` (${counts.suggestions})` : ''}`], ['/taches', `Tâches${counts.tasks ? ` (${counts.tasks})` : ''}`], ['/anomalies', `Anomalies${counts.anomalies ? ` (${counts.anomalies})` : ''}`], ['/gouvernement', `Gouvernement${counts.gov ? ` (${counts.gov})` : ''}`], ['/documents', `Documents${counts.toFile ? ` (${counts.toFile})` : ''}`], ['/messages', `Messages${counts.unread ? ` (${counts.unread})` : ''}`], ['/historique', 'Historique'], ['/sante', 'Santé'], ['/resumes', 'Résumés']];
   const body = `${pageHead('Dossier client', client.name, qboHead)}
     <nav class="subnav" aria-label="Sections du dossier">${tabs.map(([p, l]) => `<a href="/clients/${client.id}${p}"${p === tab ? ' aria-current="page"' : ''}>${esc(l)}</a>`).join('')}</nav>
     ${inner}`;
@@ -263,8 +274,7 @@ function staffDashboardForm(s, { client, snap, flash, counts }) {
         ${field('receivableNote', 'Explication', `<input class="input" id="receivableNote" name="receivableNote" maxlength="200" placeholder="Ex. : 7 factures, 2 en retard de plus de 30 jours" value="${esc(v.receivable.note || '')}">`)}
         ${field('payable', 'Factures à payer ($)', `<input class="input num" id="payable" name="payable" inputmode="decimal" value="${esc(amt(v.payable))}">`)}
         ${field('payableNote', 'Explication', `<input class="input" id="payableNote" name="payableNote" maxlength="200" value="${esc(v.payable.note || '')}">`)}
-        ${field('health', 'Santé financière', `<select class="input" id="health" name="health"><option value="">— (non évaluée)</option>${Object.entries(HEALTH).map(([k, l]) => `<option value="${k}"${v.health && v.health.state === k ? ' selected' : ''}>${esc(l)}</option>`).join('')}</select>`)}
-        ${field('healthWhy', 'Pourquoi (obligatoire si un état est choisi)', `<textarea class="input" id="healthWhy" name="healthWhy" maxlength="600">${esc(v.health ? v.health.why : '')}</textarea>`)}
+        <p class="t-meta">La santé financière se calcule toute seule à partir des chiffres et des échéances : voir l’onglet <a class="link" href="/clients/${client.id}/sante">Santé</a> pour ajouter un mot au client ou choisir l’état vous-même.</p>
         ${field('changes', 'Ce qui a changé — une ligne par élément : <i>Ce qui change | pourquoi c’est important</i>', `<textarea class="input" id="changes" name="changes">${esc(v.changes.map((c) => `${c.what} | ${c.why}`).join('\n'))}</textarea>`)}
         ${field('work', 'BVY travaille sur — une ligne par élément : <i>Travail | 85 %</i> ou <i>Travail | en attente</i>', `<textarea class="input" id="work" name="work">${esc(v.work.map((w) => `${w.name} | ${w.progress === null ? w.status : `${w.progress} %`}`).join('\n'))}</textarea>`)}
         <div class="btn-row"><button class="btn btn-plum" type="submit">Publier pour le client</button></div></form></article>

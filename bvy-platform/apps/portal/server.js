@@ -31,6 +31,8 @@ const { createIncomeTax } = require('./lib/incometax.js');
 const { createInbox } = require('./lib/inbox.js');
 const { createAnomalies, findDuplicates, findUnusual } = require('./lib/anomalies.js');
 const { createGovRequests } = require('./lib/govrequests.js');
+const { createHealth } = require('./lib/health.js');
+const { createSummaries } = require('./lib/summaries.js');
 const W = require('./lib/views-work.js');
 
 const COOKIE = '__Host-bvy_session';
@@ -192,6 +194,8 @@ function createServer(options = {}) {
   const incometax = createIncomeTax(db, { audit: acc.audit, now: options.now, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day) });
   const inbox = createInbox(db, { audit: acc.audit, now: options.now, portal });
   const gov = createGovRequests(db, { audit: acc.audit, now: options.now, portal });
+  const health = createHealth(db, { audit: acc.audit, now: options.now, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day), portal });
+  const summaries = createSummaries(db, { audit: acc.audit, now: options.now, health, periodTotals: (cid, a, b) => qboService.periodTotals(cid, a, b) });
   anomalies = createAnomalies(db, { audit: acc.audit, now: options.now, portal, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day), qbo: () => qboService, gov });
   // Paie (workflow 12) : crée les paies dont les heures doivent être demandées et prévient le client (toutes les heures).
   function payrollTick() {
@@ -201,13 +205,14 @@ function createServer(options = {}) {
       for (const f of incometax.ensureFiles()) if (f.form === 't1') notifyClient(f.clientId, null, `BVY a besoin de vos documents pour vos impôts (${f.label})`);
       // Rappels (workflow 10) : un courriel par client, sans titre ni montant, en semaine de 9 h à 17 h.
       anomalies.scanAll(); // Anomalies (workflow 06) : règles du dossier, chaque heure
+      summaries.ensureMonthly().catch((err) => console.error('Résumés :', err.message)); // brouillons mensuels (workflow 16)
       for (const r of inbox.runReminders()) notifyClient(r.clientId, null, `Rappel : ${r.count} élément${r.count > 1 ? 's' : ''} vous attend${r.count > 1 ? 'ent' : ''} dans votre portail BVY`);
     } catch (err) { console.error('Paie :', err.message); }
   }
   const payrollTimer = setInterval(payrollTick, 60 * 60_000);
   payrollTimer.unref();
   setImmediate(payrollTick);
-  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick, salestax, incometax, inbox, anomalies, gov });
+  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick, salestax, incometax, inbox, anomalies, gov, health, summaries });
 
   async function serveAsset(req, res, pathname) {
     const name = path.basename(pathname);
@@ -513,6 +518,8 @@ function createServer(options = {}) {
   server.inbox = inbox;
   server.anomalies = anomalies;
   server.gov = gov;
+  server.health = health;
+  server.summaries = summaries;
   server.qboService = qboService;
   server.accounts = acc;
   server.config = cfg;

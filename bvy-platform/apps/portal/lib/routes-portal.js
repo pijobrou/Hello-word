@@ -17,8 +17,9 @@ const IV = require('./views-incometax.js');
 const RV = require('./views-inbox.js');
 const AV = require('./views-anomalies.js');
 const GV = require('./views-govrequests.js');
+const SV = require('./views-summaries.js');
 
-function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax, inbox, anomalies, gov }) {
+function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax, inbox, anomalies, gov, health, summaries }) {
   const isStaff = (u) => STAFF_ROLES.includes(u.role);
 
   const qboStatus = (clientId) => (qboService ? qboService.status(clientId) : null);
@@ -54,7 +55,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
       if (p === '/accueil' && GET) {
         if (u.role === 'client') {
           const client = portal.client(u.client_id);
-          return send200(res, P.clientHome(s, { client, snap: portal.getSnapshot(u, u.client_id), tasks: portal.listTasks(u, u.client_id, { open: true }), nav: clientNav(u), flash: flashOf(url), sync: qboStatus(u.client_id), pays: payroll ? payroll.openRunsFor(u.client_id) : [], gov: gov.openForClient(u.client_id) })), true;
+          return send200(res, P.clientHome(s, { client, snap: portal.getSnapshot(u, u.client_id), tasks: portal.listTasks(u, u.client_id, { open: true }), nav: clientNav(u), flash: flashOf(url), sync: qboStatus(u.client_id), pays: payroll ? payroll.openRunsFor(u.client_id) : [], gov: gov.openForClient(u.client_id), health: health.forClient(u.client_id) })), true;
         }
         const data = workqueue.dashboard(u, { qboStatus, suggestions: (id) => (qboService ? qboService.newSuggestionCount(id) : 0), unread: (id) => portal.unreadCount(u, id) });
         data.summary.urgent = anomalies.urgentCount(u);
@@ -135,7 +136,9 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
             return ok(`/tps-tvq/${r.id}`, form.decision === 'approve' ? 'Merci, la déclaration est approuvée.' : 'Votre commentaire est envoyé à BVY.'), true;
           }
         }
-        if (p === '/rapports' && GET) return send200(res, P.clientReports(s, { docs: portal.listDocuments(u, cid, { category: 'report' }), nav: clientNav(u) })), true;
+        if (p === '/rapports' && GET) return send200(res, P.clientReports(s, { docs: portal.listDocuments(u, cid, { category: 'report' }), summaries: summaries.forClient(u, cid), nav: clientNav(u) })), true;
+        const rs = p.match(/^\/rapports\/resume\/(\d+)$/);
+        if (rs && GET) return send200(res, SV.clientSummary(s, { x: summaries.publishedFor(u, rs[1]), nav: clientNav(u) })), true;
         if (p === '/messages' && GET) {
           const messages = portal.listMessages(u, cid);
           return send200(res, P.clientMessages(s, { messages, nav: clientNav(u), flash: flashOf(url) })), true;
@@ -187,6 +190,34 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           const cid = anomalies.act(u, an[1], action, form, ip);
           const msg = { take: 'Vous êtes responsable de cette anomalie.', resolve: 'Anomalie résolue.', dismiss: 'Anomalie ignorée : elle ne sera plus signalée.', previous: 'Anomalie résolue avec la réponse précédente du client.', reopen: 'Anomalie rouverte.' }[action];
           return ok(backTo(form.back, `/clients/${cid}/anomalies`), msg), true;
+        }
+        /* Résumés (workflow 16) */
+        if (p === '/resumes' && GET) {
+          const status = url.searchParams.get('etat') === 'published' ? 'published' : 'draft';
+          return send200(res, SV.board(s, { items: summaries.list(u, { status }), status, flash: flashOf(url) })), true;
+        }
+        if (p === '/resumes/preparer' && POST) {
+          if (form.clientId) {
+            const sid = await summaries.generate(u, form.clientId, form.type, form.endYm || null, ip);
+            return ok(`/resumes/${sid}`, 'Brouillon préparé : relisez-le avant de le publier.'), true;
+          }
+          const r = await summaries.generateAll(u, form.type, form.endYm || null, ip);
+          return ok('/resumes', `${r.created} brouillon${r.created > 1 ? 's' : ''} préparé${r.created > 1 ? 's' : ''}${r.skipped ? ` (${r.skipped} client${r.skipped > 1 ? 's' : ''} sans période terminée)` : ''}.`), true;
+        }
+        const sm = p.match(/^\/resumes\/(\d+)(\/(?:modifier|publier|actualiser))?$/);
+        if (sm) {
+          if (!sm[2] && GET) return send200(res, SV.editor(s, { x: summaries.get(u, sm[1]), flash: flashOf(url) })), true;
+          if (sm[2] === '/modifier' && POST) { summaries.update(u, sm[1], form, ip); return ok(`/resumes/${sm[1]}`, 'Résumé enregistré.'), true; }
+          if (sm[2] === '/actualiser' && POST) {
+            const x = summaries.get(u, sm[1]);
+            await summaries.generate(u, x.client_id, x.period_type, x.period_end.slice(0, 7), ip);
+            return ok(`/resumes/${sm[1]}`, 'Sections recalculées ; votre texte « En bref » est gardé.'), true;
+          }
+          if (sm[2] === '/publier' && POST) {
+            const r = summaries.publish(u, sm[1], ip);
+            notifyClient(r.clientId, u.id, `Votre résumé (${r.label}) est disponible dans votre portail BVY`);
+            return ok(`/resumes/${sm[1]}`, 'Résumé publié ; le client est prévenu par courriel.'), true;
+          }
         }
         /* Demandes du gouvernement (workflow 17) */
         if (p === '/gouvernement' && GET) {
@@ -402,7 +433,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           await qboService.disconnect(u, cid, ip);
           return ok(`/clients/${cid}/quickbooks`, 'QuickBooks déconnecté : les autorisations sont retirées.'), true;
         }
-        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie|tps-tvq|impots|historique|anomalies|gouvernement))?$/);
+        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie|tps-tvq|impots|historique|anomalies|gouvernement|sante|resumes))?$/);
         if (c) {
           const cid = Number(c[1]);
           const sub = c[2] || '';
@@ -435,6 +466,8 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           if (sub === '' && GET) return send200(res, P.staffDashboardForm(s, { client, snap: portal.getSnapshot(u, cid), flash: flashOf(url), counts: counts(u, cid) })), true;
           if (sub === '/tableau' && POST) {
             portal.saveSnapshot(u, cid, form, ip);
+            // Ancien champ « santé » du formulaire : devient l'évaluation de l'équipe (workflow 15), le mot au client est gardé
+            if (form.health) health.saveNote(u, cid, { state: form.health, why: form.healthWhy, comment: (health.forClient(cid) || {}).comment || '' }, ip);
             notifyClient(cid, u.id, 'Votre tableau de bord BVY a été mis à jour');
             return ok(`/clients/${cid}`, 'Tableau de bord publié pour le client.'), true;
           }
@@ -454,6 +487,16 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
             const filter = anomalyFilter(url);
             return send200(res, AV.clientAnomaliesTab(s, { client, items: anomalies.list(u, { ...filter, clientId: cid }), filter, questionFor: anomalies.questionFor,
               shell: (inner) => P.staffClientShell(s, client, '/anomalies', inner, flashOf(url), counts(u, cid)) })), true;
+          }
+          if (sub === '/sante' && GET) {
+            return send200(res, SV.healthTab(s, { client, h: health.forActor(u, cid), shell: (inner) => P.staffClientShell(s, client, '/sante', inner, flashOf(url), counts(u, cid)) })), true;
+          }
+          if (sub === '/sante' && POST) {
+            health.saveNote(u, cid, form, ip);
+            return ok(`/clients/${cid}/sante`, 'Santé financière mise à jour pour le client.'), true;
+          }
+          if (sub === '/resumes' && GET) {
+            return send200(res, SV.clientTab(s, { client, items: summaries.list(u, { status: 'all', clientId: cid }), shell: (inner) => P.staffClientShell(s, client, '/resumes', inner, flashOf(url), counts(u, cid)) })), true;
           }
           if (sub === '/gouvernement' && GET) {
             return send200(res, GV.clientGovTab(s, { client, items: gov.list(u, { clientId: cid }).concat(gov.list(u, { clientId: cid, closed: true })),
@@ -495,7 +538,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
         ctx.audit({ userId: u.id, action: 'access.denied', target: p, ip });
         return send200(res, V.errorPage(403, 'Vous n’avez pas accès à cet élément.'), 403), true;
       }
-      if (err.message === 'Tâche introuvable.' || err.message === 'Document introuvable.') {
+      if (/^(Tâche|Document|Résumé|Anomalie|Demande) introuvable\.$/.test(err.message)) { // page demandée qui n’existe pas (ou pas pour vous)
         return send200(res, V.errorPage(404, err.message), 404), true;
       }
       // Erreur de saisie : retour à la page avec le message.

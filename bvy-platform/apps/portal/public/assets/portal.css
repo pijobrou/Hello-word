@@ -269,3 +269,22 @@ tr.rc-todo td{background:var(--bvy-bg-app)}
 .cd-barrow.wide{grid-template-columns:minmax(50px,1fr) auto}
 .cd-barrow.wide>span:first-child{grid-column:1/-1}
 .cd-barrow.wide>span:last-child{white-space:nowrap}
+/* Santé financière (workflow 15) */
+.hl-list{list-style:none;margin:var(--bvy-space-3) 0 0;padding:0;display:grid;gap:10px}
+.hl-list li{display:flex;gap:10px;align-items:flex-start;overflow-wrap:anywhere}
+.hl-list small{color:var(--bvy-text-muted);font-size:var(--bvy-fs-meta)}
+.hl-dot{flex:none;width:10px;height:10px;border-radius:50%;margin-top:6px;background:var(--bvy-good)}
+.hl-watch .hl-dot{background:var(--bvy-watch)}
+.hl-action .hl-dot{background:var(--bvy-act)}
+.hl-comment{margin-top:8px;padding:8px 10px;border-left:3px solid var(--bvy-accent);background:var(--bvy-surface-muted);border-radius:4px}
+/* Résumés (workflow 16) */
+.sm-doc section+section{margin-top:var(--bvy-space-6)}
+.sm-intro{font-size:1.05rem;line-height:1.6;white-space:pre-line}
+.sm-bal{list-style:none;margin:var(--bvy-space-4) 0 4px;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.sm-bal li{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--bvy-border);border-radius:var(--bvy-radius-md)}
+.sm-bal span{font-size:var(--bvy-fs-meta);color:var(--bvy-text-muted)}
+.sm-list{margin:var(--bvy-space-3) 0 0;padding-left:1.2em;display:grid;gap:6px}
+.sm-list small{color:var(--bvy-text-muted)}
+.sm-bvy{list-style:none;margin:var(--bvy-space-3) 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.sm-bvy li{display:flex;gap:10px;align-items:baseline;padding:10px 12px;border-radius:var(--bvy-radius-md);background:var(--bvy-surface-muted)}
+.sm-bvy b{font-size:1.5rem;color:var(--bvy-primary)}

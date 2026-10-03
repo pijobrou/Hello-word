@@ -179,6 +179,9 @@ function createQboService(db, { qbo, portal, audit, now = () => Date.now(), onFi
         payable: { amount: pay, note: bills.length ? `${plural(bills.length, 'facture de fournisseur', 'factures de fournisseurs')}${soon.length ? `, dont ${soon.length} à payer d’ici 30 jours` : ''}.` : 'Aucune facture à payer.',
           hint: soon.length ? `${soon.length} à payer d’ici 30 jours` : bills.length ? plural(bills.length, 'facture de fournisseur', 'factures de fournisseurs') : 'Rien à payer', tone: '' },
         health: keep.health || null, // toujours expliquée par l'équipe
+        // Pour la santé financière (workflow 15) : revenus et dépenses des deux derniers mois complets, retards clients
+        pl: totals ? { months: [ymd(Date.UTC(y, m - 2, 1)).slice(0, 7), ymd(Date.UTC(y, m - 1, 1)).slice(0, 7)], income: totals.income, expenses: totals.expenses } : null,
+        late: { count: late.length, amount: lateSum },
         changes,
         work: keep.work || [],
       };
@@ -349,9 +352,26 @@ function createQboService(db, { qbo, portal, audit, now = () => Date.now(), onFi
     return { status: c.status, companyName: c.company_name, environment: c.environment, lastSyncAt: c.last_sync_at, lastSyncStatus: c.last_sync_status, lastError: c.last_error, connectedAt: c.connected_at };
   }
 
+  // Revenus et dépenses d'une période (résumés, workflow 16) : rapport ProfitAndLoss de QuickBooks, ou null.
+  async function periodTotals(clientId, start, end) {
+    const c = qbo && conn(clientId);
+    if (!c || c.status !== 'connected') return null;
+    try {
+      const token = await accessToken(c);
+      const rep = await qbo.get(c.realm_id, 'reports/ProfitAndLoss', token, { start_date: start, end_date: end });
+      const pick = (group) => {
+        const row = rep && rep.Rows && (rep.Rows.Row || []).find((r) => r.group === group);
+        const col = row && row.Summary && row.Summary.ColData && row.Summary.ColData[1];
+        return col && col.value !== '' && !Number.isNaN(Number(col.value)) ? cents(col.value) : null;
+      };
+      const income = pick('Income'); const expenses = pick('Expenses');
+      return income === null && expenses === null ? null : { income, expenses, source: 'qbo' };
+    } catch { return null; }
+  }
+
   const newSuggestionCount = (clientId) => db.prepare("SELECT COUNT(*) AS n FROM qbo_items WHERE client_id = ? AND status = 'new'").get(Number(clientId)).n;
 
-  return { enabled: Boolean(qbo), startConnect, finishConnect, disconnect, sync, syncAll, suggestions, sendSuggestion, dismissSuggestion, status, newSuggestionCount };
+  return { enabled: Boolean(qbo), periodTotals, startConnect, finishConnect, disconnect, sync, syncAll, suggestions, sendSuggestion, dismissSuggestion, status, newSuggestionCount };
 }
 
 // Rapport ProfitAndLoss par mois → { income: [m1, m2], expenses: [m1, m2] } en cents, ou null.
