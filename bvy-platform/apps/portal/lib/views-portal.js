@@ -31,7 +31,9 @@ function taskItem(t, s, { compact = false, staff = false } = {}) {
     qboLink(t.qbo_url),
   ].filter(Boolean).join('');
   let action = '';
-  if (t.tax_return_id && !staff) {
+  if (t.tax_file_id && !staff) {
+    action = t.status === 'open' ? `<div class="btn-row task-form"><a class="btn btn-plum btn-sm" href="/impots/${t.tax_file_id}">${t.kind === 'approval' ? 'Voir et approuver mes déclarations' : 'Envoyer mes documents'}</a></div>` : '';
+  } else if (t.tax_return_id && !staff) {
     action = t.status === 'open' ? `<div class="btn-row task-form"><a class="btn btn-plum btn-sm" href="/tps-tvq/${t.tax_return_id}">Voir et approuver la déclaration</a></div>` : '';
   } else if (t.pay_run_id && !staff) {
     // Paie : heures et approbation se font sur la fiche de la paie
@@ -66,7 +68,7 @@ function taskItem(t, s, { compact = false, staff = false } = {}) {
     <span class="todo-ico">${icon(t.status === 'open' ? KIND_ICON[t.kind] : 'i-ok')}</span>
     <div><p class="todo-title">${esc(t.title)}</p>${t.detail ? `<p class="todo-why">${esc(t.detail)}</p>` : ''}
       <p class="todo-meta">${meta}</p>${t.answer ? `<p class="answer"><b>Réponse :</b> ${esc(t.answer)}</p>` : ''}${action}</div>
-    ${staffActions || (compact && t.status === 'open' ? `<div class="todo-actions"><a class="btn btn-plum btn-sm" href="${t.tax_return_id ? `/tps-tvq/${t.tax_return_id}` : t.pay_run_id ? `/paie/${t.pay_run_id}` : `/a-faire#t${t.id}`}">Faire</a></div>` : '')}</li>`;
+    ${staffActions || (compact && t.status === 'open' ? `<div class="todo-actions"><a class="btn btn-plum btn-sm" href="${t.tax_file_id ? `/impots/${t.tax_file_id}` : t.tax_return_id ? `/tps-tvq/${t.tax_return_id}` : t.pay_run_id ? `/paie/${t.pay_run_id}` : `/a-faire#t${t.id}`}">Faire</a></div>` : '')}</li>`;
 }
 
 // « il y a 5 min » pour la barre du tableau de bord
@@ -107,7 +109,7 @@ function clientHome(s, { client, snap, tasks, nav, flash, sync = null, pays = []
   const todo = `<section class="cd-panel" aria-labelledby="h-todo"><h2 id="h-todo">À faire ${open.length
     ? `<span class="badge b-watch">${open.length} action${open.length > 1 ? 's' : ''}</span>`
     : '<span class="badge b-good">● À jour</span>'}</h2>
-    ${open.length ? `<ul class="cd-todo">${open.slice(0, 5).map((t) => `<li><a class="t" href="${t.tax_return_id ? `/tps-tvq/${t.tax_return_id}` : t.pay_run_id ? `/paie/${t.pay_run_id}` : `/a-faire#t${t.id}`}"><span class="box" aria-hidden="true"></span>${esc(t.title)}</a>${t.qbo_url ? `<a class="qbo" href="${esc(t.qbo_url)}" target="_blank" rel="noopener">Voir ↗<span class="sr-only"> dans QuickBooks (nouvel onglet)</span></a>` : ''}</li>`).join('')}</ul>
+    ${open.length ? `<ul class="cd-todo">${open.slice(0, 5).map((t) => `<li><a class="t" href="${t.tax_file_id ? `/impots/${t.tax_file_id}` : t.tax_return_id ? `/tps-tvq/${t.tax_return_id}` : t.pay_run_id ? `/paie/${t.pay_run_id}` : `/a-faire#t${t.id}`}"><span class="box" aria-hidden="true"></span>${esc(t.title)}</a>${t.qbo_url ? `<a class="qbo" href="${esc(t.qbo_url)}" target="_blank" rel="noopener">Voir ↗<span class="sr-only"> dans QuickBooks (nouvel onglet)</span></a>` : ''}</li>`).join('')}</ul>
       <p class="cd-more"><a class="link" href="/a-faire">${open.length > 5 ? `Voir les ${open.length} actions` : 'Tout voir et répondre'}</a></p>`
     : '<p class="muted">Tout est à jour de votre côté. Une question ? <a class="link" href="/messages">Écrivez à BVY</a>.</p>'}</section>`;
 
@@ -217,6 +219,7 @@ function staffClientShell(s, client, tab, inner, flash, counts = {}) {
   const payTab = [
     ...(client.kind && client.kind !== 'particulier' && client.gst_freq && client.gst_freq !== 'none' && ['admin', 'lead', 'bookkeeper', 'tax'].includes(s.user.role) ? [['/tps-tvq', 'TPS/TVQ']] : []),
     ...(client.payroll && ['admin', 'lead', 'payroll'].includes(s.user.role) ? [['/paie', 'Paie']] : []),
+    ...(client.kind && ['admin', 'lead', 'tax'].includes(s.user.role) ? [['/impots', 'Impôts']] : []),
   ];
   const tabs = [['', 'Tableau de bord'], ['/echeances', 'Échéances'], ...payTab, ['/quickbooks', `QuickBooks${counts.suggestions ? ` (${counts.suggestions})` : ''}`], ['/taches', `Tâches${counts.tasks ? ` (${counts.tasks})` : ''}`], ['/documents', 'Documents'], ['/messages', `Messages${counts.unread ? ` (${counts.unread})` : ''}`]];
   const body = `${pageHead('Dossier client', client.name, qboHead)}

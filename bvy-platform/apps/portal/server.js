@@ -27,6 +27,7 @@ const { createQboService } = require('./lib/qbo-sync.js');
 const { createWorkqueue } = require('./lib/workqueue.js');
 const { createPayroll } = require('./lib/payroll.js');
 const { createSalesTax } = require('./lib/salestax.js');
+const { createIncomeTax } = require('./lib/incometax.js');
 const W = require('./lib/views-work.js');
 
 const COOKIE = '__Host-bvy_session';
@@ -183,17 +184,19 @@ function createServer(options = {}) {
   const workqueue = createWorkqueue(db, { audit: acc.audit, now: options.now });
   const payroll = createPayroll(db, { audit: acc.audit, now: options.now });
   const salestax = createSalesTax(db, { audit: acc.audit, now: options.now, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day) });
+  const incometax = createIncomeTax(db, { audit: acc.audit, now: options.now, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day) });
   // Paie (workflow 12) : crée les paies dont les heures doivent être demandées et prévient le client (toutes les heures).
   function payrollTick() {
     try {
       for (const r of payroll.ensureRuns()) notifyClient(r.clientId, null, `BVY a besoin des heures de paie pour la paie du ${r.payDate}`);
       salestax.ensureReturns(); // TPS/TVQ : une déclaration par période terminée (aucun avis au client à cette étape)
+      for (const f of incometax.ensureFiles()) if (f.form === 't1') notifyClient(f.clientId, null, `BVY a besoin de vos documents pour vos impôts (${f.label})`);
     } catch (err) { console.error('Paie :', err.message); }
   }
   const payrollTimer = setInterval(payrollTick, 60 * 60_000);
   payrollTimer.unref();
   setImmediate(payrollTick);
-  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick, salestax });
+  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick, salestax, incometax });
 
   async function serveAsset(req, res, pathname) {
     const name = path.basename(pathname);
@@ -237,7 +240,7 @@ function createServer(options = {}) {
         try {
           if (ctype === 'multipart/form-data') {
             // Téléversement : seulement pour une personne connectée, sur les routes de documents (et les heures de paie).
-            if (!s || !s.mfa_done || !/^\/(documents|clients\/\d+\/documents|paie\/\d+\/heures)$/.test(p)) { req.resume(); return send200(res, V.errorPage(415, 'Requête invalide.'), 415); }
+            if (!s || !s.mfa_done || !/^\/(documents|clients\/\d+\/documents|paie\/\d+\/heures|impots\/\d+\/document)$/.test(p)) { req.resume(); return send200(res, V.errorPage(415, 'Requête invalide.'), 415); }
             const boundary = multipart.boundaryOf(req.headers['content-type']);
             if (!boundary) throw Object.assign(new Error('multipart'), { status: 400 });
             const parsed = multipart.parseMultipart(await multipart.readBody(req, MAX_UPLOAD + 64 * 1024), boundary);
@@ -493,6 +496,7 @@ function createServer(options = {}) {
   server.workqueue = workqueue;
   server.payroll = payroll;
   server.salestax = salestax;
+  server.incometax = incometax;
   server.payrollTick = payrollTick;
   server.accounts = acc;
   server.config = cfg;

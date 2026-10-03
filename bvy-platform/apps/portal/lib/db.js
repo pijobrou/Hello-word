@@ -333,6 +333,45 @@ const MIGRATIONS = [
   );
   ALTER TABLE tasks ADD COLUMN tax_return_id INTEGER REFERENCES tax_returns(id);
   `,
+  // 9 — dossiers d'impôt sur le revenu (workflow 14) : T2/CO-17 des sociétés, T1/TP-1 (et T2125) des particuliers
+  `
+  CREATE TABLE tax_files (
+    id               INTEGER PRIMARY KEY,
+    client_id        INTEGER NOT NULL REFERENCES clients(id),
+    form             TEXT NOT NULL CHECK (form IN ('t2','t1')),
+    deadline_key     TEXT NOT NULL,
+    year_label       TEXT NOT NULL,
+    period_end       TEXT NOT NULL,
+    due_date         TEXT NOT NULL,
+    pay_due          TEXT,
+    status           TEXT NOT NULL CHECK (status IN ('docs','books','closing','prep','review','approval','filed')),
+    docs             TEXT,
+    closing          TEXT,
+    figures          TEXT,
+    prepared_by      INTEGER REFERENCES users(id),
+    reviewed_by      INTEGER REFERENCES users(id),
+    client_comment   TEXT,
+    client_approved  INTEGER NOT NULL DEFAULT 0,
+    docs_task_id     INTEGER REFERENCES tasks(id),
+    approval_task_id INTEGER REFERENCES tasks(id),
+    confirmation_fed TEXT,
+    confirmation_qc  TEXT,
+    filed_at         TEXT,
+    created_at       TEXT NOT NULL,
+    updated_at       TEXT NOT NULL,
+    UNIQUE (client_id, deadline_key)
+  );
+  CREATE TABLE tax_file_events (
+    id          INTEGER PRIMARY KEY,
+    file_id     INTEGER NOT NULL REFERENCES tax_files(id),
+    from_status TEXT,
+    to_status   TEXT NOT NULL,
+    user_id     INTEGER REFERENCES users(id),
+    note        TEXT,
+    at          TEXT NOT NULL
+  );
+  ALTER TABLE tasks ADD COLUMN tax_file_id INTEGER REFERENCES tax_files(id);
+  `,
 ];
 
 function openDb(file) {

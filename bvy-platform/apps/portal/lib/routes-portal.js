@@ -13,8 +13,9 @@ const V = require('./views.js');
 const W = require('./views-work.js');
 const PV = require('./views-payroll.js');
 const TV = require('./views-salestax.js');
+const IV = require('./views-incometax.js');
 
-function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax }) {
+function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax }) {
   const isStaff = (u) => STAFF_ROLES.includes(u.role);
 
   const qboStatus = (clientId) => (qboService ? qboService.status(clientId) : null);
@@ -84,6 +85,33 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
             return ok(`/paie/${run.id}`, form.decision === 'approve' ? 'Merci, la paie est approuvée.' : 'Votre commentaire est envoyé à BVY.'), true;
           }
         }
+        /* Impôts : documents et approbation */
+        const ic = p.match(/^\/impots\/(\d+)(\/(?:document|envoye|decision))?$/);
+        if (ic) {
+          const f = incometax.fileFor(u, ic[1]);
+          if (!ic[2] && GET) return send200(res, IV.itFileClient(s, { f, nav: clientNav(u), flash: flashOf(url) })), true;
+          if (ic[2] === '/document' && POST) {
+            const file = (form._files || []).find((x) => x.field === 'file' && x.data && x.data.length);
+            if (file) {
+              const item = f.docs.find((x) => x.k === form.item);
+              const docId = portal.saveDocument(u, cid, { name: file.filename, data: file.data }, { note: `Impôts ${f.year_label} — ${item ? item.label : 'document'}` }, ip);
+              incometax.docItem(u, f.id, form.item, 'received', docId, ip);
+              return ok(`/impots/${f.id}`, 'Document reçu. Merci !'), true;
+            }
+            if (form.status === 'na') { incometax.docItem(u, f.id, form.item, 'na', null, ip); return ok(`/impots/${f.id}`, 'Noté : ce document ne s’applique pas.'), true; }
+            throw new PortalError('Choisissez un fichier.');
+          }
+          if (ic[2] === '/envoye' && POST) {
+            incometax.docsComplete(u, f.id, ip);
+            notifyTeam(cid, `Documents d’impôts reçus (${f.year_label})`);
+            return ok(`/impots/${f.id}`, 'Merci, BVY a tout reçu.'), true;
+          }
+          if (ic[2] === '/decision' && POST) {
+            incometax.decide(u, f.id, form, ip);
+            notifyTeam(cid, form.decision === 'approve' ? 'Déclarations de revenus approuvées par le client' : 'Déclarations de revenus refusées par le client');
+            return ok(`/impots/${f.id}`, form.decision === 'approve' ? 'Merci, vos déclarations sont approuvées.' : 'Votre commentaire est envoyé à BVY.'), true;
+          }
+        }
         /* TPS/TVQ : approbation de la déclaration */
         const tx = p.match(/^\/tps-tvq\/(\d+)(\/decision)?$/);
         if (tx) {
@@ -142,6 +170,25 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           try { await qboService.sync(cid, 'connect', u); msg += ' Première synchronisation terminée.'; } catch (err) { msg += ` La première synchronisation a échoué : ${err.message}`; }
           const firm = workqueue.firmClient();
           return ok(firm && firm.id === cid ? '/cabinet' : `/clients/${cid}/quickbooks`, msg), true;
+        }
+        /* Impôts (workflow 14) : administrateur, comptable principal, fiscalité */
+        if (p === '/impots' && GET) {
+          if (!incometax.canStaff(u)) throw new PortalError('Accès refusé.');
+          payrollTick();
+          return send200(res, IV.itBoard(s, { board: incometax.board(u), flash: flashOf(url) })), true;
+        }
+        const it = p.match(/^\/impots\/(\d+)(\/(?:etape|montants|document|ajouter))?$/);
+        if (it) {
+          const f = incometax.fileFor(u, it[1]);
+          if (!it[2] && GET) return send200(res, IV.itFileStaff(s, { f, client: portal.client(f.client_id), events: incometax.events(f.id), booksReady: incometax.booksReady(f.client_id), flash: flashOf(url) })), true;
+          if (it[2] === '/montants' && POST) { incometax.saveFigures(u, f.id, form, ip); return ok(`/impots/${f.id}`, 'Montants enregistrés.'), true; }
+          if (it[2] === '/document' && POST) { incometax.docItem(u, f.id, form.item, form.status, null, ip); return ok(`/impots/${f.id}`, 'Liste des documents mise à jour.'), true; }
+          if (it[2] === '/ajouter' && POST) { incometax.addDocItem(u, f.id, form.label, ip); notifyClient(f.client_id, u.id, 'BVY vous demande un document de plus pour vos impôts'); return ok(`/impots/${f.id}`, 'Document ajouté à la liste du client.'), true; }
+          if (it[2] === '/etape' && POST) {
+            const out = incometax.advance(u, f.id, form, ip);
+            if (out && out.notifyClient) notifyClient(f.client_id, u.id, 'Vos déclarations de revenus sont prêtes à approuver');
+            return ok(`/impots/${f.id}`, 'Dossier mis à jour.'), true;
+          }
         }
         /* TPS/TVQ (workflow 13) : administrateur, comptable principal, tenue de livres, fiscalité */
         if (p === '/tps-tvq' && GET) {
@@ -269,13 +316,17 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           await qboService.disconnect(u, cid, ip);
           return ok(`/clients/${cid}/quickbooks`, 'QuickBooks déconnecté : les autorisations sont retirées.'), true;
         }
-        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie|tps-tvq))?$/);
+        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie|tps-tvq|impots))?$/);
         if (c) {
           const cid = Number(c[1]);
           const sub = c[2] || '';
           portal.listTasks(u, cid, { open: true }); // contrôle d'accès (lève PortalError sinon)
           const client = portal.client(cid);
           if (!client || client.is_firm) return send200(res, V.errorPage(404, 'Ce dossier n’existe pas.'), 404), true;
+          if (sub === '/impots' && GET) {
+            if (!incometax.canStaff(u)) throw new PortalError('Accès refusé.');
+            return send200(res, IV.clientItTab(s, { client, files: incometax.forClient(u, cid), shell: (inner) => P.staffClientShell(s, client, '/impots', inner, flashOf(url), counts(u, cid)) })), true;
+          }
           if (sub === '/tps-tvq' && GET) {
             if (!salestax.canStaff(u)) throw new PortalError('Accès refusé.');
             return send200(res, TV.clientTaxTab(s, { client, returns: salestax.forClient(u, cid), shell: (inner) => P.staffClientShell(s, client, '/tps-tvq', inner, flashOf(url), counts(u, cid)) })), true;

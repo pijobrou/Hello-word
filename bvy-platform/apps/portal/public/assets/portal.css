@@ -200,3 +200,15 @@ a.wq-due:hover{filter:brightness(.97);border-color:currentColor}
 .pay-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:0 14px}
 @media (max-width:900px){.pay-sum-4{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:640px){.pay-sum-4{grid-template-columns:1fr}}
+/* Impôts (workflow 14) */
+.it-path{list-style:none;margin:var(--bvy-space-4) 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.it-path li{font-size:var(--bvy-fs-meta);padding:5px 10px;border-radius:var(--bvy-radius-pill);background:var(--bvy-surface-muted);color:var(--bvy-text-muted)}
+.it-path li.done{background:var(--bvy-good-bg);color:var(--bvy-good)}
+.it-path li.cur{background:var(--bvy-nav-bg);color:var(--bvy-white);font-weight:600}
+.it-docs{list-style:none;margin:var(--bvy-space-4) 0 0;padding:0;display:grid;gap:10px}
+.it-docs li{border:1px solid var(--bvy-border);border-radius:var(--bvy-radius-md);padding:12px 14px;background:var(--bvy-surface)}
+.it-docs li.received,.it-docs li.na{background:var(--bvy-bg-app)}
+.it-doc-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.it-doc-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.it-doc-act{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px}
+.it-upload{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0}
