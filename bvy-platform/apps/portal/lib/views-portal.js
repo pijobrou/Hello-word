@@ -7,6 +7,7 @@
 
 const { esc, appPage, pageHead, field, icon, csrfField } = require('./views.js');
 const { formatAmount, HEALTH, KINDS } = require('./portal.js');
+const { DOC_TYPES, CLIENT_LABELS } = require('./doctypes.js');
 
 const TZ = 'America/Toronto';
 const { isoDay: dateFr, isoDateTime: dateTimeFr, todayLabel: todayFr } = require('./dates.js');
@@ -20,15 +21,24 @@ const healthBadge = (state) => ({
 }[state] || '');
 const KIND_ICON = { question: 'i-question', document: 'i-upload', approval: 'i-ok', info: 'i-info' };
 
+// Rappels automatiques d'une tâche (vue équipe) : « Rappel 2/3 prévu le 2026-10-09 (1 déjà envoyé) ».
+function reminderLabel(t) {
+  if (t.no_reminder) return 'Relances arrêtées';
+  const sent = t.reminders_sent ? ` (${t.reminders_sent} déjà envoyé${t.reminders_sent > 1 ? 's' : ''})` : '';
+  return t.next_reminder ? `Rappel ${t.reminders_sent + 1}/3 prévu le ${dateFr(t.next_reminder)}${sent}` : '3 rappels envoyés';
+}
+
 /* ================================================================ CLIENT */
 
 function taskItem(t, s, { compact = false, staff = false } = {}) {
   const csrf = csrfField(s);
+  const remindable = staff && t.status === 'open' && ['question', 'document', 'approval'].includes(t.kind);
   const meta = [
     `<span>${esc(KINDS[t.kind])}</span>`,
     t.due_date && t.status === 'open' ? `<span>À faire d’ici le ${esc(dateFr(t.due_date))}</span>` : '',
     t.answered_at ? `<span>Répondu par ${esc(t.answered_by_name || '')} le ${esc(dateTimeFr(t.answered_at))}</span>` : '',
     qboLink(t.qbo_url),
+    remindable ? `<span>${esc(reminderLabel(t))}</span>` : '',
   ].filter(Boolean).join('');
   let action = '';
   if (t.tax_file_id && !staff) {
@@ -63,7 +73,9 @@ function taskItem(t, s, { compact = false, staff = false } = {}) {
   }
   const staffActions = staff && t.status !== 'done' ? `<div class="todo-actions">
     <form method="post" action="/taches/${t.id}/fermer">${csrf}<input type="hidden" name="status" value="done"><button class="btn btn-ghost btn-sm" type="submit">Marquer terminé</button></form>
-    ${t.status === 'open' ? `<form method="post" action="/taches/${t.id}/fermer">${csrf}<input type="hidden" name="status" value="cancelled"><button class="btn btn-ghost btn-sm" type="submit">Annuler</button></form>` : ''}</div>` : '';
+    ${t.status === 'open' ? `<form method="post" action="/taches/${t.id}/fermer">${csrf}<input type="hidden" name="status" value="cancelled"><button class="btn btn-ghost btn-sm" type="submit">Annuler</button></form>` : ''}
+    ${remindable ? `<form method="post" action="/taches/${t.id}/relancer">${csrf}<button class="btn btn-outline btn-sm" type="submit">Relancer maintenant</button></form>
+    <form method="post" action="/taches/${t.id}/rappels">${csrf}<input type="hidden" name="off" value="${t.no_reminder ? '0' : '1'}"><button class="btn btn-ghost btn-sm" type="submit">${t.no_reminder ? 'Reprendre les relances' : 'Ne plus relancer'}</button></form>` : ''}</div>` : '';
   return `<li class="todo${t.status === 'open' ? '' : ' task-done'}" id="t${t.id}">
     <span class="todo-ico">${icon(t.status === 'open' ? KIND_ICON[t.kind] : 'i-ok')}</span>
     <div><p class="todo-title">${esc(t.title)}</p>${t.detail ? `<p class="todo-why">${esc(t.detail)}</p>` : ''}
@@ -165,8 +177,9 @@ function clientTasks(s, { tasks, nav, flash }) {
 
 function docTable(docs, { staff = false } = {}) {
   if (!docs.length) return `<div class="empty">${icon('i-folder', 'i empty-ico')}<p><b>Aucun document pour l’instant.</b></p></div>`;
-  return `<div class="table-wrap"><table class="table"><thead><tr><th scope="col">Document</th><th scope="col">Envoyé par</th><th scope="col">Date</th><th scope="col">Taille</th></tr></thead><tbody>
-    ${docs.map((d) => `<tr><td><a class="link" href="/documents/${d.id}/telecharger">${esc(d.name)}</a>${d.category === 'report' ? ' <span class="badge b-info">Rapport</span>' : ''}${d.note ? `<br><span class="t-meta">${esc(d.note)}</span>` : ''}</td>
+  const type = (d) => DOC_TYPES[d.doc_type || (d.suggested_by === 'client' ? d.suggested : '')] || '—';
+  return `<div class="table-wrap"><table class="table"><thead><tr><th scope="col">Document</th><th scope="col">Type</th><th scope="col">Envoyé par</th><th scope="col">Date</th><th scope="col">Taille</th></tr></thead><tbody>
+    ${docs.map((d) => `<tr><td><a class="link" href="/documents/${d.id}/telecharger">${esc(d.name)}</a>${d.category === 'report' ? ' <span class="badge b-info">Rapport</span>' : ''}${d.note ? `<br><span class="t-meta">${esc(d.note)}</span>` : ''}</td><td>${esc(type(d))}</td>
       <td>${d.origin === 'bvy' ? 'BVY' : esc(staff ? d.uploaded_by_name || 'Client' : d.uploaded_by_name || 'Vous')}</td><td>${esc(dateTimeFr(d.created_at))}</td><td class="num">${esc(size(d.size))}</td></tr>`).join('')}
     </tbody></table></div>`;
 }
@@ -175,17 +188,21 @@ function uploadForm(s, action, { staff = false } = {}) {
   return `<form class="form" method="post" action="${action}" enctype="multipart/form-data">${csrfField(s)}
     <label class="dropzone" for="upload">${icon('i-upload')}<b data-file>Choisissez un fichier</b><span>PDF, JPG ou PNG · 20 Mo maximum · une photo prise avec le téléphone convient</span>
       <input class="sr-only" id="upload" name="file" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" required></label>
+    ${field('docType', `${staff ? 'Type de document' : 'De quoi s’agit-il ?'} <span class="opt">(facultatif)</span>`, `<select class="input" id="docType" name="docType"><option value="">${staff ? '—' : 'Je ne sais pas'}</option>${Object.entries(staff ? DOC_TYPES : CLIENT_LABELS).map(([k, l]) => `<option value="${k}">${esc(l)}</option>`).join('')}</select>`)}
     ${field('note', `Note ${staff ? 'pour le client' : 'pour votre comptable'} <span class="opt">(facultatif)</span>`, '<input class="input" id="note" name="note" maxlength="500">')}
     ${staff ? '<div class="field"><label class="check"><input type="checkbox" name="category" value="report"> C’est un rapport (visible dans « Rapports »)</label></div>' : ''}
     <div class="btn-row"><button class="btn btn-plum" type="submit">${staff ? 'Partager avec le client' : 'Envoyer le document'}</button></div></form>`;
 }
 
-function clientDocuments(s, { docs, nav, flash }) {
+function clientDocuments(s, { docs, nav, flash, type = '' }) {
+  const present = [...new Set(docs.map((d) => d.doc_type || (d.suggested_by === 'client' ? d.suggested : null)).filter(Boolean))];
+  const shown = DOC_TYPES[type] ? docs.filter((d) => (d.doc_type || (d.suggested_by === 'client' ? d.suggested : null)) === type) : docs;
+  const filter = present.length > 1 ? `<nav class="chips" aria-label="Filtrer par type"><a class="chip" href="/documents"${DOC_TYPES[type] ? '' : ' aria-current="true"'}>Tous</a>${present.map((k) => `<a class="chip" href="/documents?type=${k}"${k === type ? ' aria-current="true"' : ''}>${esc(DOC_TYPES[k])}</a>`).join('')}</nav>` : '';
   const body = `${pageHead('Documents', 'Vos documents', 'Envoyez vos factures, relevés et reçus à BVY, et retrouvez ce que BVY vous a transmis.')}
     <div class="cols-2"><article class="card"><div class="card-head"><h2 class="t-h3">Envoyer un document</h2></div>${uploadForm(s, '/documents')}</article>
     <article class="card"><div class="card-head"><h2 class="t-h3">Bon à savoir</h2></div><p>Vos documents sont conservés au Canada et seuls vous et l’équipe BVY qui s’occupe de votre dossier peuvent les ouvrir.</p>
     <p class="mt-4">N’envoyez pas de mots de passe. Pour une question, utilisez <a class="link" href="/messages">Messages</a>.</p></article></div>
-    <article class="card mt-6"><div class="card-head"><h2 class="t-h3">Tous les documents</h2></div>${docTable(docs)}</article>`;
+    <article class="card mt-6"><div class="card-head"><h2 class="t-h3">Tous les documents</h2></div>${filter}${docTable(shown)}</article>`;
   return appPage(s, { title: 'Documents', current: '/documents', body, flash, nav });
 }
 
@@ -221,7 +238,7 @@ function staffClientShell(s, client, tab, inner, flash, counts = {}) {
     ...(client.payroll && ['admin', 'lead', 'payroll'].includes(s.user.role) ? [['/paie', 'Paie']] : []),
     ...(client.kind && ['admin', 'lead', 'tax'].includes(s.user.role) ? [['/impots', 'Impôts']] : []),
   ];
-  const tabs = [['', 'Tableau de bord'], ['/echeances', 'Échéances'], ...payTab, ['/quickbooks', `QuickBooks${counts.suggestions ? ` (${counts.suggestions})` : ''}`], ['/taches', `Tâches${counts.tasks ? ` (${counts.tasks})` : ''}`], ['/documents', 'Documents'], ['/messages', `Messages${counts.unread ? ` (${counts.unread})` : ''}`]];
+  const tabs = [['', 'Tableau de bord'], ['/echeances', 'Échéances'], ...payTab, ['/quickbooks', `QuickBooks${counts.suggestions ? ` (${counts.suggestions})` : ''}`], ['/taches', `Tâches${counts.tasks ? ` (${counts.tasks})` : ''}`], ['/documents', `Documents${counts.toFile ? ` (${counts.toFile})` : ''}`], ['/messages', `Messages${counts.unread ? ` (${counts.unread})` : ''}`], ['/historique', 'Historique']];
   const body = `${pageHead('Dossier client', client.name, qboHead)}
     <nav class="subnav" aria-label="Sections du dossier">${tabs.map(([p, l]) => `<a href="/clients/${client.id}${p}"${p === tab ? ' aria-current="page"' : ''}>${esc(l)}</a>`).join('')}</nav>
     ${inner}`;
@@ -271,12 +288,6 @@ function staffTasks(s, { client, tasks, flash, counts }) {
     <article class="card"><div class="card-head"><h2 class="t-h3">Tâches</h2></div>
       ${tasks.length ? `<ul class="todo-list">${tasks.map((t) => taskItem(t, s, { staff: true })).join('')}</ul>` : '<p>Aucune tâche.</p>'}</article></div>`;
   return staffClientShell(s, client, '/taches', inner, flash, counts);
-}
-
-function staffDocuments(s, { client, docs, flash, counts }) {
-  const inner = `<div class="cols-2"><article class="card"><div class="card-head"><h2 class="t-h3">Partager un document</h2></div>${uploadForm(s, `/clients/${client.id}/documents`, { staff: true })}</article></div>
-    <article class="card mt-6"><div class="card-head"><h2 class="t-h3">Documents du client</h2></div>${docTable(docs, { staff: true })}</article>`;
-  return staffClientShell(s, client, '/documents', inner, flash, counts);
 }
 
 function staffMessages(s, { client, messages, flash, counts }) {
@@ -329,5 +340,5 @@ function staffQuickbooks(s, { client, sync, items, enabled, flash, counts }) {
 module.exports = {
   staffQuickbooks,
   clientHome, clientTasks, clientDocuments, clientReports, clientMessages,
-  staffClientShell, staffDashboardForm, staffTasks, staffDocuments, staffMessages,
+  staffClientShell, staffDashboardForm, staffTasks, staffMessages, uploadForm,
 };

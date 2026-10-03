@@ -14,8 +14,9 @@ const W = require('./views-work.js');
 const PV = require('./views-payroll.js');
 const TV = require('./views-salestax.js');
 const IV = require('./views-incometax.js');
+const RV = require('./views-inbox.js');
 
-function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax }) {
+function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax, inbox }) {
   const isStaff = (u) => STAFF_ROLES.includes(u.role);
 
   const qboStatus = (clientId) => (qboService ? qboService.status(clientId) : null);
@@ -29,8 +30,14 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
   }
 
   function counts(u, clientId) {
-    return { tasks: portal.openTaskCount(u, clientId), unread: portal.unreadCount(u, clientId), suggestions: qboService ? qboService.newSuggestionCount(clientId) : 0, qbo: qboStatus(clientId) };
+    return { tasks: portal.openTaskCount(u, clientId), unread: portal.unreadCount(u, clientId), suggestions: qboService ? qboService.newSuggestionCount(clientId) : 0, qbo: qboStatus(clientId),
+      toFile: db.prepare('SELECT COUNT(*) AS n FROM documents WHERE client_id = ? AND filed = 0').get(Number(clientId)).n };
   }
+
+  // Courriel de rappel : jamais de titre ni de montant, seulement le nombre d'éléments en attente.
+  const reminderSubject = (n) => `Rappel : ${n} élément${n > 1 ? 's' : ''} vous attend${n > 1 ? 'ent' : ''} dans votre portail BVY`;
+  // Retour après une action : seulement vers une page interne connue.
+  const backTo = (v, fallback) => (/^\/(reception|clients\/\d+\/(documents|taches))$/.test(String(v || '')) ? v : fallback);
 
   async function handle(ctx) {
     const { req, res, p, s, form, ip, send200, redirect, flashOf, url } = ctx;
@@ -60,10 +67,10 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           notifyTeam(cid, `Réponse du client : ${t.title}`);
           return ok('/a-faire', 'Merci, votre réponse est envoyée à BVY.'), true;
         }
-        if (p === '/documents' && GET) return send200(res, P.clientDocuments(s, { docs: portal.listDocuments(u, cid), nav: clientNav(u), flash: flashOf(url) })), true;
+        if (p === '/documents' && GET) return send200(res, P.clientDocuments(s, { docs: portal.listDocuments(u, cid), nav: clientNav(u), flash: flashOf(url), type: url.searchParams.get('type') || '' })), true;
         if (p === '/documents' && POST) {
           const file = (form._files || []).find((f) => f.field === 'file');
-          portal.saveDocument(u, cid, file && { name: file.filename, data: file.data }, { note: form.note, taskId: form.taskId || null }, ip);
+          portal.saveDocument(u, cid, file && { name: file.filename, data: file.data }, { note: form.note, taskId: form.taskId || null, docType: form.docType || null }, ip);
           notifyTeam(cid, 'Nouveau document envoyé par le client');
           return ok(form.taskId ? '/a-faire' : '/documents', 'Document reçu. Merci !'), true;
         }
@@ -74,7 +81,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           if (!pr[2] && GET) return send200(res, PV.payRunClient(s, { run, employees: payroll.employees(cid), nav: clientNav(u), flash: flashOf(url) })), true;
           if (pr[2] === '/heures' && POST) {
             const file = (form._files || []).find((f) => f.field === 'file' && f.data && f.data.length);
-            const docId = file ? portal.saveDocument(u, cid, { name: file.filename, data: file.data }, { note: `Feuille de temps — paie du ${run.pay_date}` }, ip) : null;
+            const docId = file ? portal.saveDocument(u, cid, { name: file.filename, data: file.data }, { note: `Feuille de temps — paie du ${run.pay_date}`, docType: 'paie', link: `pay_run:${run.id}`, filed: true }, ip) : null;
             payroll.submitHours(u, run.id, form, docId, ip);
             notifyTeam(cid, `Heures de paie reçues (paie du ${run.pay_date})`);
             return ok(`/paie/${run.id}`, 'Merci, vos heures sont envoyées à BVY.'), true;
@@ -94,7 +101,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
             const file = (form._files || []).find((x) => x.field === 'file' && x.data && x.data.length);
             if (file) {
               const item = f.docs.find((x) => x.k === form.item);
-              const docId = portal.saveDocument(u, cid, { name: file.filename, data: file.data }, { note: `Impôts ${f.year_label} — ${item ? item.label : 'document'}` }, ip);
+              const docId = portal.saveDocument(u, cid, { name: file.filename, data: file.data }, { note: `Impôts ${f.year_label} — ${item ? item.label : 'document'}`, docType: 'impots', link: `tax_file:${f.id}`, filed: true }, ip);
               incometax.docItem(u, f.id, form.item, 'received', docId, ip);
               return ok(`/impots/${f.id}`, 'Document reçu. Merci !'), true;
             }
@@ -157,7 +164,24 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
         if (t && POST) {
           const task = portal.taskFor(u, t[1]);
           portal.closeTask(u, task.id, form.status, ip);
-          return ok(`/clients/${task.client_id}/taches`, form.status === 'cancelled' ? 'Tâche annulée.' : 'Tâche terminée.'), true;
+          return ok(backTo(form.back, `/clients/${task.client_id}/taches`), form.status === 'cancelled' ? 'Tâche annulée.' : 'Tâche terminée.'), true;
+        }
+        /* Réception et rappels (workflows 09 et 10) */
+        if (p === '/reception' && GET) return send200(res, RV.inboxPage(s, { data: inbox.inbox(u), flash: flashOf(url) })), true;
+        const cl = p.match(/^\/documents\/(\d+)\/classer$/);
+        if (cl && POST) {
+          const r = inbox.fileDocument(u, cl[1], form, ip);
+          return ok(backTo(form.back, `/clients/${r.clientId}/documents`), 'Document classé.'), true;
+        }
+        const rl = p.match(/^\/taches\/(\d+)\/(relancer|rappels)$/);
+        if (rl && POST) {
+          if (rl[2] === 'relancer') {
+            const r = inbox.remindNow(u, rl[1], ip);
+            notifyClient(r.clientId, null, reminderSubject(r.count));
+            return ok(`/clients/${r.clientId}/taches`, 'Rappel envoyé au client par courriel.'), true;
+          }
+          const cid = inbox.setNoReminder(u, rl[1], form.off === '1', ip);
+          return ok(`/clients/${cid}/taches`, form.off === '1' ? 'Plus de relance automatique pour cette tâche.' : 'Relances automatiques reprises.'), true;
         }
         // Retour d'Intuit après l'autorisation (la session de l'employé suit, témoin SameSite=Lax).
         if (p === '/quickbooks/retour' && GET) {
@@ -316,7 +340,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           await qboService.disconnect(u, cid, ip);
           return ok(`/clients/${cid}/quickbooks`, 'QuickBooks déconnecté : les autorisations sont retirées.'), true;
         }
-        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie|tps-tvq|impots))?$/);
+        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie|tps-tvq|impots|historique))?$/);
         if (c) {
           const cid = Number(c[1]);
           const sub = c[2] || '';
@@ -360,16 +384,26 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
             portal.setQboUrl(u, cid, form.qboUrl, ip);
             return ok(`/clients/${cid}`, 'Lien QuickBooks enregistré.'), true;
           }
-          if (sub === '/taches' && GET) return send200(res, P.staffTasks(s, { client, tasks: portal.listTasks(u, cid), flash: flashOf(url), counts: counts(u, cid) })), true;
+          if (sub === '/taches' && GET) {
+            const tasks = portal.listTasks(u, cid).map((t) => ({ ...t, next_reminder: inbox.nextReminder(t) }));
+            return send200(res, P.staffTasks(s, { client, tasks, flash: flashOf(url), counts: counts(u, cid) })), true;
+          }
+          if (sub === '/historique' && GET) {
+            return send200(res, RV.historyTab(s, { events: inbox.timeline(u, cid), shell: (inner) => P.staffClientShell(s, client, '/historique', inner, flashOf(url), counts(u, cid)) })), true;
+          }
           if (sub === '/taches' && POST) {
             portal.createTask(u, cid, form, ip);
             notifyClient(cid, u.id, 'Vous avez une nouvelle tâche dans votre portail BVY');
             return ok(`/clients/${cid}/taches`, 'Tâche créée ; le client est prévenu par courriel.'), true;
           }
-          if (sub === '/documents' && GET) return send200(res, P.staffDocuments(s, { client, docs: portal.listDocuments(u, cid), flash: flashOf(url), counts: counts(u, cid) })), true;
+          if (sub === '/documents' && GET) {
+            const filters = { q: url.searchParams.get('q') || '', type: url.searchParams.get('type') || '', period: url.searchParams.get('period') || '' };
+            return send200(res, RV.staffDocuments(s, { client, docs: inbox.searchDocuments(u, cid, filters), filters, links: inbox.linkOptions(cid),
+              uploadForm: P.uploadForm(s, `/clients/${cid}/documents`, { staff: true }), shell: (inner) => P.staffClientShell(s, client, '/documents', inner, flashOf(url), counts(u, cid)) })), true;
+          }
           if (sub === '/documents' && POST) {
             const file = (form._files || []).find((f) => f.field === 'file');
-            portal.saveDocument(u, cid, file && { name: file.filename, data: file.data }, { note: form.note, category: form.category }, ip);
+            portal.saveDocument(u, cid, file && { name: file.filename, data: file.data }, { note: form.note, category: form.category, docType: form.docType || null }, ip);
             notifyClient(cid, u.id, form.category === 'report' ? 'Un nouveau rapport est disponible dans votre portail BVY' : 'BVY a partagé un document dans votre portail');
             return ok(`/clients/${cid}/documents`, 'Document partagé avec le client.'), true;
           }

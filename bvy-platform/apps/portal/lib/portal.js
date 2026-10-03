@@ -8,6 +8,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { DOC_TYPES, suggestType, periodFrom } = require('./doctypes.js');
 const { canAccessClient, STAFF_ROLES } = require('./rbac.js');
 const { AccountError } = require('./accounts.js');
 
@@ -206,7 +207,9 @@ function createPortal(db, { dataDir, audit, now = () => Date.now() }) {
   }
 
   /* ----------------------------------------------------------- documents */
-  function saveDocument(actor, clientId, file, { category = 'document', note = '', taskId = null } = {}, ip) {
+  // docType : réponse du client à « De quoi s'agit-il ? » (ou type choisi par l'équipe) ; filed + link : contexte certain
+  // (liste d'impôts, heures de paie), le document est classé tout de suite et n'attend pas en Réception.
+  function saveDocument(actor, clientId, file, { category = 'document', note = '', taskId = null, docType = null, link = null, filed = false } = {}, ip) {
     const id = requireAccess(actor, clientId);
     const staff = isStaff(actor);
     if (!file || !file.data || !file.data.length) throw new PortalError('Choisissez un fichier.');
@@ -224,13 +227,21 @@ function createPortal(db, { dataDir, audit, now = () => Date.now() }) {
     fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
     fs.writeFileSync(path.join(dir, stored), file.data, { mode: 0o600, flag: 'wx' });
     const sha = crypto.createHash('sha256').update(file.data).digest('hex');
-    const r = db.prepare(`INSERT INTO documents (client_id, origin, category, name, stored, mime, size, sha256, note, task_id, uploaded_by, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(id, staff ? 'bvy' : 'client', cat, safeName(file.name, type.ext), stored,
-      type.mime, file.data.length, sha, clean(note, 500) || null, task ? task.id : null, actor.id, iso());
+    const name = safeName(file.name, type.ext);
+    const known = DOC_TYPES[docType] ? docType : null;
+    const dup = db.prepare('SELECT id FROM documents WHERE client_id = ? AND sha256 = ? ORDER BY id LIMIT 1').get(id, sha);
+    const isFiled = Boolean(filed || staff);
+    const suggested = isFiled ? null : known || suggestType(file.name, note);
+    const r = db.prepare(`INSERT INTO documents (client_id, origin, category, name, stored, mime, size, sha256, note, task_id, uploaded_by, created_at,
+      doc_type, period, suggested, suggested_by, duplicate_of, link, filed, filed_by, filed_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).run(id, staff ? 'bvy' : 'client', cat, name, stored,
+      type.mime, file.data.length, sha, clean(note, 500) || null, task ? task.id : null, actor.id, iso(),
+      isFiled ? known : null, periodFrom(file.name, now()), suggested, suggested ? (known ? 'client' : 'name') : null, dup ? dup.id : null,
+      link || null, isFiled ? 1 : 0, isFiled ? actor.id : null, isFiled ? iso() : null);
     const docId = Number(r.lastInsertRowid);
     if (task && task.kind === 'document' && task.status === 'open' && !staff) {
       db.prepare("UPDATE tasks SET status = 'answered', answer = ?, answered_by = ?, answered_at = ? WHERE id = ?")
-        .run(`Document envoyé : ${safeName(file.name, type.ext)}`, actor.id, iso(), task.id);
+        .run(`Document envoyé : ${name}`, actor.id, iso(), task.id);
     }
     audit({ userId: actor.id, action: 'document.upload', target: `document:${docId}`, clientId: id, ip, details: { size: file.data.length, mime: type.mime } });
     return docId;
@@ -238,7 +249,8 @@ function createPortal(db, { dataDir, audit, now = () => Date.now() }) {
 
   function listDocuments(actor, clientId, { category = null } = {}) {
     const id = requireAccess(actor, clientId);
-    return db.prepare(`SELECT d.id, d.origin, d.category, d.name, d.mime, d.size, d.note, d.task_id, d.created_at, u.name AS uploaded_by_name
+    return db.prepare(`SELECT d.id, d.origin, d.category, d.name, d.mime, d.size, d.note, d.task_id, d.created_at, u.name AS uploaded_by_name,
+      d.doc_type, d.period, d.suggested, d.suggested_by, d.duplicate_of, d.link, d.filed
       FROM documents d LEFT JOIN users u ON u.id = d.uploaded_by WHERE d.client_id = ? ${category ? 'AND d.category = ?' : ''}
       ORDER BY d.id DESC LIMIT 300`).all(...(category ? [id, category] : [id]));
   }

@@ -28,6 +28,7 @@ const { createWorkqueue } = require('./lib/workqueue.js');
 const { createPayroll } = require('./lib/payroll.js');
 const { createSalesTax } = require('./lib/salestax.js');
 const { createIncomeTax } = require('./lib/incometax.js');
+const { createInbox } = require('./lib/inbox.js');
 const W = require('./lib/views-work.js');
 
 const COOKIE = '__Host-bvy_session';
@@ -185,18 +186,21 @@ function createServer(options = {}) {
   const payroll = createPayroll(db, { audit: acc.audit, now: options.now });
   const salestax = createSalesTax(db, { audit: acc.audit, now: options.now, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day) });
   const incometax = createIncomeTax(db, { audit: acc.audit, now: options.now, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day) });
+  const inbox = createInbox(db, { audit: acc.audit, now: options.now, portal });
   // Paie (workflow 12) : crée les paies dont les heures doivent être demandées et prévient le client (toutes les heures).
   function payrollTick() {
     try {
       for (const r of payroll.ensureRuns()) notifyClient(r.clientId, null, `BVY a besoin des heures de paie pour la paie du ${r.payDate}`);
       salestax.ensureReturns(); // TPS/TVQ : une déclaration par période terminée (aucun avis au client à cette étape)
       for (const f of incometax.ensureFiles()) if (f.form === 't1') notifyClient(f.clientId, null, `BVY a besoin de vos documents pour vos impôts (${f.label})`);
+      // Rappels (workflow 10) : un courriel par client, sans titre ni montant, en semaine de 9 h à 17 h.
+      for (const r of inbox.runReminders()) notifyClient(r.clientId, null, `Rappel : ${r.count} élément${r.count > 1 ? 's' : ''} vous attend${r.count > 1 ? 'ent' : ''} dans votre portail BVY`);
     } catch (err) { console.error('Paie :', err.message); }
   }
   const payrollTimer = setInterval(payrollTick, 60 * 60_000);
   payrollTimer.unref();
   setImmediate(payrollTick);
-  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick, salestax, incometax });
+  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick, salestax, incometax, inbox });
 
   async function serveAsset(req, res, pathname) {
     const name = path.basename(pathname);
@@ -365,6 +369,7 @@ function createServer(options = {}) {
       /* ----- pages protégées ----- */
       if (!s || !s.mfa_done) return redirect(res, s ? '/verification' : '/connexion');
       const u = s.user;
+      if (STAFF_ROLES.includes(u.role)) s.nav = { inbox: inbox.count(u) }; // pastille « Réception »
 
       if (await portalRoutes.handle({ req, res, p, url, s, form, ip, send200, redirect, flashOf, audit: acc.audit, securityHeaders: SECURITY_HEADERS })) return;
 
@@ -492,12 +497,14 @@ function createServer(options = {}) {
   });
 
   server.db = db;
+  server.portal = portal;
   server.qboService = qboService;
   server.workqueue = workqueue;
   server.payroll = payroll;
   server.salestax = salestax;
   server.incometax = incometax;
   server.payrollTick = payrollTick;
+  server.inbox = inbox;
   server.accounts = acc;
   server.config = cfg;
   server.on('close', () => authLimiter.stop());

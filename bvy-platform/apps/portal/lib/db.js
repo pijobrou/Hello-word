@@ -372,6 +372,35 @@ const MIGRATIONS = [
   );
   ALTER TABLE tasks ADD COLUMN tax_file_id INTEGER REFERENCES tax_files(id);
   `,
+  // 10 — Documents (workflow 09) et communication (workflow 10) : classement, doublons, liens, rappels
+  `
+  ALTER TABLE documents ADD COLUMN doc_type TEXT;
+  ALTER TABLE documents ADD COLUMN period TEXT;
+  ALTER TABLE documents ADD COLUMN suggested TEXT;
+  ALTER TABLE documents ADD COLUMN suggested_by TEXT;
+  ALTER TABLE documents ADD COLUMN duplicate_of INTEGER REFERENCES documents(id);
+  ALTER TABLE documents ADD COLUMN link TEXT;
+  ALTER TABLE documents ADD COLUMN filed INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE documents ADD COLUMN filed_by INTEGER REFERENCES users(id);
+  ALTER TABLE documents ADD COLUMN filed_at TEXT;
+  CREATE INDEX documents_inbox ON documents(filed, client_id);
+  CREATE INDEX documents_sha ON documents(client_id, sha256);
+  UPDATE documents SET filed = 1 WHERE origin = 'bvy';
+  UPDATE documents SET filed = 1, doc_type = 'impots' WHERE note LIKE 'Impôts %';
+  UPDATE documents SET filed = 1, doc_type = 'paie' WHERE note LIKE 'Feuille de temps%';
+  ALTER TABLE tasks ADD COLUMN reminders_sent INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE tasks ADD COLUMN last_reminder_at TEXT;
+  ALTER TABLE tasks ADD COLUMN no_reminder INTEGER NOT NULL DEFAULT 0;
+  CREATE TABLE task_reminders (
+    id         INTEGER PRIMARY KEY,
+    task_id    INTEGER NOT NULL REFERENCES tasks(id),
+    client_id  INTEGER NOT NULL REFERENCES clients(id),
+    manual     INTEGER NOT NULL DEFAULT 0,
+    sent_by    INTEGER REFERENCES users(id),
+    sent_at    TEXT NOT NULL
+  );
+  CREATE INDEX task_reminders_client ON task_reminders(client_id, sent_at);
+  `,
 ];
 
 function openDb(file) {

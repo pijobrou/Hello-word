@@ -162,13 +162,19 @@ function navItems(user, nav = {}) {
     if (nav.qboUrl) items.push({ href: nav.qboUrl, label: 'QuickBooks', icon: 'i-book', qbo: true });
     return items;
   }
-  const items = [{ href: '/accueil', label: 'Tableau de bord', short: 'Tableau', icon: 'i-home', tab: true }];
-  if (['admin', 'lead', 'bookkeeper', 'tax'].includes(user.role)) items.push({ href: '/tps-tvq', label: 'TPS/TVQ', icon: 'i-clip', tab: true });
-  if (['admin', 'lead', 'tax'].includes(user.role)) items.push({ href: '/impots', label: 'Impôts', icon: 'i-clip', tab: true });
-  if (['admin', 'lead', 'payroll'].includes(user.role)) items.push({ href: '/paie', label: 'Paie', icon: 'i-users', tab: true });
-  if (['admin', 'lead'].includes(user.role)) items.push({ href: '/facturation', label: 'Facturation', icon: 'i-wallet', tab: true });
-  if (can(user, 'audit.view') || can(user, 'users.invite_client')) items.push({ href: '/admin', label: 'Administration', icon: 'i-lock', tab: true, short: 'Admin' });
-  items.push({ href: '/compte', label: 'Mon compte', icon: 'i-lock', tab: true });
+  // Mobile : 5 places au plus (Tableau, Réception, deux modules du rôle, « Plus ») ; le reste passe dans « Plus ».
+  const items = [
+    { href: '/accueil', label: 'Tableau de bord', short: 'Tableau', icon: 'i-home' },
+    { href: '/reception', label: 'Réception', icon: 'i-in', count: nav.inbox },
+  ];
+  if (['admin', 'lead', 'bookkeeper', 'tax'].includes(user.role)) items.push({ href: '/tps-tvq', label: 'TPS/TVQ', icon: 'i-clip' });
+  if (['admin', 'lead', 'tax'].includes(user.role)) items.push({ href: '/impots', label: 'Impôts', icon: 'i-receipt' });
+  if (['admin', 'lead', 'payroll'].includes(user.role)) items.push({ href: '/paie', label: 'Paie', icon: 'i-users' });
+  if (['admin', 'lead'].includes(user.role)) items.push({ href: '/facturation', label: 'Facturation', icon: 'i-wallet' });
+  if (can(user, 'audit.view') || can(user, 'users.invite_client')) items.push({ href: '/admin', label: 'Administration', icon: 'i-lock', short: 'Admin' });
+  items.push({ href: '/compte', label: 'Mon compte', icon: 'i-lock' });
+  const room = items.length <= 5 ? 5 : 4;
+  items.forEach((it, i) => { it.tab = i < room; });
   return items;
 }
 
@@ -176,11 +182,11 @@ const countBadge = (n, what) => (n ? `<span class="count" aria-label="${n} ${esc
 
 function appPage(s, { title, current, body, flash, nav = {} }) {
   const user = s.user;
-  const items = navItems(user, nav);
+  const items = navItems(user, { ...(s.nav || {}), ...nav });
   const link = (it, cls) => {
     const cur = it.href === current || (current && current.startsWith(it.href + '/')) ? ' aria-current="page"' : '';
     if (it.qbo) return `<a class="${cls} nav-qbo" href="${esc(it.href)}" target="_blank" rel="noopener">${icon(it.icon)}${esc(it.label)}<span class="ext" aria-hidden="true">↗</span><span class="sr-only">(s’ouvre dans un nouvel onglet)</span></a>`;
-    return `<a class="${cls}" href="${it.href}"${cur}>${icon(it.icon)}${esc(cls === 'tab' && it.short ? it.short : it.label)}${countBadge(it.count, it.href === '/messages' ? 'nouveaux messages' : 'tâches')}</a>`;
+    return `<a class="${cls}" href="${it.href}"${cur}>${icon(it.icon)}${esc(cls === 'tab' && it.short ? it.short : it.label)}${countBadge(it.count, it.href === '/messages' ? 'nouveaux messages' : it.href === '/reception' ? 'éléments à traiter' : 'tâches')}</a>`;
   };
   const navHtml = items.map((it) => `<li>${link(it, 'nav-item')}</li>`).join('');
   const tabItems = items.filter((it) => it.tab);
