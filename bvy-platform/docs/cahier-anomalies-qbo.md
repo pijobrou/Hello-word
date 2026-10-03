@@ -360,3 +360,21 @@ La V1 ne devrait pas essayer de refaire toute la comptabilité de QBO.
 Elle doit devenir le système qui répond à :
 
 > « Est-ce que mes données dans QBO sont cohérentes, et qu'est-ce que je dois corriger ? »
+
+---
+
+## Décisions du propriétaire (à appliquer quand ces éléments seront construits)
+
+### 2026-10-03 — Conciliation assistée : seulement les exceptions
+
+- Idée du propriétaire : dans BVY, comparer rapidement QBO avec la source (relevé bancaire, comme pour la
+  conciliation bancaire faite pour la résidence) et montrer la différence et quoi faire pour la corriger.
+- Afficher QBO à l'intérieur de BVY n'est pas possible (Intuit l'interdit) : BVY lit QBO par sa connexion, montre
+  sa propre comparaison et offre « Ouvrir dans QuickBooks ↗ » sur chaque ligne.
+- **Les lignes affichées sont seulement ce qui n'est pas pris en compte dans QBO.** QBO a déjà son IA et des règles
+  bancaires qui comptabilisent automatiquement : tout ce qui concorde est masqué (seulement compté, par exemple
+  « 312 lignes concordent »), seules les exceptions sont montrées avec l'action proposée.
+- Limite à rappeler à l'écran : les opérations encore « À examiner » dans le flux bancaire de QBO ne sont pas
+  lisibles par l'API ; elles apparaîtraient comme manquantes. Bonne pratique : accepter d'abord le flux bancaire
+  dans QBO, puis lancer la comparaison BVY.
+- Place prévue : premier cas concret du point 4 (IA), sous le nom « Conciliation assistée », après approbation.
