@@ -167,6 +167,7 @@ function navItems(user, nav = {}) {
     { href: '/accueil', label: 'Tableau de bord', short: 'Tableau', icon: 'i-home' },
     { href: '/reception', label: 'Réception', icon: 'i-in', count: nav.inbox },
     { href: '/anomalies', label: 'Anomalies', icon: 'i-alert', count: nav.urgent },
+    { href: '/gouvernement', label: 'Gouvernement', icon: 'i-book' },
   ];
   if (['admin', 'lead', 'bookkeeper', 'tax'].includes(user.role)) items.push({ href: '/tps-tvq', label: 'TPS/TVQ', icon: 'i-clip' });
   if (['admin', 'lead', 'tax'].includes(user.role)) items.push({ href: '/impots', label: 'Impôts', icon: 'i-receipt' });

@@ -1,6 +1,6 @@
 # Workflow 08 — Client validation
 
-**Status:** `STATUS: WAITING_FOR_OWNER_APPROVAL` — built and tested 2026-10-03 (`npm test` 48/48; review package `review/portal-anomalies/`).
+**Status:** `STATUS: WAITING_FOR_OWNER_APPROVAL` — built and tested 2026-10-03 (`npm test` 50/50; review package `review/portal-anomalies/`).
 **Owner approval required:** yes — questions shown to clients.
 
 ## Objective

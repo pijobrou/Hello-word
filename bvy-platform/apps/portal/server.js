@@ -30,6 +30,7 @@ const { createSalesTax } = require('./lib/salestax.js');
 const { createIncomeTax } = require('./lib/incometax.js');
 const { createInbox } = require('./lib/inbox.js');
 const { createAnomalies, findDuplicates, findUnusual } = require('./lib/anomalies.js');
+const { createGovRequests } = require('./lib/govrequests.js');
 const W = require('./lib/views-work.js');
 
 const COOKIE = '__Host-bvy_session';
@@ -190,7 +191,8 @@ function createServer(options = {}) {
   const salestax = createSalesTax(db, { audit: acc.audit, now: options.now, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day) });
   const incometax = createIncomeTax(db, { audit: acc.audit, now: options.now, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day) });
   const inbox = createInbox(db, { audit: acc.audit, now: options.now, portal });
-  anomalies = createAnomalies(db, { audit: acc.audit, now: options.now, portal, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day), qbo: () => qboService });
+  const gov = createGovRequests(db, { audit: acc.audit, now: options.now, portal });
+  anomalies = createAnomalies(db, { audit: acc.audit, now: options.now, portal, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day), qbo: () => qboService, gov });
   // Paie (workflow 12) : crée les paies dont les heures doivent être demandées et prévient le client (toutes les heures).
   function payrollTick() {
     try {
@@ -205,7 +207,7 @@ function createServer(options = {}) {
   const payrollTimer = setInterval(payrollTick, 60 * 60_000);
   payrollTimer.unref();
   setImmediate(payrollTick);
-  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick, salestax, incometax, inbox, anomalies });
+  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick, salestax, incometax, inbox, anomalies, gov });
 
   async function serveAsset(req, res, pathname) {
     const name = path.basename(pathname);
@@ -510,6 +512,7 @@ function createServer(options = {}) {
   server.payrollTick = payrollTick;
   server.inbox = inbox;
   server.anomalies = anomalies;
+  server.gov = gov;
   server.qboService = qboService;
   server.accounts = acc;
   server.config = cfg;

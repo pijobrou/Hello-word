@@ -230,6 +230,7 @@ function createPortal(db, { dataDir, audit, now = () => Date.now() }) {
     const sha = crypto.createHash('sha256').update(file.data).digest('hex');
     const name = safeName(file.name, type.ext);
     const known = DOC_TYPES[docType] ? docType : null;
+    if (!link && task && task.gov_request_id) link = `gov_request:${task.gov_request_id}`; // pièce pour une demande du gouvernement (workflow 17)
     const dup = db.prepare('SELECT id FROM documents WHERE client_id = ? AND sha256 = ? ORDER BY id LIMIT 1').get(id, sha);
     const isFiled = Boolean(filed || staff);
     const suggested = isFiled ? null : known || suggestType(file.name, note);

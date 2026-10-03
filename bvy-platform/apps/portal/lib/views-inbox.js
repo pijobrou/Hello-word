@@ -38,6 +38,7 @@ function docCard(s, d, links, back, { showClient = true } = {}) {
       <p class="t-meta">Reçu le ${esc(isoDateTime(d.created_at))} · ${esc(size(d.size))}${d.note ? ` · « ${esc(d.note)} »` : ''}</p></div>
       <div class="rc-sugg">${suggestionNote(d)}</div></div>
     ${d.duplicate_of ? `<div class="alert alert-watch mt-4">${icon('i-alert')}<div><p>Même fichier déjà reçu le ${esc(isoDateTime(d.duplicate_at))}.</p></div></div>` : ''}
+    ${d.suggested === 'gouvernement' ? `<p class="mt-4"><a class="btn btn-outline btn-sm" href="/gouvernement/nouvelle?client=${d.client_id}&amp;doc=${d.id}">Lettre du gouvernement : enregistrer la demande et sa date limite</a></p>` : ''}
     ${fileForm(s, d, links, back)}</li>`;
 }
 

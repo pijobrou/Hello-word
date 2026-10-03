@@ -16,8 +16,9 @@ const TV = require('./views-salestax.js');
 const IV = require('./views-incometax.js');
 const RV = require('./views-inbox.js');
 const AV = require('./views-anomalies.js');
+const GV = require('./views-govrequests.js');
 
-function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax, inbox, anomalies }) {
+function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax, inbox, anomalies, gov }) {
   const isStaff = (u) => STAFF_ROLES.includes(u.role);
 
   const qboStatus = (clientId) => (qboService ? qboService.status(clientId) : null);
@@ -32,7 +33,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
 
   function counts(u, clientId) {
     return { tasks: portal.openTaskCount(u, clientId), unread: portal.unreadCount(u, clientId), suggestions: qboService ? qboService.newSuggestionCount(clientId) : 0, qbo: qboStatus(clientId),
-      toFile: db.prepare('SELECT COUNT(*) AS n FROM documents WHERE client_id = ? AND filed = 0').get(Number(clientId)).n, anomalies: anomalies.openCount(clientId) };
+      toFile: db.prepare('SELECT COUNT(*) AS n FROM documents WHERE client_id = ? AND filed = 0').get(Number(clientId)).n, anomalies: anomalies.openCount(clientId), gov: gov.openCount(clientId) };
   }
 
   // Courriel de rappel : jamais de titre ni de montant, seulement le nombre d'éléments en attente.
@@ -53,7 +54,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
       if (p === '/accueil' && GET) {
         if (u.role === 'client') {
           const client = portal.client(u.client_id);
-          return send200(res, P.clientHome(s, { client, snap: portal.getSnapshot(u, u.client_id), tasks: portal.listTasks(u, u.client_id, { open: true }), nav: clientNav(u), flash: flashOf(url), sync: qboStatus(u.client_id), pays: payroll ? payroll.openRunsFor(u.client_id) : [] })), true;
+          return send200(res, P.clientHome(s, { client, snap: portal.getSnapshot(u, u.client_id), tasks: portal.listTasks(u, u.client_id, { open: true }), nav: clientNav(u), flash: flashOf(url), sync: qboStatus(u.client_id), pays: payroll ? payroll.openRunsFor(u.client_id) : [], gov: gov.openForClient(u.client_id) })), true;
         }
         const data = workqueue.dashboard(u, { qboStatus, suggestions: (id) => (qboService ? qboService.newSuggestionCount(id) : 0), unread: (id) => portal.unreadCount(u, id) });
         data.summary.urgent = anomalies.urgentCount(u);
@@ -186,6 +187,46 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           const cid = anomalies.act(u, an[1], action, form, ip);
           const msg = { take: 'Vous êtes responsable de cette anomalie.', resolve: 'Anomalie résolue.', dismiss: 'Anomalie ignorée : elle ne sera plus signalée.', previous: 'Anomalie résolue avec la réponse précédente du client.', reopen: 'Anomalie rouverte.' }[action];
           return ok(backTo(form.back, `/clients/${cid}/anomalies`), msg), true;
+        }
+        /* Demandes du gouvernement (workflow 17) */
+        if (p === '/gouvernement' && GET) {
+          const closed = url.searchParams.get('etat') === 'closed';
+          return send200(res, GV.govBoard(s, { items: gov.list(u, { closed }), closed, clients: visibleClients(db, u), flash: flashOf(url) })), true;
+        }
+        if (p === '/gouvernement' && POST) {
+          const rid = gov.create(u, form.clientId, form, ip);
+          anomalies.scanClient(Number(form.clientId));
+          return ok(`/gouvernement/${rid}`, 'Demande enregistrée : la date limite est suivie.'), true;
+        }
+        if (p === '/gouvernement/nouvelle' && GET) {
+          const cid = Number(url.searchParams.get('client'));
+          portal.listTasks(u, cid, { open: true }); // contrôle d'accès
+          const client = portal.client(cid);
+          if (!client || client.is_firm) return send200(res, V.errorPage(404, 'Ce dossier n’existe pas.'), 404), true;
+          const docId = Number(url.searchParams.get('doc')) || null;
+          const doc = docId ? db.prepare('SELECT id, name, client_id FROM documents WHERE id = ?').get(docId) : null;
+          return send200(res, GV.newPage(s, { client, doc: doc && doc.client_id === cid ? doc : null, flash: flashOf(url) })), true;
+        }
+        const gr = p.match(/^\/gouvernement\/(\d+)(\/(?:etape|modifier|element|ajouter|demander))?$/);
+        if (gr) {
+          const rid = Number(gr[1]);
+          if (!gr[2] && GET) return send200(res, GV.sheet(s, { r: gov.get(u, rid), flash: flashOf(url) })), true;
+          if (gr[2] && POST) {
+            let msg = 'Enregistré.';
+            if (gr[2] === '/etape') {
+              const cid = gov.advance(u, rid, form.action, form, ip);
+              anomalies.scanClient(cid);
+              msg = { ready: 'Réponse prête à envoyer.', sent: 'Réponse envoyée : en attente de l’organisme.', closed: 'Demande fermée.', back: 'Retour à l’étape précédente.' }[form.action] || msg;
+            } else if (gr[2] === '/modifier') { gov.update(u, rid, form, ip); anomalies.scanClient(gov.get(u, rid).client_id); msg = 'Demande mise à jour.'; }
+            else if (gr[2] === '/element') { gov.setItem(u, rid, form.item, form.status, ip); msg = 'Liste des documents mise à jour.'; }
+            else if (gr[2] === '/ajouter') { gov.addItem(u, rid, form.label, ip); msg = 'Document ajouté à la liste.'; }
+            else {
+              const r = gov.askClient(u, rid, ip);
+              notifyClient(r.clientId, u.id, 'BVY a besoin de documents de votre part');
+              msg = 'Documents demandés au client ; il est prévenu par courriel et relancé automatiquement.';
+            }
+            return ok(`/gouvernement/${rid}`, msg), true;
+          }
         }
         /* Réception et rappels (workflows 09 et 10) */
         if (p === '/reception' && GET) return send200(res, RV.inboxPage(s, { data: inbox.inbox(u), flash: flashOf(url) })), true;
@@ -361,7 +402,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           await qboService.disconnect(u, cid, ip);
           return ok(`/clients/${cid}/quickbooks`, 'QuickBooks déconnecté : les autorisations sont retirées.'), true;
         }
-        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie|tps-tvq|impots|historique|anomalies))?$/);
+        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie|tps-tvq|impots|historique|anomalies|gouvernement))?$/);
         if (c) {
           const cid = Number(c[1]);
           const sub = c[2] || '';
@@ -413,6 +454,10 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
             const filter = anomalyFilter(url);
             return send200(res, AV.clientAnomaliesTab(s, { client, items: anomalies.list(u, { ...filter, clientId: cid }), filter, questionFor: anomalies.questionFor,
               shell: (inner) => P.staffClientShell(s, client, '/anomalies', inner, flashOf(url), counts(u, cid)) })), true;
+          }
+          if (sub === '/gouvernement' && GET) {
+            return send200(res, GV.clientGovTab(s, { client, items: gov.list(u, { clientId: cid }).concat(gov.list(u, { clientId: cid, closed: true })),
+              shell: (inner) => P.staffClientShell(s, client, '/gouvernement', inner, flashOf(url), counts(u, cid)) })), true;
           }
           if (sub === '/historique' && GET) {
             return send200(res, RV.historyTab(s, { events: inbox.timeline(u, cid), shell: (inner) => P.staffClientShell(s, client, '/historique', inner, flashOf(url), counts(u, cid)) })), true;

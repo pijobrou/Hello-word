@@ -261,3 +261,11 @@ tr.rc-todo td{background:var(--bvy-bg-app)}
 .an-history li{padding:3px 0}
 @media (max-width:1100px){.wq-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:640px){.wq-kpis{grid-template-columns:1fr 1fr}}
+/* Demandes du gouvernement (workflow 17) */
+.gv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 16px}
+.gv-summary{white-space:pre-line;overflow-wrap:anywhere}
+.cd-barrow small{color:var(--bvy-text-muted);font-size:var(--bvy-fs-meta)}
+/* Ligne longue de « BVY travaille sur » (lettre du gouvernement) : titre au-dessus, barre et étape dessous */
+.cd-barrow.wide{grid-template-columns:minmax(50px,1fr) auto}
+.cd-barrow.wide>span:first-child{grid-column:1/-1}
+.cd-barrow.wide>span:last-child{white-space:nowrap}

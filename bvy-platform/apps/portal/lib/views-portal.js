@@ -105,7 +105,7 @@ function dashKpi(label, block, href) {
     : `<div class="cd-kpi">${inner}</div>`;
 }
 
-function clientHome(s, { client, snap, tasks, nav, flash, sync = null, pays = [] }) {
+function clientHome(s, { client, snap, tasks, nav, flash, sync = null, pays = [], gov = [] }) {
   const first = esc(s.user.name.split(' ')[0]);
   const open = tasks.filter((t) => t.status === 'open');
   const qbo = nav.qboUrl;
@@ -125,6 +125,10 @@ function clientHome(s, { client, snap, tasks, nav, flash, sync = null, pays = []
       <p class="cd-more"><a class="link" href="/a-faire">${open.length > 5 ? `Voir les ${open.length} actions` : 'Tout voir et répondre'}</a></p>`
     : '<p class="muted">Tout est à jour de votre côté. Une question ? <a class="link" href="/messages">Écrivez à BVY</a>.</p>'}</section>`;
 
+  // Paies et demandes du gouvernement : visibles même sans tableau de bord publié
+    const payRows = pays.map((r) => `<div class="cd-barrow"><span><a class="link" href="/paie/${r.id}">Paie du ${esc(r.pay_date)}</a></span><span class="track" aria-hidden="true"><span class="fill p${[0, 20, 40, 60, 80, 100][['waiting', 'hours_received', 'validation', 'preparing', 'ready', 'done'].indexOf(r.status)]}"></span></span><span>${esc(r.label.toLowerCase())}</span></div>`).join('');
+    // Demandes du gouvernement (workflow 17) : le client sait que BVY s'en occupe et pour quand
+    const govRows = gov.map((g) => `<div class="cd-barrow wide"><span>${esc(g.title)}<br><small>réponse due le ${esc(g.due)}</small></span><span class="track" aria-hidden="true"><span class="fill p${g.progress}"></span></span><span>${esc(g.step)}</span></div>`).join('');
   let body;
   if (snap) {
     const health = snap.health ? `<section class="cd-panel" aria-labelledby="h-sante"><h2 id="h-sante">Santé financière ${healthBadge(snap.health.state)}</h2>
@@ -134,9 +138,8 @@ function clientHome(s, { client, snap, tasks, nav, flash, sync = null, pays = []
         ? `<li><span>${esc(c.label)}</span><span class="${c.tone === 'down' ? 'dn' : c.tone === 'up' ? 'up' : ''}">${esc(c.delta)}</span></li>`
         : `<li class="long"><span>${esc(c.what)}</span></li>`)).join('')}</ul>
       ${snap.changes.some((c) => c.label && c.why) ? `<p class="cd-foot">${esc(((snap.changes.find((c) => c.label && /^Compar/.test(c.why || '')) || {}).why || '').replace(/\s*\([^)]*\)/, ''))}</p>` : ''}</section>` : '';
-    const payRows = pays.map((r) => `<div class="cd-barrow"><span><a class="link" href="/paie/${r.id}">Paie du ${esc(r.pay_date)}</a></span><span class="track" aria-hidden="true"><span class="fill p${[0, 20, 40, 60, 80, 100][['waiting', 'hours_received', 'validation', 'preparing', 'ready', 'done'].indexOf(r.status)]}"></span></span><span>${esc(r.label.toLowerCase())}</span></div>`).join('');
-    const work = snap.work.length || pays.length ? `<section class="cd-panel" aria-labelledby="h-work"><h2 id="h-work">BVY travaille sur</h2>
-      <div class="cd-bars">${payRows}${snap.work.map((w) => `<div class="cd-barrow"><span>${esc(w.name)}</span>${w.progress === null
+    const work = snap.work.length || pays.length || gov.length ? `<section class="cd-panel" aria-labelledby="h-work"><h2 id="h-work">BVY travaille sur</h2>
+      <div class="cd-bars">${govRows}${payRows}${snap.work.map((w) => `<div class="cd-barrow"><span>${esc(w.name)}</span>${w.progress === null
         ? `<span class="track" aria-hidden="true"><span class="fill p0"></span></span><span>${esc(w.status)}</span>`
         : `<span class="track" role="progressbar" aria-label="${esc(w.name)}" aria-valuenow="${w.progress}" aria-valuemin="0" aria-valuemax="100"><span class="fill p${Math.round(w.progress / 5) * 5}"></span></span><span>${w.progress} %</span>`}</div>`).join('')}</div></section>` : '';
     body = `<div class="cd">
@@ -159,7 +162,8 @@ function clientHome(s, { client, snap, tasks, nav, flash, sync = null, pays = []
     body = `<div class="cd">${bar}<div class="cd-body">
       <section class="cd-panel"><h2>Votre tableau de bord se prépare</h2>
         <p>BVY ajoutera ici votre argent disponible, ce que vos clients vous doivent, vos factures à payer et la santé de votre entreprise, expliquée en mots simples.</p></section>
-      ${todo}</div></div>`;
+      ${todo}
+      ${govRows || payRows ? `<section class="cd-panel" aria-labelledby="h-work"><h2 id="h-work">BVY travaille sur</h2><div class="cd-bars">${govRows}${payRows}</div></section>` : ''}</div></div>`;
   }
   const head = `<div class="cd-hello"><p class="t-eyebrow"><span>${esc(todayFr())}</span></p><h1 class="t-h1">Bonjour ${first}.</h1></div>`;
   return appPage(s, { title: 'Accueil', current: '/accueil', body: head + body, flash, nav });
@@ -238,7 +242,7 @@ function staffClientShell(s, client, tab, inner, flash, counts = {}) {
     ...(client.payroll && ['admin', 'lead', 'payroll'].includes(s.user.role) ? [['/paie', 'Paie']] : []),
     ...(client.kind && ['admin', 'lead', 'tax'].includes(s.user.role) ? [['/impots', 'Impôts']] : []),
   ];
-  const tabs = [['', 'Tableau de bord'], ['/echeances', 'Échéances'], ...payTab, ['/quickbooks', `QuickBooks${counts.suggestions ? ` (${counts.suggestions})` : ''}`], ['/taches', `Tâches${counts.tasks ? ` (${counts.tasks})` : ''}`], ['/anomalies', `Anomalies${counts.anomalies ? ` (${counts.anomalies})` : ''}`], ['/documents', `Documents${counts.toFile ? ` (${counts.toFile})` : ''}`], ['/messages', `Messages${counts.unread ? ` (${counts.unread})` : ''}`], ['/historique', 'Historique']];
+  const tabs = [['', 'Tableau de bord'], ['/echeances', 'Échéances'], ...payTab, ['/quickbooks', `QuickBooks${counts.suggestions ? ` (${counts.suggestions})` : ''}`], ['/taches', `Tâches${counts.tasks ? ` (${counts.tasks})` : ''}`], ['/anomalies', `Anomalies${counts.anomalies ? ` (${counts.anomalies})` : ''}`], ['/gouvernement', `Gouvernement${counts.gov ? ` (${counts.gov})` : ''}`], ['/documents', `Documents${counts.toFile ? ` (${counts.toFile})` : ''}`], ['/messages', `Messages${counts.unread ? ` (${counts.unread})` : ''}`], ['/historique', 'Historique']];
   const body = `${pageHead('Dossier client', client.name, qboHead)}
     <nav class="subnav" aria-label="Sections du dossier">${tabs.map(([p, l]) => `<a href="/clients/${client.id}${p}"${p === tab ? ' aria-current="page"' : ''}>${esc(l)}</a>`).join('')}</nav>
     ${inner}`;

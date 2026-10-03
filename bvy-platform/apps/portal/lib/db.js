@@ -452,6 +452,44 @@ const MIGRATIONS = [
   ALTER TABLE tasks ADD COLUMN counterparty TEXT;
   ALTER TABLE tasks ADD COLUMN question_type TEXT;
   `,
+  // 12 — Demandes du gouvernement (workflow 17) : contrôles, demandes de documents, avis
+  `
+  CREATE TABLE gov_requests (
+    id              INTEGER PRIMARY KEY,
+    client_id       INTEGER NOT NULL REFERENCES clients(id),
+    agency          TEXT NOT NULL CHECK (agency IN ('arc','rq','cnesst','req','autre')),
+    kind            TEXT NOT NULL CHECK (kind IN ('verification','documents','cotisation','recouvrement','autre')),
+    program         TEXT NOT NULL,
+    reference       TEXT,
+    letter_date     TEXT NOT NULL,
+    due_date        TEXT NOT NULL,
+    summary         TEXT NOT NULL,
+    amount_cents    INTEGER,
+    letter_doc_id   INTEGER REFERENCES documents(id),
+    items           TEXT NOT NULL DEFAULT '[]',
+    status          TEXT NOT NULL DEFAULT 'received' CHECK (status IN ('received','gathering','ready','sent','closed')),
+    owner_id        INTEGER REFERENCES users(id),
+    sent_on         TEXT,
+    sent_how        TEXT,
+    confirmation    TEXT,
+    outcome         TEXT,
+    task_id         INTEGER REFERENCES tasks(id),
+    created_by      INTEGER REFERENCES users(id),
+    created_at      TEXT NOT NULL,
+    updated_at      TEXT NOT NULL
+  );
+  CREATE INDEX gov_requests_open ON gov_requests(status, due_date);
+  CREATE TABLE gov_request_events (
+    id          INTEGER PRIMARY KEY,
+    request_id  INTEGER NOT NULL REFERENCES gov_requests(id),
+    from_status TEXT,
+    to_status   TEXT NOT NULL,
+    user_id     INTEGER REFERENCES users(id),
+    note        TEXT,
+    at          TEXT NOT NULL
+  );
+  ALTER TABLE tasks ADD COLUMN gov_request_id INTEGER REFERENCES gov_requests(id);
+  `,
 ];
 
 function openDb(file) {

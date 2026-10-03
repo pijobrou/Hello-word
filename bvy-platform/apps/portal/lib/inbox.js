@@ -10,6 +10,7 @@ const { visibleClients, canAccessClient, STAFF_ROLES } = require('./rbac.js');
 const { PortalError } = require('./portal.js');
 const { DOC_TYPES, validPeriod } = require('./doctypes.js');
 const { TZ } = require('./dates.js');
+const { title: govTitle } = require('./govrequests.js');
 
 const DAY = 86_400_000;
 const GAPS = [3, 4, 7]; // jours avant le 1er rappel, puis entre les rappels : 3, 7 et 14 jours après la demande
@@ -47,6 +48,7 @@ function createInbox(db, { audit, now = () => Date.now(), portal }) {
     tax_file: { table: 'tax_files', label: (r) => `Impôts — ${r.form === 't2' ? 'T2 et CO-17' : 'T1 et TP-1'} ${r.year_label}` },
     pay_run: { table: 'pay_runs', label: (r) => `Paie du ${r.pay_date}` },
     tax_return: { table: 'tax_returns', label: (r) => `TPS/TVQ — ${r.period_start} au ${r.period_end}` },
+    gov_request: { table: 'gov_requests', label: (r) => `Gouvernement — ${govTitle(r)}` },
   };
   function linkOptions(clientId) {
     const id = Number(clientId);
@@ -54,14 +56,15 @@ function createInbox(db, { audit, now = () => Date.now(), portal }) {
       ...db.prepare('SELECT * FROM tax_files WHERE client_id = ? ORDER BY period_end DESC LIMIT 4').all(id).map((r) => ({ value: `tax_file:${r.id}`, label: LINKS.tax_file.label(r) })),
       ...db.prepare('SELECT * FROM pay_runs WHERE client_id = ? ORDER BY pay_date DESC LIMIT 6').all(id).map((r) => ({ value: `pay_run:${r.id}`, label: LINKS.pay_run.label(r) })),
       ...db.prepare('SELECT * FROM tax_returns WHERE client_id = ? ORDER BY period_end DESC LIMIT 4').all(id).map((r) => ({ value: `tax_return:${r.id}`, label: LINKS.tax_return.label(r) })),
+      ...db.prepare("SELECT * FROM gov_requests WHERE client_id = ? ORDER BY CASE status WHEN 'closed' THEN 1 ELSE 0 END, due_date DESC LIMIT 4").all(id).map((r) => ({ value: `gov_request:${r.id}`, label: LINKS.gov_request.label(r) })),
     ];
   }
   function linkInfo(link) {
-    const m = String(link || '').match(/^(tax_file|pay_run|tax_return):(\d+)$/);
+    const m = String(link || '').match(/^(tax_file|pay_run|tax_return|gov_request):(\d+)$/);
     if (!m) return null;
     const row = db.prepare(`SELECT * FROM ${LINKS[m[1]].table} WHERE id = ?`).get(Number(m[2]));
     if (!row) return null;
-    const href = { tax_file: `/impots/${row.id}`, pay_run: `/paie/${row.id}`, tax_return: `/tps-tvq/${row.id}` }[m[1]];
+    const href = { tax_file: `/impots/${row.id}`, pay_run: `/paie/${row.id}`, tax_return: `/tps-tvq/${row.id}`, gov_request: `/gouvernement/${row.id}` }[m[1]];
     return { kind: m[1], id: row.id, clientId: row.client_id, label: LINKS[m[1]].label(row), href };
   }
 

@@ -19,7 +19,7 @@ const ACTIVE = ['open', 'in_progress', 'waiting_client', 'answered'];
 const TYPES = {
   duplicate: 'Transaction en double', unusual: 'Transaction inhabituelle', uncategorized: 'Catégorie incertaine', missing_document: 'Document manquant',
   qbo_disconnected: 'QuickBooks déconnecté', sync_failed: 'Synchronisation en échec', sync_stale: 'Données pas à jour', missing_data: 'Données manquantes',
-  cash: 'Trésorerie dangereuse', deadline: 'Échéance fiscale', overdue_major: 'Facture client très en retard', payroll_risk: 'Paie à risque',
+  cash: 'Trésorerie dangereuse', deadline: 'Échéance fiscale', gov_request: 'Demande du gouvernement', overdue_major: 'Facture client très en retard', payroll_risk: 'Paie à risque',
 };
 const ASKABLE = ['duplicate', 'unusual', 'uncategorized'];
 const money = (c) => formatAmount(c);
@@ -93,7 +93,7 @@ function findUnusual(txns, today) {
 }
 
 /* --------------------------------------------------------------- service */
-function createAnomalies(db, { audit, now = () => Date.now(), portal, deadlinesFor, qbo = () => null }) {
+function createAnomalies(db, { audit, now = () => Date.now(), portal, deadlinesFor, qbo = () => null, gov = null }) {
   const iso = () => new Date(now()).toISOString();
   const today = () => isoDay(now());
   const isStaff = (u) => Boolean(u && STAFF_ROLES.includes(u.role));
@@ -219,6 +219,16 @@ function createAnomalies(db, { audit, now = () => Date.now(), portal, deadlinesF
           title: `${dl.title} — ${late ? `en retard de ${-dl.urgency.days} jour${dl.urgency.days < -1 ? 's' : ''}` : dl.urgency.days === 0 ? 'aujourd’hui' : `dans ${dl.urgency.days} jour${dl.urgency.days > 1 ? 's' : ''}`}`,
           explanation: `Échéance du ${dl.date}${late ? ', dépassée : pénalités et intérêts possibles' : ''}.`,
           action: late ? 'Produisez ou payez au plus vite, puis marquez l’échéance comme faite ; informez le client des pénalités possibles.' : 'Vérifiez que la production ou le paiement est prêt, puis marquez l’échéance comme faite.' });
+      }
+    }
+    // Urgent : réponse à une demande du gouvernement due dans 7 jours ou moins (workflow 17)
+    if (gov) {
+      for (const g of gov.dueSoon(c.id, day)) {
+        out.push({ type: 'gov_request', severity: 'urgent', ref: `gov_request:${g.id}:${g.days < 0 ? 'late' : 'soon'}`, txn_date: g.due_date, amount_cents: g.amount_cents,
+          title: `${g.title} — ${g.days < 0 ? `réponse en retard de ${-g.days} jour${g.days < -1 ? 's' : ''}` : g.days === 0 ? 'réponse due aujourd’hui' : `réponse due dans ${g.days} jour${g.days > 1 ? 's' : ''}`}`,
+          explanation: `Date limite du ${g.due_date}${g.missing ? ` ; ${g.missing} document${g.missing > 1 ? 's' : ''} encore à obtenir` : ''}. Sans réponse, l’organisme peut établir une cotisation ou refuser des montants.`,
+          action: g.days < 0 ? 'Appelez l’agent de l’organisme pour demander un délai, puis envoyez la réponse au plus vite.' : 'Terminez la réponse ; si elle ne peut pas être prête, demandez un délai à l’agent avant la date limite.',
+          data: { govRequestId: g.id } });
       }
     }
     // Urgent : paie dans 2 jours ou moins, pas prête
