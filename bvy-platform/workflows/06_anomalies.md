@@ -1,6 +1,6 @@
 # Workflow 06 — Anomalies
 
-**Status:** `STATUS: WAITING_FOR_OWNER_APPROVAL` — built and tested 2026-10-03 (`npm test` 50/50; review package `review/portal-anomalies/`).
+**Status:** `STATUS: APPROVED` by the owner on 2026-10-03 (built and tested 2026-10-03, `npm test` 50/50; review package `review/portal-anomalies/`).
 **Owner approval required:** yes — new staff screen « Anomalies » and client questions created from it.
 
 ## Objective

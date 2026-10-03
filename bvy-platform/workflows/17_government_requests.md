@@ -1,6 +1,6 @@
 # Workflow 17 — Government requests (audits, document requests, notices)
 
-**Status:** `STATUS: WAITING_FOR_OWNER_APPROVAL` — requested by the owner on 2026-10-03 (« il faut penser également aux demandes du gouvernement, soit pour un contrôle, un document à soumettre et autre »); built and tested 2026-10-03 (`npm test` 50/50; review package `review/portal-gouvernement/`). Reviewed with workflows 06 and 08.
+**Status:** `STATUS: APPROVED` by the owner on 2026-10-03 (requested by the owner the same day; built and tested, `npm test` 50/50; review package `review/portal-gouvernement/`).
 **Owner approval required:** yes — new staff screens and a line on the client home.
 
 ## Objective
