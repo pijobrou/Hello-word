@@ -197,7 +197,7 @@ function firmPage(s, { qbo, enabled, deadlinesHtml, flash }) {
         <a class="btn btn-outline btn-sm" href="/facturation">Voir la facturation</a>
         <form method="post" action="/cabinet/quickbooks/deconnecter">${csrf}<button class="btn btn-ghost btn-sm" type="submit">Déconnecter</button></form></div>`;
   const body = `${pageHead('Administration', 'QBO du cabinet', 'Le QuickBooks de BVY (lecture seule) et les obligations fiscales de BVY elle-même.')}
-    <nav class="subnav" aria-label="Administration"><a href="/admin">Personnes et clients</a><a href="/cabinet" aria-current="page">QBO du cabinet</a><a href="/admin/ia">IA</a></nav>
+    <nav class="subnav" aria-label="Administration"><a href="/admin">Personnes et clients</a><a href="/cabinet" aria-current="page">QBO du cabinet</a><a href="/admin/suggestions">Suggestions</a></nav>
     <div class="cols-2"><article class="card"><div class="card-head"><h2 class="t-h3">QuickBooks de BVY</h2></div>${status}</article>
     <article class="card"><div class="card-head"><h2 class="t-h3">Bon à savoir</h2></div><p>Réservé à l’administrateur. Cette fiche n’apparaît jamais comme un client et n’est visible d’aucun client.</p>
       <p class="mt-4">Le portail ne modifie rien dans QuickBooks.</p></article></div>

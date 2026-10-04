@@ -9,6 +9,10 @@
   what QBO did not take into account** (lines left in an « uncategorized » account). Owner, 2026-10-03.
 - BVY stays read-only in QBO for now: an accepted suggestion becomes a « À faire dans QuickBooks » line with a
   direct link; the next sync closes it once done. Writing into QBO is a later step that needs its own approval.
+- **No AI wording in the pages** (owner, 2026-10-04): no « IA », « Claude », « intelligence artificielle », model name
+  or tokens on any client or staff page. Staff see « suggestion automatique » and « d'après l'historique du dossier »;
+  the settings page is « Administration → Suggestions ». The privacy policy still has to mention the external
+  service (Loi 25) before it is turned on.
 - Reference: `docs/cahier-anomalies-qbo.md` (points 3, 11, 12, 14, 15), applied progressively.
 
 ## Part A — category suggestions

@@ -193,13 +193,13 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           return ok(backTo(form.back, `/clients/${cid}/anomalies`), msg), true;
         }
         /* Réglages de l'IA (workflow 07) : administrateur */
-        if (p === '/admin/ia') {
+        if (p === '/admin/suggestions') {
           if (u.role !== 'admin') throw new PortalError('Accès refusé.');
           if (GET) {
             const calls = db.prepare('SELECT a.*, c.name AS client FROM ai_calls a LEFT JOIN clients c ON c.id = a.client_id ORDER BY a.id DESC LIMIT 20').all();
             return send200(res, CV.aiSettingsPage(s, { settings: classifier.settings(), calls, flash: flashOf(url) })), true;
           }
-          if (POST) { classifier.saveSettings(u, form, ip); return ok('/admin/ia', 'Réglages de l’IA enregistrés.'), true; }
+          if (POST) { classifier.saveSettings(u, form, ip); return ok('/admin/suggestions', 'Réglages des suggestions enregistrés.'), true; }
         }
         /* Résumés (workflow 16) */
         if (p === '/resumes' && GET) {
@@ -509,7 +509,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           }
           if (sub === '/classement/relancer' && POST) {
             const r = await classifier.classifyClient(cid, { retry: true });
-            return ok(`/clients/${cid}/classement`, `Suggestions relancées : ${r.history} par l’historique, ${r.ai} par l’IA.`), true;
+            return ok(`/clients/${cid}/classement`, `Suggestions relancées : ${r.history} d’après l’historique, ${r.ai} automatiques.`), true;
           }
           if (sub === '/sante' && GET) {
             return send200(res, SV.healthTab(s, { client, h: health.forActor(u, cid), shell: (inner) => P.staffClientShell(s, client, '/sante', inner, flashOf(url), counts(u, cid)) })), true;

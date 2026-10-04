@@ -55,7 +55,7 @@ const fakeAi = { model: 'claude-opus-5-5', async classify(lines) {
     const p = await (await br.newContext({ viewport: { width: w, height: h } })).newPage();
     await login(p, 'pierre@bvy.ca');
     await p.goto(`${B}/clients/${soc.id}/classement`); await shot(p, '01-classement', vp);
-    await p.goto(`${B}/admin/ia`); await shot(p, '02-reglages-ia', vp);
+    await p.goto(`${B}/admin/suggestions`); await shot(p, '02-reglages-suggestions', vp);
   }
   console.log('problèmes', problems); await br.close(); srv.close();
 })().catch((e) => { console.error(e); process.exit(1); });

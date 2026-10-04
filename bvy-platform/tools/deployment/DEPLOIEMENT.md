@@ -975,3 +975,21 @@ sudo ss -ltnp | grep -E ':80 |:443 |:3000 '   # qui utilise les ports ?
 | `deploy.cmd` : « ssh n'est pas reconnu » | Client OpenSSH non installé | Section 1.1. |
 | `deploy.cmd` : « Le site est introuvable » | Mauvaise branche git ou ZIP incomplet | `git checkout claude/competence-marketing-pro-hvz21k` puis `git pull`. |
 | `sudo` demande un mot de passe | Normal sur certains serveurs | C'est le mot de passe de l'utilisateur `ubuntu`. |
+
+## Suggestions automatiques du portail (workflow 07) — facultatif
+
+Le classement des opérations non catégorisées fonctionne sans rien installer (historique du dossier). Pour les
+suggestions automatiques en plus :
+
+1. Déployer le portail (`deploy-portail.cmd`) : le module nécessaire s'installe tout seul (`npm ci`). En cas
+   d'échec, le portail fonctionne quand même, suggestions automatiques inactives.
+2. Sur le serveur, ajouter la clé vous-même (jamais dans Git ni dans une conversation) :
+
+   ```bash
+   sudo nano /var/www/bvy-portail/shared/portail.env
+   # ajouter la ligne : ANTHROPIC_API_KEY=…   (la même clé que celle du site, dans /var/www/bvy-website/shared/.env)
+   sudo systemctl restart bvy-portail
+   ```
+
+3. Dans le portail : Administration → Suggestions → cocher « Proposer automatiquement une catégorie… », seulement
+   quand la politique de confidentialité et le consentement des clients le mentionnent (Loi 25).

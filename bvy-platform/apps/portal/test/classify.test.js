@@ -111,20 +111,20 @@ test('classement de bout en bout : historique, IA validée, regroupement, décis
     assert.match(N(r.body), /Costco — 2 opérations non classées — 992,37 \$/);
     assert.match(r.body, /Catégorie proposée : <b>Repas et représentation<\/b> · confiance 83 %/);
     assert.match(r.body, /d’après l’historique du dossier — 5 paiements sur 6 à Costco classés en « Repas et représentation »/);
-    assert.match(r.body, /IA désactivée par l’administrateur/);
+    assert.match(r.body, /Suggestions tirées de l’historique du dossier\./);
 
     // Réglages : administrateur seulement, seuils validés
     const lise = await login('lise@bvy.ca');
-    r = await lise.post('/admin/ia', { aiEnabled: '1', strong: '95', suggest: '75' });
+    r = await lise.post('/admin/suggestions', { aiEnabled: '1', strong: '95', suggest: '75' });
     assert.strictEqual(r.status, 403);
-    r = await owner.post('/admin/ia', { aiEnabled: '1', strong: '70', suggest: '75' });
+    r = await owner.post('/admin/suggestions', { aiEnabled: '1', strong: '70', suggest: '75' });
     assert.match(loc(r), /Seuils invalides/);
-    r = await owner.post('/admin/ia', { aiEnabled: '1', strong: '95', suggest: '75' });
-    assert.match(loc(r), /Réglages de l’IA enregistrés/);
+    r = await owner.post('/admin/suggestions', { aiEnabled: '1', strong: '95', suggest: '75' });
+    assert.match(loc(r), /Réglages des suggestions enregistrés/);
 
     // Relance : l'IA reçoit seulement le reste, sans le nom du client ; une réponse hors du plan comptable est rejetée
     r = await owner.post(`/clients/${soc.id}/classement/relancer`);
-    assert.match(loc(r), /2 par l’historique, 3 par l’IA|0 par l’historique, 3 par l’IA/);
+    assert.match(loc(r), /0 d’après l’historique, 3 automatiques/);
     assert.strictEqual(sent.length, 1);
     assert.deepStrictEqual(sent[0].lines.map((l) => l.party).sort(), ['AMAZON', 'Amazon', 'Amazon', 'Inventé ltée', 'Mystère inc.']);
     assert.doesNotMatch(JSON.stringify(sent[0]), /Atelier|Boréal|Marie/, 'jamais le nom du client');
@@ -140,7 +140,8 @@ test('classement de bout en bout : historique, IA validée, regroupement, décis
     assert.match(N(r.body), /Amazon — 3 opérations non classées — 192,54 \$/);
     assert.match(r.body, /Fournitures de bureau<\/b> · confiance 91 % <span class="badge b-info">Suggestion<\/span>/);
     assert.match(r.body, /Mystère inc\. — 1 opération[\s\S]*Validation requise/);
-    assert.match(r.body, /IA active \(faux-modele\)/);
+    assert.match(r.body, /puis suggestions automatiques pour le reste/);
+    assert.doesNotMatch(r.body, /\bIA\b|faux-modele|[Cc]laude|intelligence artificielle/, 'aucune mention de l’IA dans les pages');
 
     // Décisions : accepter, choisir, annuler ; « À faire dans QuickBooks »
     const g = (party) => cl.groups(admin, soc.id).find((x) => x.party.toLowerCase().startsWith(party));
@@ -173,7 +174,8 @@ test('classement de bout en bout : historique, IA validée, regroupement, décis
     const marie = await login('marie@boreal.ca');
     r = await marie.get(`/clients/${soc.id}/classement`);
     assert.notStrictEqual(r.status, 200);
-    r = await owner.get('/admin/ia');
-    assert.match(r.body, /Derniers appels à l’IA[\s\S]*Atelier Boréal inc\./);
+    r = await owner.get('/admin/suggestions');
+    assert.match(r.body, /Dernières demandes de suggestions[\s\S]*Atelier Boréal inc\./);
+    assert.doesNotMatch(r.body.replace(/<[^>]+>/g, ' '), /\bIA\b|[Cc]laude|[Aa]nthropic|intelligence artificielle|jetons/, 'réglages sans mention de l’IA');
   } finally { app.close(); }
 });

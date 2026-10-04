@@ -113,7 +113,7 @@ function createClassifier(db, { audit, now = () => Date.now(), ai = null }) {
             const ok = valid.has(String(r.account_id));
             const conf = Math.max(0, Math.min(100, Math.round(Number(r.confidence) || 0)));
             ins.run(it.id, id, ok ? String(r.account_id) : null, ok ? accountName(id, r.account_id) : null, ok ? conf : null, ok ? 'ai' : 'none',
-              ok ? String(r.reason || '').slice(0, 300) : 'Aucun compte du plan comptable ne convient selon l’IA : à choisir ou à demander au client.', iso(), 1);
+              ok ? String(r.reason || '').slice(0, 300) : 'Aucun compte du plan comptable ne convient : à choisir ou à demander au client.', iso(), 1);
             if (ok) aiCount += 1;
           }
           db.prepare('INSERT INTO ai_calls (client_id, purpose, items, model, input_tokens, output_tokens, ok, at) VALUES (?, ?, ?, ?, ?, ?, 1, ?)')

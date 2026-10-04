@@ -9,7 +9,7 @@ const { formatAmount } = require('./portal.js');
 const { isoDay } = require('./dates.js');
 
 const LEVEL = { strong: ['b-good', 'Suggestion forte'], suggest: ['b-info', 'Suggestion'], validate: ['b-watch', 'Validation requise'] };
-const SOURCE = { history: 'd’après l’historique du dossier', ai: 'proposée par l’IA', none: '' };
+const SOURCE = { history: 'd’après l’historique du dossier', ai: 'suggestion automatique', none: '' };
 
 function groupCard(s, client, g, chart) {
   const csrf = csrfField(s);
@@ -42,8 +42,7 @@ function groupCard(s, client, g, chart) {
 function classifyTab(s, { client, groups, chart, settings, shell }) {
   const todo = groups.filter((g) => !g.todo);
   const done = groups.filter((g) => g.todo);
-  const banner = !settings.aiAvailable ? 'IA non installée sur le serveur : seules les suggestions tirées de l’historique du dossier sont faites.'
-    : !settings.aiEnabled ? 'IA désactivée par l’administrateur : seules les suggestions tirées de l’historique du dossier sont faites.' : `IA active (${esc(settings.model)}) pour ce que l’historique ne couvre pas.`;
+  const banner = !settings.aiAvailable || !settings.aiEnabled ? 'Suggestions tirées de l’historique du dossier.' : 'Suggestions tirées de l’historique du dossier, puis suggestions automatiques pour le reste.';
   const inner = `<article class="card"><div class="card-head"><h2 class="t-h3">À classer</h2><span class="badge ${todo.length ? 'b-watch' : 'b-good'}">${todo.reduce((n, g) => n + g.count, 0)}</span></div>
       <p class="t-meta">Seulement ce que QuickBooks n’a pas classé lui-même (comptes « non catégorisés »), regroupé par bénéficiaire. ${banner}</p>
       <form class="mt-4" method="post" action="/clients/${client.id}/classement/relancer">${csrfField(s)}<button class="btn btn-ghost btn-sm" type="submit">Relancer les suggestions</button></form>
@@ -54,22 +53,22 @@ function classifyTab(s, { client, groups, chart, settings, shell }) {
 
 function aiSettingsPage(s, { settings, calls, flash }) {
   const csrf = csrfField(s);
-  const body = `${pageHead('Administration', 'Intelligence artificielle', 'Réglages du classement des opérations que QuickBooks n’a pas catégorisées (workflow 07).')}
-    <nav class="subnav" aria-label="Administration"><a href="/admin">Personnes et clients</a><a href="/cabinet">QBO du cabinet</a><a href="/admin/ia" aria-current="page">IA</a></nav>
-    <div class="cols-2"><article class="card"><div class="card-head"><h2 class="t-h3">Réglages</h2><span class="badge ${settings.aiEnabled && settings.aiAvailable ? 'b-good' : 'b-neutral'}">${settings.aiEnabled && settings.aiAvailable ? 'IA active' : 'IA inactive'}</span></div>
-      ${settings.aiAvailable ? '' : `<div class="alert alert-watch">${icon('i-alert')}<div><p>La clé de l’IA n’est pas installée sur le serveur du portail (ANTHROPIC_API_KEY dans portail.env), ou le module n’est pas installé. Le classement par l’historique fonctionne quand même.</p></div></div>`}
-      <form class="form mt-4" method="post" action="/admin/ia">${csrf}
-        <div class="field"><label class="check"><input type="checkbox" name="aiEnabled" value="1"${settings.aiEnabled ? ' checked' : ''}> Utiliser l’IA pour proposer une catégorie quand l’historique du dossier ne suffit pas</label></div>
-        <p class="t-meta">Envoyé à l’IA, pour chaque opération : bénéficiaire, description, montant, date, et le plan comptable du client. Jamais le nom du client. Activez-la seulement quand votre politique de confidentialité et le consentement de vos clients le mentionnent (Loi 25).</p>
+  const body = `${pageHead('Administration', 'Suggestions automatiques', 'Réglages du classement des opérations que QuickBooks n’a pas catégorisées.')}
+    <nav class="subnav" aria-label="Administration"><a href="/admin">Personnes et clients</a><a href="/cabinet">QBO du cabinet</a><a href="/admin/suggestions" aria-current="page">Suggestions</a></nav>
+    <div class="cols-2"><article class="card"><div class="card-head"><h2 class="t-h3">Réglages</h2><span class="badge ${settings.aiEnabled && settings.aiAvailable ? 'b-good' : 'b-neutral'}">${settings.aiEnabled && settings.aiAvailable ? 'Actives' : 'Inactives'}</span></div>
+      ${settings.aiAvailable ? '' : `<div class="alert alert-watch">${icon('i-alert')}<div><p>Le service de suggestions automatiques n’est pas installé sur le serveur du portail (clé dans portail.env, voir DEPLOIEMENT.md). Le classement par l’historique fonctionne quand même.</p></div></div>`}
+      <form class="form mt-4" method="post" action="/admin/suggestions">${csrf}
+        <div class="field"><label class="check"><input type="checkbox" name="aiEnabled" value="1"${settings.aiEnabled ? ' checked' : ''}> Proposer automatiquement une catégorie quand l’historique du dossier ne suffit pas</label></div>
+        <p class="t-meta">Envoyé au service externe de suggestions, pour chaque opération : bénéficiaire, description, montant, date, et le plan comptable du client. Jamais le nom du client. Activez-les seulement quand votre politique de confidentialité et le consentement de vos clients le mentionnent (Loi 25).</p>
         <div class="gv-grid">${field('strong', 'Seuil « suggestion forte » (%)', `<input class="input num" id="strong" name="strong" inputmode="numeric" value="${settings.strong}">`)}
         ${field('suggest', 'Seuil « suggestion » (%) — en dessous : validation requise', `<input class="input num" id="suggest" name="suggest" inputmode="numeric" value="${settings.suggest}">`)}</div>
         <p class="t-meta">BVY ne modifie jamais QuickBooks automatiquement, même au-dessus du seuil fort.</p>
         <div class="btn-row"><button class="btn btn-plum" type="submit">Enregistrer</button></div></form></article>
-      <article class="card"><div class="card-head"><h2 class="t-h3">Derniers appels à l’IA</h2></div>
+      <article class="card"><div class="card-head"><h2 class="t-h3">Dernières demandes de suggestions</h2></div>
         ${calls.length ? `<div class="table-wrap"><table class="table"><thead><tr><th scope="col">Date</th><th scope="col">Client</th><th scope="col">Opérations</th><th scope="col">Résultat</th></tr></thead><tbody>
-        ${calls.map((c) => `<tr><td>${esc(isoDay(c.at))}</td><td>${esc(c.client || '—')}</td><td class="num">${c.items}</td><td>${c.ok ? 'OK' : `<span class="badge b-act">Échec</span> ${esc(c.error || '')}`}</td></tr>`).join('')}</tbody></table></div>` : '<p class="t-meta">Aucun appel pour l’instant.</p>'}
-        <p class="t-meta mt-4">Le journal ne garde jamais le contenu envoyé : seulement la date, le client, le nombre d’opérations, le modèle et le nombre de jetons.</p></article></div>`;
-  return appPage(s, { title: 'IA', current: '/admin', body, flash });
+        ${calls.map((c) => `<tr><td>${esc(isoDay(c.at))}</td><td>${esc(c.client || '—')}</td><td class="num">${c.items}</td><td>${c.ok ? 'OK' : `<span class="badge b-act">Échec</span> ${esc(c.error || '')}`}</td></tr>`).join('')}</tbody></table></div>` : '<p class="t-meta">Aucune demande pour l’instant.</p>'}
+        <p class="t-meta mt-4">Le journal ne garde jamais le contenu envoyé : seulement la date, le client, le nombre d’opérations et le résultat.</p></article></div>`;
+  return appPage(s, { title: 'Suggestions automatiques', current: '/admin', body, flash });
 }
 
 module.exports = { classifyTab, aiSettingsPage };
