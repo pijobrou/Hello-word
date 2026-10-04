@@ -1,6 +1,6 @@
 # Workflow 07 — AI classification (and assisted reconciliation, part B)
 
-**Status:** part A `STATUS: WAITING_FOR_OWNER_APPROVAL` — built and tested 2026-10-04 (`npm test` 54/54; review package `review/portal-classement/`). Part B (assisted reconciliation) waits for the owner's answers. Point 3 `STATUS: APPROVED` on 2026-10-04.
+**Status:** part A `STATUS: APPROVED` by the owner on 2026-10-04 (built and tested, `npm test` 54/54; review package `review/portal-classement/`; no AI wording in the pages). Part B (assisted reconciliation) waits for the owner's answers.
 **Owner approval required:** yes — AI suggestions shown to staff; client data sent to the AI provider.
 
 ## Owner decisions that frame this workflow
