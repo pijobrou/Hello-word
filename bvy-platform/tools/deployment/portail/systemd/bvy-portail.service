@@ -1,0 +1,41 @@
+# Portail BVY (portail.bvyaccountingtax.ca) — service Node, installé par remote-install-portail.sh
+[Unit]
+Description=BVY Accounting & Tax - portail client (Node)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bvy
+Group=bvy
+WorkingDirectory=/var/www/bvy-portail/current
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning /var/www/bvy-portail/current/server.js
+# Réglages courriel (SMTP_*, MAIL_TO…) partagés avec le site : même fichier .env, lu en premier.
+EnvironmentFile=-/var/www/bvy-website/shared/.env
+EnvironmentFile=-/var/www/bvy-portail/shared/portail.env
+Environment=NODE_ENV=production
+Environment=PORTAL_PORT=3100
+Environment=HOST=127.0.0.1
+Environment=TRUST_PROXY=1
+Environment=PORTAL_URL=https://portail.bvyaccountingtax.ca
+Environment=PORTAL_DATA_DIR=/var/www/bvy-portail/shared/data
+Restart=always
+RestartSec=3
+TimeoutStopSec=15
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/www/bvy-portail/shared/data
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictNamespaces=true
+LockPersonality=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

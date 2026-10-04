@@ -1,0 +1,68 @@
+{%- doc -%}
+  CuddleNest: free-shipping progress + bundle-offer hint, shown at the top of the cart drawer.
+  Re-rendered with the cart items, so it updates after every add or change.
+{%- enddoc -%}
+{%- liquid
+  assign threshold = settings.cn_free_shipping_threshold | default: 39 | times: 100
+  assign premium_min = settings.cn_premium_min_price | default: 10 | times: 100
+  assign a_buy = settings.cn_offer_a_buy | default: 6
+  assign a_get = settings.cn_offer_a_get | default: 2
+  assign b_buy = settings.cn_offer_b_buy | default: 8
+  assign b_get = settings.cn_offer_b_get | default: 2
+  assign c_buy = settings.cn_offer_c_buy | default: 6
+  assign c_get = settings.cn_offer_c_get | default: 1
+  assign c_total = c_buy | plus: c_get
+  assign b_total = b_buy | plus: b_get
+
+  assign premium_count = 0
+  assign basic_count = 0
+  for item in cart.items
+    if item.variant.price >= premium_min
+      assign premium_count = premium_count | plus: item.quantity
+    else
+      assign basic_count = basic_count | plus: item.quantity
+    endif
+  endfor
+
+  assign has_offer = false
+  if cart.cart_level_discount_applications.size > 0 or cart.total_discount > 0
+    assign has_offer = true
+  endif
+
+  assign hint = ''
+  if settings.cn_offers_enabled and has_offer == false
+    if premium_count >= a_buy and basic_count < a_get
+      assign missing = a_get | minus: basic_count
+      assign hint = 'cuddlenest.cart.hint_get_a' | t: count: missing, get: a_get
+    elsif premium_count > 0 and premium_count < a_buy
+      assign missing = a_buy | minus: premium_count
+      assign hint = 'cuddlenest.cart.hint_buy_a' | t: count: missing, get: a_get
+    elsif basic_count >= b_buy and basic_count < b_total
+      assign missing = b_total | minus: basic_count
+      assign hint = 'cuddlenest.cart.hint_b' | t: count: missing, get: b_get
+    elsif basic_count > 0 and basic_count < c_total
+      assign missing = c_total | minus: basic_count
+      assign hint = 'cuddlenest.cart.hint_c' | t: count: missing, get: c_get
+    endif
+  endif
+
+  assign remaining = threshold | minus: cart.total_price
+  assign percent = cart.total_price | times: 100 | divided_by: threshold
+  if percent > 100
+    assign percent = 100
+  endif
+-%}
+{%- if cart.item_count > 0 -%}
+  <div class="cn-cart-progress">
+    {%- if remaining > 0 -%}
+      {%- assign remaining_money = remaining | money -%}
+      <span>{{ 'cuddlenest.cart.shipping_remaining' | t: amount: remaining_money }}</span>
+    {%- else -%}
+      <span>✓ {{ 'cuddlenest.cart.shipping_free' | t }}</span>
+    {%- endif -%}
+    <div class="cn-cart-progress__bar" aria-hidden="true"><span style="width: {{ percent }}%;"></span></div>
+    {%- if hint != blank -%}
+      <span class="cn-cart-progress__offer">{{ hint }}</span>
+    {%- endif -%}
+  </div>
+{%- endif -%}

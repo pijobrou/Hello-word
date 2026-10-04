@@ -1,0 +1,521 @@
+{
+  "name": "Traducteur Audio EN → FR (voix humaine)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "traducteur-audio",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "4a1a86d0-4bb1-4534-b344-618ef3540734",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -656,
+        112
+      ],
+      "webhookId": "traducteur-audio",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "eyVfLGaLGohiCylZ",
+          "name": "Header Auth account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ⚙️ RÉGLAGES — modifiez ici (les clés API sont dans les « Credentials » n8n, pas ici).\nconst CONFIG = {\n  translator: 'deepl',             // 'google' (gratuit, sans clé) ou 'deepl' (meilleure qualité)\n  voice: 'openai',                 // 'elevenlabs' (la plus humaine) ou 'openai'\n  elevenVoiceId: 'EXAVITQu4vr4xnSDxMaL', // ID de la voix ElevenLabs (bibliothèque de voix → « Copy voice ID »)\n  elevenModel: 'eleven_flash_v2_5',      // rapide (~75 ms) ; 'eleven_multilingual_v2' = qualité max, plus lent\n  openaiVoice: 'alloy',            // alloy, ash, ballad, coral, echo, fable, nova, onyx, sage, shimmer, verse, marin, cedar\n  openaiModel: 'gpt-4o-mini-tts',\n  openaiInstructions: 'Lis le texte en français de France sur un ton neutre, calme et posé, comme un lecteur de documentation. Ne joue pas le texte et ne reproduis pas le ton du narrateur. Aucune emphase, aucune intonation dramatique. Ignore les points d exclamation et les majuscules : lis tout comme des phrases normales. Débit régulier et articulation claire.',\n};\n\nconst body = $input.first().json.body || {};\nconst text = String(body.text || '').replace(/\\s+/g, ' ').trim().slice(0, 1500);\nif (!text) throw new Error('Champ \"text\" manquant');\n\n// Le corps de la requête peut surcharger le moteur choisi (sinon on garde les valeurs de CONFIG).\nconst voice = String(body.voice || CONFIG.voice).toLowerCase();\nconst translator = String(body.translator || CONFIG.translator).toLowerCase();\n\nreturn [{ json: {\n  ...CONFIG,\n  voice: voice === 'openai' ? 'openai' : 'elevenlabs',\n  translator: translator === 'deepl' ? 'deepl' : 'google',\n  text,\n  source: String(body.source || 'en').toLowerCase(),\n  target: String(body.target || 'fr').toLowerCase(),\n} }];\n"
+      },
+      "id": "da54e526-a7ef-4c1b-9213-c5e534c177d1",
+      "name": "Préparer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        112
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Une étape a échoué : on renvoie la cause lisible à l'extension (au lieu d'un « 500 » muet).\nconst node = $prevNode.name;\nconst e = $input.first().json.error ?? $input.first().json;\nlet detail = typeof e === 'string' ? e : [e.message, e.description].filter(Boolean).join(' — ') || JSON.stringify(e);\nconst d = detail.toLowerCase();\nlet hint = '';\n// Causes précises d'abord (ElevenLabs renvoie aussi 401 pour un quota épuisé).\nif (/quota|credits|insufficient/.test(d))\n  hint = 'crédits épuisés chez ce fournisseur (voir votre compte ElevenLabs/OpenAI).';\nelse if (/paid_plan|library voice|payment|402/.test(d))\n  hint = 'voix non disponible avec l\\'offre gratuite ElevenLabs : utilisez une voix « Default/Premade » ou l\\'ID par défaut EXAVITQu4vr4xnSDxMaL.';\nelse if (/voice_not_found|voice not found/.test(d))\n  hint = 'ID de voix introuvable : recopiez-le dans le nœud Préparer (entre guillemets).';\nelse if (/credential/.test(d))\n  hint = 'aucune credential sélectionnée : ouvrez ce nœud et choisissez-la dans la liste.';\nelse if (/401|unauthorized|invalid_api_key|invalid api key|authorization failed|forbidden|403/.test(d))\n  hint = 'clé API refusée : vérifiez la credential de ce nœud (valeur collée sans espace, bon « Name »).';\nelse if (/429|too many/.test(d))\n  hint = 'trop de requêtes, réessayez dans une minute (ou passez à DeepL).';\nelse if (/404/.test(d))\n  hint = 'adresse introuvable chez le fournisseur (ID de voix ou modèle incorrect ?).';\nreturn [{ json: { error: `${node} : ${hint ? hint + ' ' : ''}(${detail.slice(0, 300)})` } }];\n"
+      },
+      "id": "568f3532-2a9d-49df-90b4-be2a2423d77a",
+      "name": "Erreur",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 502
+        }
+      },
+      "id": "3c94daee-4928-4cef-9fa5-2fb044baaf7f",
+      "name": "Répondre (erreur)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1104,
+        368
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.translator }}",
+              "rightValue": "deepl",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "66c70070-fd88-4a7f-bb7c-9c081687e94b",
+      "name": "Traducteur ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api-free.deepl.com/v2/translate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "deepLApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: [$json.text], source_lang: $json.source.toUpperCase(), target_lang: $json.target.toUpperCase() }) }}",
+        "options": {}
+      },
+      "id": "1564e1c7-8794-47a9-bf99-a44d81b476f5",
+      "name": "DeepL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        0
+      ],
+      "credentials": {
+        "deepLApi": {
+          "id": "A93k6RQzhxaGLDLD",
+          "name": "DeepL account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Uniformise la réponse du traducteur choisi.\nconst cfg = $('Préparer').first().json;\nconst r = $input.first().json;\nlet translation;\nif (cfg.translator === 'deepl') {\n  translation = r.translations[0].text;\n} else {\n  // Google renvoie un tableau JSON brut : [[[\"traduction\",\"original\",…],…],…]\n  translation = JSON.parse(r.data)[0].map((part) => part[0]).join('');\n}\nreturn [{ json: { ...cfg, translation: String(translation).trim() } }];\n"
+      },
+      "id": "86ff7d3f-27aa-445b-a20c-551ab640b4db",
+      "name": "Texte traduit",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        112
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "c2",
+              "leftValue": "={{ $json.voice }}",
+              "rightValue": "openai",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "47c30cdd-9262-4930-931b-2dbdc7752c6a",
+      "name": "Voix ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        448,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/audio/speech",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $json.openaiModel, voice: $json.openaiVoice, input: $json.translation, instructions: $json.openaiInstructions, response_format: 'mp3' }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "4376ab7e-2ef9-47fd-9ab6-a5f08279ec83",
+      "name": "OpenAI voix",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        672,
+        0
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "6rX8EA1z5LHqJmN5",
+          "name": "OpenAI account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Renvoie le texte traduit + l'audio MP3 en base64 à l'extension.\nconst cfg = $('Texte traduit').first().json;\nconst buffer = await this.helpers.getBinaryDataBuffer(0, 'data');\nreturn [{ json: {\n  translation: cfg.translation,\n  audio: buffer.toString('base64'),\n  mime: 'audio/mpeg',\n  voice: cfg.voice,\n} }];\n"
+      },
+      "id": "d7b51c13-f3d6-467a-9398-9fc971b74627",
+      "name": "Réponse",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        112
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "d11e5790-a797-493f-aa21-b8362425a117",
+      "name": "Répondre à l'extension",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1104,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.elevenlabs.io/v1/text-to-speech/{{ $json.elevenVoiceId }}?output_format=mp3_44100_128",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.translation, model_id: $json.elevenModel, language_code: $json.target }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "ca3aee3b-ca59-4c71-9394-bd8c5cd208c8",
+      "name": "ElevenLabs voix",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        672,
+        208
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "hE0ReLOWPTpl7twh",
+          "name": "Header Auth account 4"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "url": "https://translate.googleapis.com/translate_a/single",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "client",
+              "value": "gtx"
+            },
+            {
+              "name": "dt",
+              "value": "t"
+            },
+            {
+              "name": "sl",
+              "value": "={{ $json.source }}"
+            },
+            {
+              "name": "tl",
+              "value": "={{ $json.target }}"
+            },
+            {
+              "name": "q",
+              "value": "={{ $json.text }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "f32ceeb3-5299-4b50-a644-2904ddb195c2",
+      "name": "Google Translate",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        208
+      ],
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Préparer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Préparer": {
+      "main": [
+        [
+          {
+            "node": "Traducteur ?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Erreur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Erreur": {
+      "main": [
+        [
+          {
+            "node": "Répondre (erreur)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traducteur ?": {
+      "main": [
+        [
+          {
+            "node": "DeepL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Google Translate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DeepL": {
+      "main": [
+        [
+          {
+            "node": "Texte traduit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Erreur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Texte traduit": {
+      "main": [
+        [
+          {
+            "node": "Voix ?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Erreur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Voix ?": {
+      "main": [
+        [
+          {
+            "node": "OpenAI voix",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ElevenLabs voix",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI voix": {
+      "main": [
+        [
+          {
+            "node": "Réponse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Erreur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Réponse": {
+      "main": [
+        [
+          {
+            "node": "Répondre à l'extension",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Erreur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ElevenLabs voix": {
+      "main": [
+        [
+          {
+            "node": "Réponse",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Erreur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Translate": {
+      "main": [
+        [
+          {
+            "node": "Texte traduit",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Erreur",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "cd5af897-4aa2-4a2a-ba24-cf488efb38fc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "09455fbef4945ff2d069cf03048af6c9a78dfaa6b173fad60bd33f88bf550424"
+  },
+  "nodeGroups": [],
+  "id": "MmoUzIlysyc9BcU2",
+  "tags": []
+}

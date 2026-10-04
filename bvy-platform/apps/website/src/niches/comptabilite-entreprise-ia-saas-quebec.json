@@ -1,0 +1,202 @@
+{
+  "slug": "comptabilite-entreprise-ia-saas-quebec",
+  "order": 1,
+  "title": "Comptabilité pour entreprises IA et SaaS | BVY",
+  "description": "Comptabilité pour entreprises IA et SaaS au Québec : revenus Stripe, abonnements, coûts d'infonuagique et TPS/TVQ, directement dans QuickBooks Online.",
+  "breadcrumb": "Entreprises IA et SaaS",
+  "card": {
+    "title": "Entreprises IA et SaaS",
+    "text": "Des abonnements et des coûts d'infonuagique lus clairement, pour faire croître votre technologie avec des chiffres qui suivent le rythme.",
+    "button": "Comptabilité pour IA et SaaS"
+  },
+  "image": {
+    "alt": "Entrepreneur québécois analysant les revenus de son entreprise IA et SaaS"
+  },
+  "image2": {
+    "alt": "Équipe technologique discutant du développement d'un produit numérique autour d'un écran"
+  },
+  "eyebrow": "Entreprises IA, technologiques et SaaS",
+  "h1": "Comptabilité pour entreprises IA et SaaS : une structure qui évolue au rythme de votre technologie",
+  "quote": "Lorsque la technologie accélère, les chiffres doivent suivre sans perdre leur sens.",
+  "intro": [
+    "Votre produit se déploie, vos abonnements se renouvellent et vos coûts d'infonuagique suivent l'usage. La comptabilité pour entreprises IA et SaaS demande des chiffres qui avancent aussi vite que votre technologie, sans perdre leur sens.",
+    "BVY Accounting & Tax Services travaille directement dans votre QuickBooks Online. QBO reste votre système comptable; nous y ajoutons l'explication, les tâches, les alertes et les tableaux de bord qui vous aident à décider. À distance, en français ou en anglais, avec 10 ans d'expérience en comptabilité et en fiscalité."
+  ],
+  "reality": {
+    "h2": "Des revenus récurrents, des coûts qui bougent avec l'usage",
+    "paragraphs": [
+      "Un abonnement encaissé ce mois-ci ne raconte pas toute l'histoire. Entre les paiements Stripe, les renouvellements annuels, les remboursements et les frais de traitement, le dépôt bancaire correspond rarement aux ventes réelles.",
+      "De l'autre côté, les dépenses d'API, d'hébergement et de logiciels varient avec l'utilisation de votre produit, souvent en dollars américains et auprès de fournisseurs étrangers. Bien classées, elles deviennent un indicateur précieux : combien coûte réellement chaque client servi?"
+    ]
+  },
+  "stages": {
+    "h2": "Une structure qui évolue avec votre entreprise",
+    "intro": "Chaque étape pose ses propres questions. Votre comptabilité peut y répondre au bon moment.",
+    "items": [
+      {
+        "name": "Lancement",
+        "text": "Les premiers clients payants arrivent et les outils se multiplient.",
+        "needs": [
+          "Plan comptable adapté à un modèle d'abonnement",
+          "Connexion de Stripe et des comptes bancaires à QBO",
+          "Inscription et suivi TPS/TVQ"
+        ]
+      },
+      {
+        "name": "Croissance",
+        "text": "Les revenus récurrents progressent, l'équipe et les sous-traitants aussi.",
+        "needs": [
+          "Suivi mensuel des revenus récurrents",
+          "Classement des coûts d'infonuagique et d'API",
+          "Paie et paiements aux sous-traitants"
+        ]
+      },
+      {
+        "name": "Expansion",
+        "text": "Nouveaux marchés, nouvelles devises, décisions plus structurantes.",
+        "needs": [
+          "Rentabilité par client ou par projet",
+          "Prévisions de trésorerie",
+          "Documentation des coûts de développement"
+        ]
+      }
+    ]
+  },
+  "flow": {
+    "h2": "Le parcours de l'argent dans une entreprise SaaS",
+    "intro": "Du premier abonnement jusqu'à votre tableau de bord, chaque étape laisse une trace à relier.",
+    "steps": [
+      {
+        "label": "Abonnement",
+        "detail": "Le client s'abonne ou renouvelle, souvent par Stripe."
+      },
+      {
+        "label": "Encaissement",
+        "detail": "Stripe retient ses frais, gère les remboursements et verse un dépôt net."
+      },
+      {
+        "label": "Dépôt",
+        "detail": "L'argent arrive au compte bancaire, parfois en USD."
+      },
+      {
+        "label": "Coûts d'usage",
+        "detail": "API, hébergement et logiciels suivent l'utilisation de votre produit."
+      },
+      {
+        "label": "Taxes",
+        "detail": "La TPS/TVH/TVQ perçue et payée est isolée et réservée."
+      },
+      {
+        "label": "Lecture",
+        "detail": "Revenus, marge et trésorerie réunis dans un tableau clair."
+      }
+    ],
+    "result": "Des chiffres conçus pour éclairer la prochaine décision : embaucher, investir ou ajuster vos prix."
+  },
+  "expertise": {
+    "h2": "Comptabilité pour entreprises IA et SaaS : ce que nous suivons",
+    "intro": "Notre expertise comptable appliquée à votre réalité technologique.",
+    "items": [
+      "Revenus Stripe et abonnements",
+      "Revenus mensuels récurrents",
+      "Dépenses OpenAI, Anthropic, AWS et autres plateformes",
+      "Rentabilité par client ou par projet",
+      "Sous-traitants canadiens et étrangers",
+      "TPS/TVH/TVQ",
+      "Prévisions de trésorerie",
+      "Suivi et documentation des coûts de développement et de recherche (toute demande de RS&DE est validée par un spécialiste)"
+    ]
+  },
+  "services": {
+    "h2": "Les services BVY pour votre entreprise technologique",
+    "items": [
+      {
+        "name": "Tenue de livres",
+        "text": "Transactions Stripe, bancaires et fournisseurs classées chaque mois dans QBO.",
+        "link": "/services/#tenue-de-livres"
+      },
+      {
+        "name": "TPS/TVQ",
+        "text": "Déclarations préparées et taxes suivies sur vos abonnements et vos achats.",
+        "link": "/services/#tps-tvq"
+      },
+      {
+        "name": "Paie",
+        "text": "Paie de l'équipe, déductions à la source et relevés de fin d'année.",
+        "link": "/services/#paie"
+      },
+      {
+        "name": "Impôt des sociétés",
+        "text": "Déclarations T2 et CO-17 préparées à partir de livres à jour.",
+        "link": "/services/#impot-societes"
+      },
+      {
+        "name": "Automatisation et plateforme BVY",
+        "text": "Tableaux de bord, alertes et tâches ajoutés au-dessus de QBO.",
+        "link": "/services/#plateforme"
+      }
+    ]
+  },
+  "offer": null,
+  "changes": {
+    "updated": "2026-09-30",
+    "items": [
+      {
+        "kind": "Technologies",
+        "title": "Des coûts qui suivent l'usage",
+        "text": "De plus en plus d'outils d'IA et d'infonuagique facturent à l'utilisation plutôt qu'au forfait. Ces dépenses varient d'un mois à l'autre et gagnent à être suivies comme un coût direct de votre produit.",
+        "link": null,
+        "source": null
+      },
+      {
+        "kind": "Modèles de revenus",
+        "title": "Abonnement, forfait annuel et consommation",
+        "text": "Plusieurs entreprises SaaS combinent abonnement mensuel, forfait annuel et facturation à l'usage. Chaque modèle se comptabilise et se lit différemment dans vos rapports.",
+        "link": null,
+        "source": null
+      },
+      {
+        "kind": "Obligations fiscales et administratives",
+        "title": "Des taxes canadiennes sur des services étrangers",
+        "text": "Depuis juillet 2021, un régime simplifié encadre la TPS/TVH des fournisseurs numériques non-résidents. Vos factures de plateformes étrangères peuvent donc inclure des taxes canadiennes; leur traitement dans QBO mérite une vérification.",
+        "link": null,
+        "source": "https://www.canada.ca/fr/agence-revenu/services/impot/entreprises/sujets/tps-tvh-entreprises/economie-numerique.html"
+      }
+    ]
+  },
+  "faq": [
+    {
+      "q": "BVY travaille-t-elle directement dans mon QuickBooks Online?",
+      "a": "Oui. QuickBooks Online demeure votre système comptable et le travail s'y fait. BVY ajoute par-dessus l'explication, les tâches, les alertes et les tableaux de bord qui vous aident à suivre vos chiffres."
+    },
+    {
+      "q": "Pouvez-vous suivre nos revenus récurrents mensuels?",
+      "a": "Oui. Nous organisons vos données Stripe et QBO pour suivre l'évolution de vos revenus d'abonnement mois après mois, à partir de vos transactions réelles."
+    },
+    {
+      "q": "BVY prépare-t-elle les demandes de RS&DE?",
+      "a": "Nous documentons et classons vos coûts de développement dans vos livres. Toute demande de crédit RS&DE est validée par un spécialiste de ce programme."
+    },
+    {
+      "q": "Comment traitez-vous les dépenses en dollars américains?",
+      "a": "Elles sont enregistrées dans QBO avec leur conversion en dollars canadiens, pour que vos coûts et vos taxes reflètent la réalité de votre entreprise."
+    },
+    {
+      "q": "Quels sont vos tarifs?",
+      "a": "Nos services sont offerts sur soumission, selon le volume de transactions et les besoins de votre entreprise."
+    }
+  ],
+  "cta": {
+    "title": "Votre entreprise avance. Vos chiffres doivent avancer avec elle.",
+    "text": "Parlons de votre modèle, de vos outils et de vos prochaines étapes. Nous vous proposerons une structure comptable à la mesure de votre croissance.",
+    "button": "Faire évoluer mes chiffres avec mon entreprise",
+    "service": "tenue-de-livres"
+  },
+  "keywords": [
+    "comptabilité entreprise IA",
+    "comptable SaaS Québec",
+    "comptabilité startup technologique",
+    "revenus récurrents Stripe QuickBooks",
+    "TPS TVQ SaaS"
+  ]
+}

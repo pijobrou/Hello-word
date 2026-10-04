@@ -1,0 +1,98 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "cn_hero": {
+      "type": "cn-hero",
+      "settings": {
+        "product": "baby-training-learning-pants-baby-gauze-diaper-pants",
+        "warm_background": true,
+        "padding_top": 56,
+        "padding_bottom": 56
+      }
+    },
+    "cn_trust": {
+      "type": "cn-trust-bar",
+      "settings": {}
+    },
+    "cn_offers": {
+      "type": "cn-offers",
+      "settings": {
+        "product": "baby-training-learning-pants-baby-gauze-diaper-pants",
+        "padding_top": 64,
+        "padding_bottom": 32
+      }
+    },
+    "cn_pack": {
+      "type": "cn-pack-builder",
+      "settings": {
+        "product": "baby-training-learning-pants-baby-gauze-diaper-pants",
+        "warm_background": true,
+        "padding_top": 64,
+        "padding_bottom": 64
+      }
+    },
+    "cn_steps": {
+      "type": "cn-how-it-works",
+      "settings": {
+        "soft_background": false,
+        "padding_top": 64,
+        "padding_bottom": 64
+      }
+    },
+    "cn_benefits": {
+      "type": "cn-benefits",
+      "settings": {
+        "padding_top": 32,
+        "padding_bottom": 64
+      }
+    },
+    "cn_compare": {
+      "type": "cn-comparison",
+      "settings": {
+        "padding_top": 64,
+        "padding_bottom": 64
+      }
+    },
+    "cn_size": {
+      "type": "cn-size-guide",
+      "settings": {
+        "padding_top": 56,
+        "padding_bottom": 32
+      }
+    },
+    "cn_faq": {
+      "type": "cn-faq",
+      "settings": {
+        "padding_top": 48,
+        "padding_bottom": 64
+      }
+    },
+    "cn_news": {
+      "type": "cn-newsletter",
+      "settings": {
+        "padding_top": 64,
+        "padding_bottom": 64
+      }
+    }
+  },
+  "order": [
+    "cn_hero",
+    "cn_trust",
+    "cn_offers",
+    "cn_pack",
+    "cn_steps",
+    "cn_benefits",
+    "cn_compare",
+    "cn_size",
+    "cn_faq",
+    "cn_news"
+  ]
+}

@@ -1,0 +1,143 @@
+/* BVY design system — jetons CSS
+   FICHIER GÉNÉRÉ par scripts/build-tokens.mjs à partir de tokens.json. Ne pas modifier à la main. */
+:root{
+  /* color */
+  --bvy-plum-900:#1E0820; /* Prune profonde — navigation, en-têtes. Site : --plum */
+  --bvy-plum-800:#3A0F3E; /* Prune — survol navigation, toasts. Site : --plum2 */
+  --bvy-plum-700:#5C1F60; /* Prune moyenne — liens, accents. Site : --plum3 */
+  --bvy-plum-600:#7A3080; /* Prune claire — anneau de focus sur fond clair. Site : --plum4 */
+  --bvy-plum-logo:#4A2146; /* Couleur du logo. Site : --plum-logo */
+  --bvy-gold-500:#C4A040; /* Or BVY — boutons d'accent, filets, focus sur fond sombre. Site : --gold */
+  --bvy-gold-400:#D4B860; /* Or clair — survol. Site : --gold2 */
+  --bvy-gold-300:#E8D080; /* Or pâle — texte actif sur prune. Site : --gold3 */
+  --bvy-gold-50:#FBF5E0; /* Fond or très pâle — zone QuickBooks. Site : --gold4 */
+  --bvy-gold-line:#EAD9A0; /* Bordure or pâle. Site : .notice, .steps .who.qb */
+  --bvy-gold-deep:#9A7A22; /* Or foncé — surtitres, série 2 des graphiques. Site : .eyebrow */
+  --bvy-gold-ink:#7A5F12; /* Texte or lisible sur fond clair. Site : .steps .who.qb */
+  --bvy-white:#FFFFFF; /* Blanc. Site : --white */
+  --bvy-cream:#FDFBFF; /* Crème. Site : --cream */
+  --bvy-cream-2:#F8F4FF; /* Crème lavande — fond du portail. Site : --cream2 */
+  --bvy-line:#EDE5F4; /* Bordure douce. Site : --border */
+  --bvy-line-2:#DDD0EC; /* Bordure marquée (décorative). Site : --border2 */
+  --bvy-line-strong:#8C7A99; /* AJOUT accessibilité : contour des champs et cases (≥ 3:1 sur blanc, WCAG 1.4.11) */
+  --bvy-ink:#1A0A1E; /* Texte principal. Site : --text */
+  --bvy-ink-2:#4A3555; /* Texte secondaire. Site : --text2 */
+  --bvy-ink-3:#6B5A7A; /* Texte discret (métadonnées). Site : --text3 */
+  --bvy-on-dark:rgba(255,255,255,.92); /* Texte principal sur prune. Site : --on-dark */
+  --bvy-on-dark-2:rgba(255,255,255,.74); /* Texte secondaire sur prune. Site : --on-dark2 */
+  --bvy-on-dark-3:rgba(255,255,255,.6); /* Texte discret sur prune (minimum autorisé). Site : --on-dark3 */
+  --bvy-green:#1B6B45; /* Bonne — texte et icône. Site : --good */
+  --bvy-green-bg:#E8F5EE; /* Bonne — fond. Site : --good-bg */
+  --bvy-amber:#8A5A00; /* À surveiller — texte et icône. Site : --watch */
+  --bvy-amber-bg:#FFF4DC; /* À surveiller — fond. Site : --watch-bg */
+  --bvy-red:#A12C2C; /* Action requise — texte et icône. Site : --act */
+  --bvy-red-bg:#FCEAEA; /* Action requise — fond. Site : --act-bg */
+  /* role */
+  --bvy-bg-app:var(--bvy-cream-2); /* Fond de la zone de contenu */
+  --bvy-surface:var(--bvy-white); /* Cartes, tableaux, modales */
+  --bvy-surface-muted:var(--bvy-cream); /* En-têtes de tableau, zones secondaires */
+  --bvy-surface-qbo:var(--bvy-gold-50); /* Zones liées à QuickBooks */
+  --bvy-text:var(--bvy-ink); /* Texte courant */
+  --bvy-text-muted:var(--bvy-ink-2); /* Explications */
+  --bvy-text-subtle:var(--bvy-ink-3); /* Dates, métadonnées */
+  --bvy-text-heading:var(--bvy-plum-900); /* Titres */
+  --bvy-text-link:var(--bvy-plum-700); /* Liens */
+  --bvy-text-gold:var(--bvy-gold-ink); /* Texte or sur fond clair (lien QuickBooks, surtitres) */
+  --bvy-text-on-accent:var(--bvy-plum-900); /* Texte sur bouton or */
+  --bvy-text-on-primary:var(--bvy-white); /* Texte sur bouton prune */
+  --bvy-border:var(--bvy-line); /* Séparateurs, contours de cartes (décoratif) */
+  --bvy-border-2:var(--bvy-line-2); /* Contours plus visibles (décoratif) */
+  --bvy-border-input:var(--bvy-line-strong); /* Contour des champs, cases, boutons secondaires (≥ 3:1) */
+  --bvy-primary:var(--bvy-plum-900); /* Bouton principal */
+  --bvy-primary-hover:var(--bvy-plum-700); /* Bouton principal au survol */
+  --bvy-accent:var(--bvy-gold-500); /* Bouton d'accent, filets or */
+  --bvy-accent-hover:var(--bvy-gold-400); /* Bouton d'accent au survol */
+  --bvy-focus:var(--bvy-plum-600); /* Anneau de focus sur fond clair */
+  --bvy-focus-on-dark:var(--bvy-gold-500); /* Anneau de focus sur prune */
+  --bvy-nav-bg:var(--bvy-plum-900); /* Barre latérale / barre d'onglets */
+  --bvy-nav-bg-hover:var(--bvy-plum-800); /* Élément de navigation survolé */
+  --bvy-nav-active-bg:rgba(196,160,64,.14); /* Élément actif (or 14 % sur prune) */
+  --bvy-nav-text:var(--bvy-on-dark-2); /* Libellés de navigation */
+  --bvy-nav-text-strong:var(--bvy-on-dark); /* Nom de l'entreprise */
+  --bvy-nav-text-subtle:var(--bvy-on-dark-3); /* Libellés de groupe */
+  --bvy-nav-text-active:var(--bvy-gold-300); /* Élément actif */
+  --bvy-nav-qbo:var(--bvy-gold-400); /* Lien QuickBooks ↗ dans la navigation */
+  --bvy-good:var(--bvy-green); /* État « Bonne » */
+  --bvy-good-bg:var(--bvy-green-bg);
+  --bvy-watch:var(--bvy-amber); /* État « À surveiller » */
+  --bvy-watch-bg:var(--bvy-amber-bg);
+  --bvy-act:var(--bvy-red); /* État « Action requise » et erreurs */
+  --bvy-act-bg:var(--bvy-red-bg);
+  --bvy-info:var(--bvy-plum-700); /* Information neutre */
+  --bvy-info-bg:var(--bvy-cream-2);
+  --bvy-chart-1:var(--bvy-plum-700); /* Série 1 (revenus) */
+  --bvy-chart-2:var(--bvy-gold-deep); /* Série 2 (dépenses) — or foncé pour rester ≥ 3:1 */
+  --bvy-chart-3:var(--bvy-plum-600); /* Série 3 */
+  --bvy-chart-grid:var(--bvy-line); /* Quadrillage */
+  --bvy-progress-track:var(--bvy-line); /* Rail des barres de progression */
+  --bvy-skeleton:var(--bvy-line); /* Blocs de chargement */
+  --bvy-overlay:rgba(30,8,32,.55); /* Voile derrière les modales */
+  /* font */
+  --bvy-font-display:'Cormorant Garamond', Georgia, serif; /* Titres et montants clés */
+  --bvy-font-body:'Jost', system-ui, -apple-system, 'Segoe UI', sans-serif; /* Texte, interface */
+  --bvy-font-mono:'IBM Plex Mono', ui-monospace, monospace; /* Numéros de référence, codes */
+  /* text */
+  --bvy-fs-display:40px; /* Titre de page d'accueil (Cormorant 500) */
+  --bvy-fs-h1:32px; /* Titre de page (Cormorant 500) */
+  --bvy-fs-h2:24px; /* Titre de section (Cormorant 600) */
+  --bvy-fs-h3:18px; /* Titre de carte (Jost 600) */
+  --bvy-fs-amount:34px; /* Montant KPI (Cormorant 600) */
+  --bvy-fs-body:16px; /* Texte courant */
+  --bvy-fs-ui:15px; /* Boutons, champs, navigation */
+  --bvy-fs-small:14px; /* Tableaux, explications courtes */
+  --bvy-fs-meta:13px; /* Dates, aide de champ */
+  --bvy-fs-label:12px; /* Surtitres en majuscules (minimum absolu) */
+  /* leading */
+  --bvy-lh-tight:1.15; /* Titres, montants */
+  --bvy-lh-snug:1.35; /* Interface */
+  --bvy-lh-body:1.6; /* Paragraphes */
+  /* weight */
+  --bvy-fw-regular:400; /* Texte (pas de 300 dans le portail sous 17 px) */
+  --bvy-fw-medium:500; /* Navigation, titres Cormorant */
+  --bvy-fw-semibold:600; /* Boutons, titres de carte */
+  --bvy-fw-bold:700; /* Rare */
+  /* space */
+  --bvy-space-1:4px;
+  --bvy-space-2:8px;
+  --bvy-space-3:12px;
+  --bvy-space-4:16px;
+  --bvy-space-5:20px;
+  --bvy-space-6:24px;
+  --bvy-space-8:32px;
+  --bvy-space-10:40px;
+  --bvy-space-12:48px;
+  --bvy-space-16:64px;
+  /* radius */
+  --bvy-radius-sm:4px; /* Boutons, champs (comme le site) */
+  --bvy-radius-md:8px; /* Cartes (comme le site --radius) */
+  --bvy-radius-lg:14px; /* Modales, grands panneaux (comme le site --radius-lg) */
+  --bvy-radius-pill:999px; /* Badges */
+  /* shadow */
+  --bvy-shadow-sm:0 1px 3px rgba(58,15,62,.08); /* Cartes */
+  --bvy-shadow-md:0 8px 24px rgba(58,15,62,.10); /* Menus, toasts */
+  --bvy-shadow-lg:0 20px 60px rgba(58,15,62,.18); /* Modales (site --shadow) */
+  /* motion */
+  --bvy-motion-fast:150ms; /* Survol, focus */
+  --bvy-motion-base:250ms; /* Ouverture de panneaux */
+  --bvy-motion-ease:cubic-bezier(.2,.7,.2,1); /* Courbe standard */
+  /* layout */
+  --bvy-sidebar-w:252px; /* Largeur de la barre latérale */
+  --bvy-topbar-h:64px; /* Hauteur de la barre du haut */
+  --bvy-tabbar-h:64px; /* Hauteur de la barre d'onglets mobile */
+  --bvy-content-max:1200px; /* Largeur maximale du contenu (site --wrap) */
+  --bvy-tap-min:44px; /* Cible tactile minimale */
+  /* breakpoint */
+  --bvy-bp-sm:640px; /* Mobile → tablette */
+  --bvy-bp-md:960px; /* Barre latérale ↔ barre d'onglets */
+  --bvy-bp-lg:1240px; /* Bureau large */
+  /* z */
+  --bvy-z-nav:50;
+  --bvy-z-overlay:90;
+  --bvy-z-modal:100;
+  --bvy-z-toast:110;
+}

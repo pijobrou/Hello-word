@@ -1,0 +1,16 @@
+# Sauvegarde quotidienne de la base du portail (14 jours gardés dans shared/data/backups)
+[Unit]
+Description=BVY portail - sauvegarde de la base
+
+[Service]
+Type=oneshot
+User=bvy
+Group=bvy
+Environment=PORTAL_DATA_DIR=/var/www/bvy-portail/shared/data
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning /var/www/bvy-portail/current/cli.js backup 14
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/www/bvy-portail/shared/data
+ProtectHome=true
+PrivateTmp=true
