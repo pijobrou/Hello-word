@@ -105,6 +105,15 @@ if [ ! -f "$NEW/server.js" ]; then
 fi
 [ -f "$NEW/server.js" ] && [ -f "$NEW/public/assets/tokens.css" ] || { rm -rf "$NEW"; die "Ce n'est pas l'archive du portail (server.js / public absents)."; }
 rm -rf "$NEW/data" "$NEW/.env" "$NEW/test" "$NEW/node_modules"
+# Dépendance facultative : le SDK Anthropic (classement par l'IA, workflow 07). Sans elle, le portail fonctionne, IA inactive.
+if [ -f "$NEW/package-lock.json" ]; then
+  if command -v npm >/dev/null 2>&1 \
+     && (cd "$NEW" && npm ci --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error >/dev/null 2>&1); then
+    ok "Dépendances installées (npm ci)"
+  else
+    warn "Dépendances non installées (npm absent ou registre injoignable) : le classement par l'IA restera inactif."
+  fi
+fi
 chown -R root:root "$NEW"; find "$NEW" -type d -exec chmod 755 {} +; find "$NEW" -type f -exec chmod 644 {} +
 ok "Extraite dans $NEW"
 
@@ -128,6 +137,8 @@ if [ ! -f "$PENV" ]; then
 QBO_ENV=sandbox
 QBO_CLIENT_ID=
 QBO_CLIENT_SECRET=
+# --- IA (classement des opérations non catégorisées, workflow 07) : facultatif, activée ensuite dans Administration → IA ---
+# ANTHROPIC_API_KEY=
 # Clé de chiffrement des jetons : générée automatiquement à l'installation, ne pas la changer.
 QBO_TOKEN_KEY=
 ENVEOF

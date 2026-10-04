@@ -331,7 +331,7 @@ function adminPage(s, { users, clients, flash, extra = '' }) {
     <td>${can(u, 'users.manage') ? `<a class="link" href="/admin/utilisateurs/${x.id}">Gérer</a>` : ''}</td></tr>`).join('');
 
   const body = `${pageHead('Administration', 'Personnes et clients', 'Invitez les personnes, créez les clients et choisissez qui voit quoi.')}
-  ${u.role === 'admin' ? '<nav class="subnav" aria-label="Administration"><a href="/admin" aria-current="page">Personnes et clients</a><a href="/cabinet">QBO du cabinet</a></nav>' : ''}
+  ${u.role === 'admin' ? '<nav class="subnav" aria-label="Administration"><a href="/admin" aria-current="page">Personnes et clients</a><a href="/cabinet">QBO du cabinet</a><a href="/admin/ia">IA</a></nav>' : ''}
   <div class="cols-2">
     <article class="card"><div class="card-head"><h2 class="t-h3">Inviter une personne</h2></div>
       <form class="form" method="post" action="/admin/inviter">${csrf}

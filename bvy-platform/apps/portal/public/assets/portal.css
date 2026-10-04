@@ -288,3 +288,11 @@ tr.rc-todo td{background:var(--bvy-bg-app)}
 .sm-bvy{list-style:none;margin:var(--bvy-space-3) 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
 .sm-bvy li{display:flex;gap:10px;align-items:baseline;padding:10px 12px;border-radius:var(--bvy-radius-md);background:var(--bvy-surface-muted)}
 .sm-bvy b{font-size:1.5rem;color:var(--bvy-primary)}
+/* Classement (workflow 07) */
+.cl-sugg{margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.an-item.cl-strong{border-left-color:var(--bvy-good)}
+.an-item.cl-suggest{border-left-color:var(--bvy-accent)}
+.an-item.cl-validate{border-left-color:var(--bvy-watch)}
+.an-item.cl-todo{border-left-color:var(--bvy-primary)}
+.cl-choose{margin-top:0}
+.cl-choose .rc-f{flex:0 1 260px}

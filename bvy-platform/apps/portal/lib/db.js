@@ -534,6 +534,59 @@ const MIGRATIONS = [
     published_at  TEXT NOT NULL
   );
   `,
+  // 14 — Classement par l'IA (workflow 07) : plan comptable, historique par bénéficiaire, suggestions, réglages
+  `
+  CREATE TABLE qbo_accounts (
+    client_id   INTEGER NOT NULL REFERENCES clients(id),
+    qbo_id      TEXT NOT NULL,
+    name        TEXT NOT NULL,
+    type        TEXT,
+    PRIMARY KEY (client_id, qbo_id)
+  );
+  CREATE TABLE qbo_payee_accounts (
+    client_id    INTEGER NOT NULL REFERENCES clients(id),
+    party        TEXT NOT NULL,
+    account_id   TEXT NOT NULL,
+    n            INTEGER NOT NULL,
+    total_cents  INTEGER NOT NULL,
+    last_date    TEXT,
+    PRIMARY KEY (client_id, party, account_id)
+  );
+  CREATE TABLE ai_suggestions (
+    id                 INTEGER PRIMARY KEY,
+    item_id            INTEGER NOT NULL UNIQUE REFERENCES qbo_items(id),
+    client_id          INTEGER NOT NULL REFERENCES clients(id),
+    account_id         TEXT,
+    account_name       TEXT,
+    confidence         INTEGER,
+    source             TEXT NOT NULL CHECK (source IN ('history','ai','none')),
+    reason             TEXT,
+    status             TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','accepted','chosen','rejected','done')),
+    chosen_account_id  TEXT,
+    chosen_account_name TEXT,
+    decided_by         INTEGER REFERENCES users(id),
+    decided_at         TEXT,
+    ai_tried           INTEGER NOT NULL DEFAULT 0,
+    created_at         TEXT NOT NULL
+  );
+  CREATE INDEX ai_suggestions_client ON ai_suggestions(client_id, status);
+  CREATE TABLE settings (
+    key    TEXT PRIMARY KEY,
+    value  TEXT NOT NULL
+  );
+  CREATE TABLE ai_calls (
+    id             INTEGER PRIMARY KEY,
+    client_id      INTEGER REFERENCES clients(id),
+    purpose        TEXT NOT NULL,
+    items          INTEGER NOT NULL,
+    model          TEXT,
+    input_tokens   INTEGER,
+    output_tokens  INTEGER,
+    ok             INTEGER NOT NULL,
+    error          TEXT,
+    at             TEXT NOT NULL
+  );
+  `,
 ];
 
 function openDb(file) {

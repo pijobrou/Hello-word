@@ -18,8 +18,9 @@ const RV = require('./views-inbox.js');
 const AV = require('./views-anomalies.js');
 const GV = require('./views-govrequests.js');
 const SV = require('./views-summaries.js');
+const CV = require('./views-classify.js');
 
-function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax, inbox, anomalies, gov, health, summaries }) {
+function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax, inbox, anomalies, gov, health, summaries, classifier }) {
   const isStaff = (u) => STAFF_ROLES.includes(u.role);
 
   const qboStatus = (clientId) => (qboService ? qboService.status(clientId) : null);
@@ -190,6 +191,15 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           const cid = anomalies.act(u, an[1], action, form, ip);
           const msg = { take: 'Vous êtes responsable de cette anomalie.', resolve: 'Anomalie résolue.', dismiss: 'Anomalie ignorée : elle ne sera plus signalée.', previous: 'Anomalie résolue avec la réponse précédente du client.', reopen: 'Anomalie rouverte.' }[action];
           return ok(backTo(form.back, `/clients/${cid}/anomalies`), msg), true;
+        }
+        /* Réglages de l'IA (workflow 07) : administrateur */
+        if (p === '/admin/ia') {
+          if (u.role !== 'admin') throw new PortalError('Accès refusé.');
+          if (GET) {
+            const calls = db.prepare('SELECT a.*, c.name AS client FROM ai_calls a LEFT JOIN clients c ON c.id = a.client_id ORDER BY a.id DESC LIMIT 20').all();
+            return send200(res, CV.aiSettingsPage(s, { settings: classifier.settings(), calls, flash: flashOf(url) })), true;
+          }
+          if (POST) { classifier.saveSettings(u, form, ip); return ok('/admin/ia', 'Réglages de l’IA enregistrés.'), true; }
         }
         /* Résumés (workflow 16) */
         if (p === '/resumes' && GET) {
@@ -433,7 +443,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           await qboService.disconnect(u, cid, ip);
           return ok(`/clients/${cid}/quickbooks`, 'QuickBooks déconnecté : les autorisations sont retirées.'), true;
         }
-        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie|tps-tvq|impots|historique|anomalies|gouvernement|sante|resumes))?$/);
+        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie|tps-tvq|impots|historique|anomalies|gouvernement|sante|resumes|classement|classement\/relancer))?$/);
         if (c) {
           const cid = Number(c[1]);
           const sub = c[2] || '';
@@ -487,6 +497,19 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
             const filter = anomalyFilter(url);
             return send200(res, AV.clientAnomaliesTab(s, { client, items: anomalies.list(u, { ...filter, clientId: cid }), filter, questionFor: anomalies.questionFor,
               shell: (inner) => P.staffClientShell(s, client, '/anomalies', inner, flashOf(url), counts(u, cid)) })), true;
+          }
+          if (sub === '/classement' && GET) {
+            return send200(res, CV.classifyTab(s, { client, groups: classifier.groups(u, cid), chart: classifier.chartFor(u, cid), settings: classifier.settings(),
+              shell: (inner) => P.staffClientShell(s, client, '/classement', inner, flashOf(url), counts(u, cid)) })), true;
+          }
+          if (sub === '/classement' && POST) {
+            const r = classifier.decide(u, cid, form.group, form, ip);
+            const msg = form.action === 'undo' ? 'Décision annulée : de nouveau à classer.' : `${r.count} opération${r.count > 1 ? 's' : ''} de ${r.party} à classer en « ${r.account} » dans QuickBooks.`;
+            return ok(`/clients/${cid}/classement`, msg), true;
+          }
+          if (sub === '/classement/relancer' && POST) {
+            const r = await classifier.classifyClient(cid, { retry: true });
+            return ok(`/clients/${cid}/classement`, `Suggestions relancées : ${r.history} par l’historique, ${r.ai} par l’IA.`), true;
           }
           if (sub === '/sante' && GET) {
             return send200(res, SV.healthTab(s, { client, h: health.forActor(u, cid), shell: (inner) => P.staffClientShell(s, client, '/sante', inner, flashOf(url), counts(u, cid)) })), true;

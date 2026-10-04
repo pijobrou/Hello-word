@@ -33,6 +33,8 @@ const { createAnomalies, findDuplicates, findUnusual } = require('./lib/anomalie
 const { createGovRequests } = require('./lib/govrequests.js');
 const { createHealth } = require('./lib/health.js');
 const { createSummaries } = require('./lib/summaries.js');
+const { createAi } = require('./lib/ai.js');
+const { createClassifier } = require('./lib/classify.js');
 const W = require('./lib/views-work.js');
 
 const COOKIE = '__Host-bvy_session';
@@ -185,8 +187,11 @@ function createServer(options = {}) {
   // QuickBooks Online (workflow 04) : actif seulement si l'application Intuit est configurée (ou un faux client en test).
   const qboCfg = options.qbo !== undefined ? options.qbo : qboConfigFromEnv(process.env, cfg.publicUrl);
   const qbo = qboCfg ? (qboCfg.authorizeUrl ? qboCfg : createQbo(qboCfg, { now: options.now })) : null;
+  // Classement (workflow 07) : l'IA n'existe que si la clé est installée (ou un faux client en test)
+  const ai = options.ai !== undefined ? options.ai : createAi(process.env);
+  const classifier = createClassifier(db, { audit: acc.audit, now: options.now, ai });
   let anomalies = null; // créé plus bas (il a besoin des échéances) ; la synchronisation QuickBooks lui passe les paiements lus
-  const qboService = createQboService(db, { qbo, portal, audit: acc.audit, now: options.now,
+  const qboService = createQboService(db, { qbo, portal, audit: acc.audit, now: options.now, classifier,
     onFindings: (clientId, txns, day) => anomalies && anomalies.setQboFindings(clientId, [...findDuplicates(txns, day), ...findUnusual(txns, day)]) });
   const workqueue = createWorkqueue(db, { audit: acc.audit, now: options.now });
   const payroll = createPayroll(db, { audit: acc.audit, now: options.now });
@@ -212,7 +217,7 @@ function createServer(options = {}) {
   const payrollTimer = setInterval(payrollTick, 60 * 60_000);
   payrollTimer.unref();
   setImmediate(payrollTick);
-  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick, salestax, incometax, inbox, anomalies, gov, health, summaries });
+  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick, salestax, incometax, inbox, anomalies, gov, health, summaries, classifier });
 
   async function serveAsset(req, res, pathname) {
     const name = path.basename(pathname);
@@ -520,6 +525,7 @@ function createServer(options = {}) {
   server.gov = gov;
   server.health = health;
   server.summaries = summaries;
+  server.classifier = classifier;
   server.qboService = qboService;
   server.accounts = acc;
   server.config = cfg;

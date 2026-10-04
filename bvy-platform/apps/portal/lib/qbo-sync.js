@@ -22,7 +22,7 @@ const { isoDay: dateFr } = require('./dates.js');
 const monthFr = (y, m) => new Intl.DateTimeFormat('fr-CA', { month: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(y, m, 1)));
 const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
 
-function createQboService(db, { qbo, portal, audit, now = () => Date.now(), onFindings = null }) {
+function createQboService(db, { qbo, portal, audit, now = () => Date.now(), onFindings = null, classifier = null }) {
   const iso = () => new Date(now()).toISOString();
   const isStaff = (u) => Boolean(u && STAFF_ROLES.includes(u.role));
   function requireStaff(actor, clientId) {
@@ -246,7 +246,30 @@ function createQboService(db, { qbo, portal, audit, now = () => Date.now(), onFi
         try { onFindings(id, txns, today); } catch (err) { console.error('Anomalies :', err.message); }
       }
 
-      const stats = { banks: banks.length, invoices: invoices.length, late: late.length, bills: bills.length, purchases: purchases.length, scanned: purchases.length + billsScan.length + deposits.length + journals.length, since, resolved };
+      // Classement (workflow 07) : plan comptable et historique par bénéficiaire, puis suggestions pour ce qui reste non classé
+      let classified = null;
+      if (classifier) {
+        try {
+          classifier.saveChart(id, accounts);
+          const hist = [];
+          const take = (list, detailKey, who) => {
+            for (const t of list) {
+              for (const l of t.Line || []) {
+                const ref = l[detailKey] && l[detailKey].AccountRef && String(l[detailKey].AccountRef.value);
+                if (!ref || uncategorized.has(ref)) continue;
+                hist.push({ party: who(t, l), accountId: ref, amount: cents(l.Amount), date: t.TxnDate });
+              }
+            }
+          };
+          take(purchases, 'AccountBasedExpenseLineDetail', (t) => (t.EntityRef && t.EntityRef.name) || null);
+          take([...new Map([...bills, ...billsScan].map((b) => [String(b.Id), b])).values()], 'AccountBasedExpenseLineDetail', (t) => (t.VendorRef && t.VendorRef.name) || null);
+          take(deposits, 'DepositLineDetail', (t, l) => (l.DepositLineDetail.Entity && l.DepositLineDetail.Entity.name) || null);
+          classifier.saveHistory(id, hist);
+          classified = await classifier.classifyClient(id);
+        } catch (err) { console.error('Classement :', err.message); }
+      }
+
+      const stats = { banks: banks.length, invoices: invoices.length, late: late.length, bills: bills.length, purchases: purchases.length, scanned: purchases.length + billsScan.length + deposits.length + journals.length, since, resolved, classified };
       db.prepare("UPDATE sync_jobs SET status = 'ok', finished_at = ?, stats = ? WHERE id = ?").run(iso(), JSON.stringify(stats), job);
       db.prepare("UPDATE qbo_connections SET last_sync_at = ?, last_sync_status = 'ok', last_error = NULL WHERE client_id = ?").run(iso(), id);
       audit({ userId: actor ? actor.id : null, action: 'qbo.sync', target: `client:${id}`, clientId: id, details: { trigger, ...stats } });

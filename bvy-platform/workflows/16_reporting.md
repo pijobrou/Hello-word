@@ -1,6 +1,6 @@
 # Workflow 16 — Automated summaries
 
-**Status:** `STATUS: WAITING_FOR_OWNER_APPROVAL` — point 3 (owner: « on commence par 1, 2, 3, 4 »); built and tested 2026-10-03 (`npm test` 52/52; review package `review/portal-sante/`).
+**Status:** `STATUS: APPROVED` by the owner on 2026-10-04 (built and tested 2026-10-03, `npm test` 52/52; review package `review/portal-sante/`).
 **Owner approval required:** yes — documents sent to clients.
 
 ## Objective
