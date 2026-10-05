@@ -296,3 +296,9 @@ tr.rc-todo td{background:var(--bvy-bg-app)}
 .an-item.cl-todo{border-left-color:var(--bvy-primary)}
 .cl-choose{margin-top:0}
 .cl-choose .rc-f{flex:0 1 260px}
+/* Conciliation assistée (workflow 07, partie B) */
+.rc-steps{margin:0;padding-left:1.4em;display:grid;gap:6px;list-style:decimal}
+.an-item.rc-missing,.an-item.rc-amount{border-left-color:var(--bvy-act)}
+.an-item.rc-extra{border-left-color:var(--bvy-watch)}
+.an-item.rc-outstanding{border-left-color:var(--bvy-border)}
+.an-item.rc-done{opacity:.6}

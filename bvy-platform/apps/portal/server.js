@@ -35,6 +35,8 @@ const { createHealth } = require('./lib/health.js');
 const { createSummaries } = require('./lib/summaries.js');
 const { createAi } = require('./lib/ai.js');
 const { createClassifier } = require('./lib/classify.js');
+const { createReconciler } = require('./lib/reconcile.js');
+const { parseStatement } = require('./lib/statement.js');
 const W = require('./lib/views-work.js');
 
 const COOKIE = '__Host-bvy_session';
@@ -200,6 +202,8 @@ function createServer(options = {}) {
   const inbox = createInbox(db, { audit: acc.audit, now: options.now, portal });
   const gov = createGovRequests(db, { audit: acc.audit, now: options.now, portal });
   const health = createHealth(db, { audit: acc.audit, now: options.now, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day), portal });
+  const reconciler = createReconciler(db, { audit: acc.audit, now: options.now, portal, ai, aiEnabled: () => classifier.settings().aiEnabled,
+    parse: options.parseStatement || parseStatement, ledger: options.ledger || ((cid, a, s1, e1) => qboService.ledger(cid, a, s1, e1)) });
   const summaries = createSummaries(db, { audit: acc.audit, now: options.now, health, periodTotals: (cid, a, b) => qboService.periodTotals(cid, a, b) });
   anomalies = createAnomalies(db, { audit: acc.audit, now: options.now, portal, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day), qbo: () => qboService, gov });
   // Paie (workflow 12) : crée les paies dont les heures doivent être demandées et prévient le client (toutes les heures).
@@ -217,7 +221,7 @@ function createServer(options = {}) {
   const payrollTimer = setInterval(payrollTick, 60 * 60_000);
   payrollTimer.unref();
   setImmediate(payrollTick);
-  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick, salestax, incometax, inbox, anomalies, gov, health, summaries, classifier });
+  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick, salestax, incometax, inbox, anomalies, gov, health, summaries, classifier, reconciler });
 
   async function serveAsset(req, res, pathname) {
     const name = path.basename(pathname);
@@ -261,7 +265,7 @@ function createServer(options = {}) {
         try {
           if (ctype === 'multipart/form-data') {
             // Téléversement : seulement pour une personne connectée, sur les routes de documents (et les heures de paie).
-            if (!s || !s.mfa_done || !/^\/(documents|clients\/\d+\/documents|paie\/\d+\/heures|impots\/\d+\/document)$/.test(p)) { req.resume(); return send200(res, V.errorPage(415, 'Requête invalide.'), 415); }
+            if (!s || !s.mfa_done || !/^\/(documents|clients\/\d+\/(documents|conciliation)|paie\/\d+\/heures|impots\/\d+\/document)$/.test(p)) { req.resume(); return send200(res, V.errorPage(415, 'Requête invalide.'), 415); }
             const boundary = multipart.boundaryOf(req.headers['content-type']);
             if (!boundary) throw Object.assign(new Error('multipart'), { status: 400 });
             const parsed = multipart.parseMultipart(await multipart.readBody(req, MAX_UPLOAD + 64 * 1024), boundary);
@@ -526,6 +530,7 @@ function createServer(options = {}) {
   server.health = health;
   server.summaries = summaries;
   server.classifier = classifier;
+  server.reconciler = reconciler;
   server.qboService = qboService;
   server.accounts = acc;
   server.config = cfg;

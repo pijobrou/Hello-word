@@ -1,6 +1,6 @@
 # Workflow 07 — AI classification (and assisted reconciliation, part B)
 
-**Status:** part A `STATUS: APPROVED` by the owner on 2026-10-04 (built and tested, `npm test` 54/54; review package `review/portal-classement/`; no AI wording in the pages). Part B (assisted reconciliation) waits for the owner's answers.
+**Status:** part A `STATUS: APPROVED` by the owner on 2026-10-04. Part B `STATUS: WAITING_FOR_OWNER_APPROVAL` — built and tested 2026-10-05 (`npm test` 57/57; review package `review/portal-conciliation/`).
 **Owner approval required:** yes — AI suggestions shown to staff; client data sent to the AI provider.
 
 ## Owner decisions that frame this workflow
@@ -43,11 +43,34 @@ Grouping: lines of the same payee are grouped — « Amazon — 23 transactions 
 Every decision is recorded (who, when, suggested account, chosen account, source history/AI, confidence) — the
 feedback that makes the next suggestions better (the history engine learns from QBO itself after correction).
 
-## Part B — assisted reconciliation (to be designed with the owner)
+## Part B — assisted reconciliation (owner's answers, 2026-10-05)
 
-Compare a statement (bank or credit card, CSV/OFX first, PDF next) with the QBO account for a month and show
-**only the exceptions** (owner, 2026-10-03), with the action and « Ouvrir dans QuickBooks ↗ ». Needs from the
-owner: how the reconciliation of « la résidence » is done today, which files are received, how gaps are noted.
+Owner's process today: reconciliation **in QuickBooks** (Reconcile), statements received **as PDF**, the
+accountant **ticks the operations that match the statement**. Owner chose: read the PDF on BVY's server (A), with
+the external service as a fallback (B).
+
+1. Staff choose the QuickBooks bank account and a statement PDF (already received, or uploaded on the spot).
+2. **Reading on BVY's server** (`lib/statement.js`, pdf.js): lines rebuilt from the text positions — date,
+   description, amount (withdrawal/debit or deposit/credit column), balance when printed. Formats: Desjardins
+   (Frais / Retrait / Dépôt / Solde, several accounts per statement, negative balances « 377.35- ») and RBC
+   (Cheques & Debits / Deposits & Credits / Balance, period summary). Checked by arithmetic: opening + deposits −
+   withdrawals = closing, every printed balance, and the bank's summary totals and counts when present.
+   Tested on two real statements of the owner (kept outside the repository): 107 lines with 107 balances, and
+   80 lines matching the summary exactly.
+3. **Fallback**: only if the local reading does not balance and the administrator has enabled automatic
+   suggestions, the PDF is read by the external service; its answer goes through the same arithmetic checks.
+   An unverified reading is shown with a warning, never as certain.
+4. **QuickBooks** (read only): every transaction of that account for the period ± 15 days — expenses and
+   cheques, deposits, transfers, bill payments, customer payments, sales receipts, refunds, journal entries.
+5. **Matching**: same amount and date within 3 days, then 10 days; cheques by number (60 days); grouped
+   deposits (one statement line = 2 to 4 QuickBooks entries, or the reverse); same payee with a different amount.
+6. **Only the exceptions are shown** (owner): « Au relevé, pas dans QuickBooks », « Montant différent »,
+   « Dans QuickBooks, pas au relevé » (duplicate or wrong date), « En circulation » (normal). What matches is
+   counted and listed folded, to be ticked in QuickBooks. Each exception: « Ouvrir / Saisir dans QuickBooks ↗ »
+   and « Réglé ». The reconciliation can be closed only when every gap except « en circulation » is settled.
+
+Limits: other bank layouts are added one by one from real samples; credit-card accounts come later (sign
+conventions differ); BVY does not tick anything in QuickBooks itself.
 
 ## Privacy (Loi 25)
 

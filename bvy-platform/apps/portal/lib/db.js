@@ -587,6 +587,33 @@ const MIGRATIONS = [
     at             TEXT NOT NULL
   );
   `,
+  // 15 — Conciliation assistée (workflow 07, partie B)
+  `
+  CREATE TABLE reconciliations (
+    id            INTEGER PRIMARY KEY,
+    client_id     INTEGER NOT NULL REFERENCES clients(id),
+    document_id   INTEGER NOT NULL REFERENCES documents(id),
+    account_id    TEXT NOT NULL,
+    account_name  TEXT NOT NULL,
+    section       TEXT,
+    bank          TEXT,
+    period_start  TEXT NOT NULL,
+    period_end    TEXT NOT NULL,
+    opening       INTEGER,
+    closing       INTEGER,
+    method        TEXT NOT NULL CHECK (method IN ('local','service')),
+    check_ok      INTEGER NOT NULL,
+    statement     TEXT NOT NULL,
+    result        TEXT NOT NULL,
+    status        TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','done')),
+    created_by    INTEGER REFERENCES users(id),
+    created_at    TEXT NOT NULL,
+    updated_at    TEXT NOT NULL,
+    finished_by   INTEGER REFERENCES users(id),
+    finished_at   TEXT
+  );
+  CREATE INDEX reconciliations_client ON reconciliations(client_id, period_end);
+  `,
 ];
 
 function openDb(file) {

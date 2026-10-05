@@ -19,8 +19,9 @@ const AV = require('./views-anomalies.js');
 const GV = require('./views-govrequests.js');
 const SV = require('./views-summaries.js');
 const CV = require('./views-classify.js');
+const RCV = require('./views-reconcile.js');
 
-function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax, inbox, anomalies, gov, health, summaries, classifier }) {
+function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax, inbox, anomalies, gov, health, summaries, classifier, reconciler }) {
   const isStaff = (u) => STAFF_ROLES.includes(u.role);
 
   const qboStatus = (clientId) => (qboService ? qboService.status(clientId) : null);
@@ -200,6 +201,13 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
             return send200(res, CV.aiSettingsPage(s, { settings: classifier.settings(), calls, flash: flashOf(url) })), true;
           }
           if (POST) { classifier.saveSettings(u, form, ip); return ok('/admin/suggestions', 'Réglages des suggestions enregistrés.'), true; }
+        }
+        /* Conciliation assistée (workflow 07, partie B) */
+        const rc = p.match(/^\/conciliations\/(\d+)(\/(?:ligne|terminer))?$/);
+        if (rc) {
+          if (!rc[2] && GET) return send200(res, RCV.reconcilePage(s, { r: reconciler.get(u, rc[1]), flash: flashOf(url) })), true;
+          if (rc[2] === '/ligne' && POST) { reconciler.mark(u, rc[1], form.key, form.done === '1', ip); return redirect(res, `/conciliations/${rc[1]}#${encodeURIComponent(form.key)}`), true; }
+          if (rc[2] === '/terminer' && POST) { reconciler.finish(u, rc[1], ip); return ok(`/conciliations/${rc[1]}`, 'Conciliation terminée.'), true; }
         }
         /* Résumés (workflow 16) */
         if (p === '/resumes' && GET) {
@@ -443,7 +451,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           await qboService.disconnect(u, cid, ip);
           return ok(`/clients/${cid}/quickbooks`, 'QuickBooks déconnecté : les autorisations sont retirées.'), true;
         }
-        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie|tps-tvq|impots|historique|anomalies|gouvernement|sante|resumes|classement|classement\/relancer))?$/);
+        const c = p.match(/^\/clients\/(\d+)(\/(?:tableau|quickbooks|taches|documents|messages|echeances|paie|tps-tvq|impots|historique|anomalies|gouvernement|sante|resumes|classement|classement\/relancer|conciliation))?$/);
         if (c) {
           const cid = Number(c[1]);
           const sub = c[2] || '';
@@ -511,6 +519,17 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
             const r = await classifier.classifyClient(cid, { retry: true });
             return ok(`/clients/${cid}/classement`, `Suggestions relancées : ${r.history} d’après l’historique, ${r.ai} automatiques.`), true;
           }
+          if (sub === '/conciliation' && GET) {
+            return send200(res, RCV.reconcileTab(s, { client, list: reconciler.list(u, cid), accounts: reconciler.bankAccounts(u, cid), statements: reconciler.statements(u, cid),
+              shell: (inner) => P.staffClientShell(s, client, '/conciliation', inner, flashOf(url), counts(u, cid)) })), true;
+          }
+          if (sub === '/conciliation' && POST) {
+            const file = (form._files || []).find((f) => f.field === 'file' && f.data && f.data.length);
+            const docId = file ? portal.saveDocument(u, cid, { name: file.filename, data: file.data }, { docType: 'releve_banque', note: 'Relevé pour la conciliation' }, ip) : Number(form.docId);
+            if (!docId) throw new PortalError('Choisissez un relevé reçu ou envoyez le PDF.');
+            const rid = await reconciler.start(u, cid, { docId, accountId: form.accountId, section: form.section }, ip);
+            return ok(`/conciliations/${rid}`, 'Relevé comparé avec QuickBooks.'), true;
+          }
           if (sub === '/sante' && GET) {
             return send200(res, SV.healthTab(s, { client, h: health.forActor(u, cid), shell: (inner) => P.staffClientShell(s, client, '/sante', inner, flashOf(url), counts(u, cid)) })), true;
           }
@@ -561,7 +580,7 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
         ctx.audit({ userId: u.id, action: 'access.denied', target: p, ip });
         return send200(res, V.errorPage(403, 'Vous n’avez pas accès à cet élément.'), 403), true;
       }
-      if (/^(Tâche|Document|Résumé|Anomalie|Demande) introuvable\.$/.test(err.message)) { // page demandée qui n’existe pas (ou pas pour vous)
+      if (/^(Tâche|Document|Résumé|Anomalie|Demande|Conciliation) introuvable\.$/.test(err.message)) { // page demandée qui n’existe pas (ou pas pour vous)
         return send200(res, V.errorPage(404, err.message), 404), true;
       }
       // Erreur de saisie : retour à la page avec le message.

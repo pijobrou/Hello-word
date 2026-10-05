@@ -392,9 +392,49 @@ function createQboService(db, { qbo, portal, audit, now = () => Date.now(), onFi
     } catch { return null; }
   }
 
+  // Opérations d'un compte bancaire pour une période (conciliation assistée, workflow 07 partie B).
+  // Montant signé du point de vue du compte : + entrée d'argent, − sortie. Lecture seule.
+  async function ledger(clientId, accountId, start, end) {
+    if (!qbo) throw new PortalError('QuickBooks n’est pas encore configuré sur ce serveur.');
+    const c = conn(clientId);
+    if (!c || c.status !== 'connected') throw new PortalError('Ce client n’est pas relié à QuickBooks.');
+    const token = await accessToken(c);
+    const realm = c.realm_id; const app = qbo.cfg.appBase;
+    const acct = String(accountId);
+    const where = `TxnDate >= '${start}' AND TxnDate <= '${end}'`;
+    const ref = (r) => r && String(r.value) === acct;
+    const out = [];
+    const add = (t, type, amount, url, extra = {}) => out.push({ type, id: String(t.Id), date: t.TxnDate, amount, docNum: t.DocNumber || null,
+      name: extra.name || null, memo: t.PrivateNote || null, url: `${app}/app/${url}?txnId=${encodeURIComponent(t.Id)}` });
+    const C = (v) => Math.round(Number(v || 0) * 100);
+    for (const t of await queryAll(realm, token, 'Purchase', where)) {
+      if (!ref(t.AccountRef)) continue;
+      add(t, t.PaymentType === 'Check' ? 'Chèque' : 'Dépense', t.Credit ? C(t.TotalAmt) : -C(t.TotalAmt), t.PaymentType === 'Check' ? 'check' : 'expense', { name: t.EntityRef && t.EntityRef.name });
+    }
+    for (const t of await queryAll(realm, token, 'Deposit', where)) if (ref(t.DepositToAccountRef)) add(t, 'Dépôt', C(t.TotalAmt), 'deposit');
+    for (const t of await queryAll(realm, token, 'Transfer', where)) {
+      if (ref(t.FromAccountRef)) add(t, 'Virement', -C(t.Amount), 'transfer', { name: t.ToAccountRef && t.ToAccountRef.name });
+      if (ref(t.ToAccountRef)) add(t, 'Virement', C(t.Amount), 'transfer', { name: t.FromAccountRef && t.FromAccountRef.name });
+    }
+    for (const t of await queryAll(realm, token, 'BillPayment', where)) {
+      const bankRef = t.CheckPayment && t.CheckPayment.BankAccountRef;
+      if (ref(bankRef)) add(t, 'Paiement de facture', -C(t.TotalAmt), 'billpayment', { name: t.VendorRef && t.VendorRef.name });
+    }
+    for (const [entity, type, url, sign] of [['Payment', 'Paiement reçu', 'recvpayment', 1], ['SalesReceipt', 'Reçu de vente', 'salesreceipt', 1], ['RefundReceipt', 'Remboursement', 'refundreceipt', -1]]) {
+      for (const t of await queryAll(realm, token, entity, where)) if (ref(t.DepositToAccountRef)) add(t, type, sign * C(t.TotalAmt), url, { name: t.CustomerRef && t.CustomerRef.name });
+    }
+    for (const t of await queryAll(realm, token, 'JournalEntry', where)) {
+      for (const l of t.Line || []) {
+        const d = l.JournalEntryLineDetail;
+        if (d && ref(d.AccountRef)) add(t, 'Écriture de journal', d.PostingType === 'Debit' ? C(l.Amount) : -C(l.Amount), 'journal', { name: d.Entity && d.Entity.EntityRef && d.Entity.EntityRef.name });
+      }
+    }
+    return out;
+  }
+
   const newSuggestionCount = (clientId) => db.prepare("SELECT COUNT(*) AS n FROM qbo_items WHERE client_id = ? AND status = 'new'").get(Number(clientId)).n;
 
-  return { enabled: Boolean(qbo), periodTotals, startConnect, finishConnect, disconnect, sync, syncAll, suggestions, sendSuggestion, dismissSuggestion, status, newSuggestionCount };
+  return { enabled: Boolean(qbo), periodTotals, ledger, startConnect, finishConnect, disconnect, sync, syncAll, suggestions, sendSuggestion, dismissSuggestion, status, newSuggestionCount };
 }
 
 // Rapport ProfitAndLoss par mois → { income: [m1, m2], expenses: [m1, m2] } en cents, ou null.
