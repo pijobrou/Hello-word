@@ -65,14 +65,40 @@ function createClassifier(db, { audit, now = () => Date.now(), ai = null }) {
     for (const l of lines) {
       if (!l.party || !l.accountId) continue;
       const k = `${normParty(l.party)}|${l.accountId}`;
-      const cur = map.get(k) || { party: normParty(l.party), account_id: String(l.accountId), n: 0, total_cents: 0, last_date: null };
+      const cur = map.get(k) || { party: normParty(l.party), account_id: String(l.accountId), n: 0, total_cents: 0, last_date: null, tax_code: null };
       cur.n += 1; cur.total_cents += Math.abs(l.amount || 0);
-      if (!cur.last_date || (l.date && l.date > cur.last_date)) cur.last_date = l.date || cur.last_date;
+      if (!cur.last_date || (l.date && l.date >= cur.last_date)) { cur.last_date = l.date || cur.last_date; cur.tax_code = l.taxCode || cur.tax_code; }
       map.set(k, cur);
     }
     db.prepare('DELETE FROM qbo_payee_accounts WHERE client_id = ?').run(clientId);
-    const ins = db.prepare('INSERT INTO qbo_payee_accounts (client_id, party, account_id, n, total_cents, last_date) VALUES (?, ?, ?, ?, ?, ?)');
-    for (const r of map.values()) ins.run(clientId, r.party, r.account_id, r.n, r.total_cents, r.last_date);
+    const ins = db.prepare('INSERT INTO qbo_payee_accounts (client_id, party, account_id, n, total_cents, last_date, tax_code) VALUES (?, ?, ?, ?, ?, ?, ?)');
+    for (const r of map.values()) ins.run(clientId, r.party, r.account_id, r.n, r.total_cents, r.last_date, r.tax_code);
+  }
+  function saveTaxCodes(clientId, codes) {
+    db.prepare('DELETE FROM qbo_tax_codes WHERE client_id = ?').run(clientId);
+    const ins = db.prepare('INSERT INTO qbo_tax_codes (client_id, qbo_id, name) VALUES (?, ?, ?)');
+    for (const c of codes) ins.run(clientId, String(c.Id), String(c.Name || c.Description || c.Id));
+  }
+  const taxCodes = (clientId) => db.prepare('SELECT qbo_id AS id, name FROM qbo_tax_codes WHERE client_id = ? ORDER BY name').all(Number(clientId));
+  // Code de taxe habituel pour ce bénéficiaire et ce compte (historique QuickBooks)
+  function taxCodeFor(clientId, party, accountId) {
+    if (!party) return null;
+    const r = db.prepare('SELECT tax_code FROM qbo_payee_accounts WHERE client_id = ? AND party = ? AND account_id = ? AND tax_code IS NOT NULL').get(Number(clientId), normParty(party), String(accountId));
+    return r ? r.tax_code : null;
+  }
+  // Catégorie proposée pour une ligne de relevé : un bénéficiaire connu dont le nom figure dans la description
+  function suggestForText(clientId, text) {
+    const words = new Set(normParty(text).split(/[^a-z0-9]+/).filter((w) => w.length >= 3));
+    let best = null;
+    for (const p of db.prepare('SELECT party, SUM(n) AS n FROM qbo_payee_accounts WHERE client_id = ? GROUP BY party').all(Number(clientId))) {
+      const pw = p.party.split(/[^a-z0-9]+/).filter((w) => w.length >= 3 && !['inc', 'ltee', 'the', 'des'].includes(w));
+      if (!pw.length || !pw.every((w) => words.has(w))) continue;
+      if (!best || p.n > best.n) best = p;
+    }
+    if (!best) return null;
+    const h = historySuggest(db.prepare('SELECT * FROM qbo_payee_accounts WHERE client_id = ? AND party = ?').all(Number(clientId), best.party));
+    if (!h) return null;
+    return { accountId: h.accountId, accountName: accountName(Number(clientId), h.accountId), confidence: h.confidence, party: best.party, taxCode: taxCodeFor(clientId, best.party, h.accountId) };
   }
   const accountName = (clientId, id) => { const a = db.prepare('SELECT name FROM qbo_accounts WHERE client_id = ? AND qbo_id = ?').get(clientId, String(id)); return a ? a.name : null; };
 
@@ -195,7 +221,7 @@ function createClassifier(db, { audit, now = () => Date.now(), ai = null }) {
     return db.prepare('SELECT * FROM ai_suggestions WHERE item_id = ?').get(Number(itemId)) || null;
   }
 
-  return { settings, saveSettings, level, saveChart, saveHistory, classifyClient, groups, chartFor, decide, suggestionFor, money: formatAmount };
+  return { settings, saveSettings, level, saveChart, saveHistory, saveTaxCodes, taxCodes, taxCodeFor, suggestForText, classifyClient, groups, chartFor, decide, suggestionFor, money: formatAmount };
 }
 
 module.exports = { createClassifier, historySuggest };

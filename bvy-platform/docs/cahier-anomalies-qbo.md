@@ -365,6 +365,13 @@ Elle doit devenir le système qui répond à :
 
 ## Décisions du propriétaire (à appliquer quand ces éléments seront construits)
 
+### 2026-10-05 — Écrire dans QuickBooks sur un clic (workflow 18)
+
+- « Si je travaille sur ma plateforme, je ne refais pas le travail dans QBO : je clique et c'est fait. Ou je me
+  rends sur QBO et j'effectue le travail rapidement. Pour les rapprochements bancaires je veux aller vite. »
+- Construit : classer, créer depuis le relevé, corriger un montant, annuler — toujours sur un clic, vérifié,
+  journalisé. Voir `workflows/18_qbo_write.md`.
+
 ### 2026-10-03 — Conciliation assistée : seulement les exceptions
 
 - Idée du propriétaire : dans BVY, comparer rapidement QBO avec la source (relevé bancaire, comme pour la

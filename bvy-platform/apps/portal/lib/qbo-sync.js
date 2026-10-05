@@ -251,13 +251,14 @@ function createQboService(db, { qbo, portal, audit, now = () => Date.now(), onFi
       if (classifier) {
         try {
           classifier.saveChart(id, accounts);
+          try { classifier.saveTaxCodes(id, (await qbo.query(realm, token, 'select * from TaxCode where Active = true maxresults 200')).TaxCode || []); } catch { /* pas de taxes dans cette entreprise */ }
           const hist = [];
           const take = (list, detailKey, who) => {
             for (const t of list) {
               for (const l of t.Line || []) {
                 const ref = l[detailKey] && l[detailKey].AccountRef && String(l[detailKey].AccountRef.value);
                 if (!ref || uncategorized.has(ref)) continue;
-                hist.push({ party: who(t, l), accountId: ref, amount: cents(l.Amount), date: t.TxnDate });
+                hist.push({ party: who(t, l), accountId: ref, amount: cents(l.Amount), date: t.TxnDate, taxCode: l[detailKey].TaxCodeRef ? String(l[detailKey].TaxCodeRef.value) : null });
               }
             }
           };
@@ -432,9 +433,18 @@ function createQboService(db, { qbo, portal, audit, now = () => Date.now(), onFi
     return out;
   }
 
+  // Accès pour l'écriture (workflow 18) : jeton valide et identifiants de l'entreprise du client.
+  async function withToken(clientId, fn) {
+    if (!qbo) throw new PortalError('QuickBooks n’est pas encore configuré sur ce serveur.');
+    const c = conn(clientId);
+    if (!c || c.status !== 'connected') throw new PortalError('Ce client n’est pas relié à QuickBooks.');
+    const token = await accessToken(c);
+    return fn({ qbo, realm: c.realm_id, token, appBase: qbo.cfg.appBase });
+  }
+
   const newSuggestionCount = (clientId) => db.prepare("SELECT COUNT(*) AS n FROM qbo_items WHERE client_id = ? AND status = 'new'").get(Number(clientId)).n;
 
-  return { enabled: Boolean(qbo), periodTotals, ledger, startConnect, finishConnect, disconnect, sync, syncAll, suggestions, sendSuggestion, dismissSuggestion, status, newSuggestionCount };
+  return { enabled: Boolean(qbo), periodTotals, ledger, withToken, startConnect, finishConnect, disconnect, sync, syncAll, suggestions, sendSuggestion, dismissSuggestion, status, newSuggestionCount };
 }
 
 // Rapport ProfitAndLoss par mois → { income: [m1, m2], expenses: [m1, m2] } en cents, ou null.

@@ -125,7 +125,7 @@ function createQbo(cfg, { fetchImpl = globalThis.fetch, now = () => Date.now() }
     } catch { /* la suppression locale suffit si Intuit est injoignable */ }
   }
 
-  // GET sur l'API comptable (lecture seule).
+  // GET sur l'API comptable.
   async function get(realmId, path, accessToken, params = {}) {
     const q = new URLSearchParams({ ...params, minorversion: MINOR_VERSION });
     const url = `${cfg.apiBase}/v3/company/${encodeURIComponent(realmId)}/${path}?${q}`;
@@ -144,12 +144,29 @@ function createQbo(cfg, { fetchImpl = globalThis.fetch, now = () => Date.now() }
     return body;
   }
 
+  // POST sur l'API comptable (création, mise à jour, suppression) — seulement à la demande d'une personne (workflow 18).
+  async function post(realmId, path, accessToken, body, params = {}) {
+    const q = new URLSearchParams({ ...params, minorversion: MINOR_VERSION });
+    const url = `${cfg.apiBase}/v3/company/${encodeURIComponent(realmId)}/${path}?${q}`;
+    let res;
+    try {
+      res = await fetchImpl(url, { method: 'POST', headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json', 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(30_000) });
+    } catch (err) {
+      throw new QboError(`QuickBooks injoignable : ${err.message}`, { code: 'network' });
+    }
+    const text = await res.text().catch(() => '');
+    let out = {};
+    try { out = JSON.parse(text); } catch { /* réponse non JSON */ }
+    if (!res.ok) throw new QboError(`QuickBooks ${res.status} : ${faultMessage(res.status, out, text)}${tid(res)}`, { status: res.status, code: res.status === 401 ? 'unauthorized' : 'api_error' });
+    return out;
+  }
+
   const query = async (realmId, accessToken, sql) => {
     const body = await get(realmId, 'query', accessToken, { query: sql });
     return body.QueryResponse || {};
   };
 
-  return { cfg, authorizeUrl, exchangeCode, refresh, revoke, get, query, encrypt: (t) => encrypt(cfg.key, t), decrypt: (b) => decrypt(cfg.key, b) };
+  return { cfg, authorizeUrl, exchangeCode, refresh, revoke, get, post, query, encrypt: (t) => encrypt(cfg.key, t), decrypt: (b) => decrypt(cfg.key, b) };
 }
 
 module.exports = { qboConfigFromEnv, createQbo, QboError, encrypt, decrypt, SCOPE, AUTH_URL, TOKEN_URL, REVOKE_URL, MINOR_VERSION };

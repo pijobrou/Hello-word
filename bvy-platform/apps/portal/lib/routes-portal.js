@@ -21,7 +21,7 @@ const SV = require('./views-summaries.js');
 const CV = require('./views-classify.js');
 const RCV = require('./views-reconcile.js');
 
-function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax, inbox, anomalies, gov, health, summaries, classifier, reconciler }) {
+function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax, inbox, anomalies, gov, health, summaries, classifier, reconciler, writer }) {
   const isStaff = (u) => STAFF_ROLES.includes(u.role);
 
   const qboStatus = (clientId) => (qboService ? qboService.status(clientId) : null);
@@ -42,8 +42,18 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
   // Courriel de rappel : jamais de titre ni de montant, seulement le nombre d'éléments en attente.
   const reminderSubject = (n) => `Rappel : ${n} élément${n > 1 ? 's' : ''} vous attend${n > 1 ? 'ent' : ''} dans votre portail BVY`;
   // Retour après une action : seulement vers une page interne connue.
-  const backTo = (v, fallback) => (/^\/(reception|anomalies|clients\/\d+\/(documents|taches|anomalies))$/.test(String(v || '')) ? v : fallback);
+  const backTo = (v, fallback) => (/^\/(reception|anomalies|clients\/\d+\/(documents|taches|anomalies|classement)|conciliations\/\d+)$/.test(String(v || '')) ? v : fallback);
   const anomalyFilter = (url) => ({ severity: url.searchParams.get('gravite') || '', status: url.searchParams.get('etat') === 'closed' ? 'closed' : 'active' });
+
+  // L'écriture dans QuickBooks est offerte si le rôle le permet, si elle est activée et si le client est relié
+  const qboConnected = (cid) => { const q = qboStatus(cid); return Boolean(q && q.status === 'connected') || Boolean(writer && writer.testMode); };
+  function writeCtx(s, u, r) {
+    const canW = writer.canWrite(u) && qboConnected(r.client_id);
+    const missing = r.result.exceptions.filter((e) => e.kind === 'missing' && !e.done);
+    return { canWrite: canW, chart: classifier.chartFor(u, r.client_id), taxCodes: classifier.taxCodes(r.client_id),
+      suggest: (desc) => classifier.suggestForText(r.client_id, desc), proposed: canW ? missing.filter((e) => classifier.suggestForText(r.client_id, e.stmt.desc)).length : 0,
+      writesCard: CV.writesCard(s, writer.recent(r.client_id, 'conciliation'), `/conciliations/${r.id}`) };
+  }
 
   async function handle(ctx) {
     const { req, res, p, s, form, ip, send200, redirect, flashOf, url } = ctx;
@@ -198,14 +208,61 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           if (u.role !== 'admin') throw new PortalError('Accès refusé.');
           if (GET) {
             const calls = db.prepare('SELECT a.*, c.name AS client FROM ai_calls a LEFT JOIN clients c ON c.id = a.client_id ORDER BY a.id DESC LIMIT 20').all();
-            return send200(res, CV.aiSettingsPage(s, { settings: classifier.settings(), calls, flash: flashOf(url) })), true;
+            return send200(res, CV.aiSettingsPage(s, { settings: classifier.settings(), calls, flash: flashOf(url), writeEnabled: writer.enabled() })), true;
           }
           if (POST) { classifier.saveSettings(u, form, ip); return ok('/admin/suggestions', 'Réglages des suggestions enregistrés.'), true; }
         }
+        if (p === '/admin/suggestions/ecriture' && POST) {
+          if (u.role !== 'admin') throw new PortalError('Accès refusé.');
+          db.prepare("INSERT INTO settings (key, value) VALUES ('qbo.write', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value").run(form.on === '1' ? '1' : '0');
+          ctx.audit({ userId: u.id, action: form.on === '1' ? 'qbo.write.enable' : 'qbo.write.disable', target: 'settings:qbo.write', ip });
+          return ok('/admin/suggestions', form.on === '1' ? 'Écriture dans QuickBooks activée.' : 'Écriture dans QuickBooks désactivée.'), true;
+        }
+        /* Annuler une écriture faite dans QuickBooks par BVY (workflow 18) */
+        const wu = p.match(/^\/quickbooks\/ecritures\/(\d+)\/annuler$/);
+        if (wu && POST) {
+          const w = await writer.undo(u, wu[1], ip);
+          const m = String(w.ref || '').match(/^reconciliation:(\d+):(e\d+)$/);
+          if (m) reconciler.markWrite(Number(m[1]), m[2], null);
+          return ok(backTo(form.back, m ? `/conciliations/${m[1]}` : `/clients/${w.client_id}/classement`), 'Écriture annulée dans QuickBooks.'), true;
+        }
         /* Conciliation assistée (workflow 07, partie B) */
-        const rc = p.match(/^\/conciliations\/(\d+)(\/(?:ligne|terminer))?$/);
+        const rc = p.match(/^\/conciliations\/(\d+)(\/(?:ligne|terminer|creer|creer-tout|corriger))?$/);
         if (rc) {
-          if (!rc[2] && GET) return send200(res, RCV.reconcilePage(s, { r: reconciler.get(u, rc[1]), flash: flashOf(url) })), true;
+          if (!rc[2] && GET) {
+            const r = reconciler.get(u, rc[1]);
+            return send200(res, RCV.reconcilePage(s, { r, flash: flashOf(url), w: writeCtx(s, u, r) })), true;
+          }
+          if (rc[2] === '/creer' && POST) {
+            const { r, e } = reconciler.exceptionOf(u, rc[1], form.key);
+            if (e.kind !== 'missing' || e.done) throw new PortalError('Cette ligne est déjà réglée.');
+            const out = await writer.createFromStatement(u, r.client_id, { bankAccountId: r.account_id, date: e.stmt.date, amount: e.stmt.amount, description: e.stmt.desc, accountId: form.accountId, taxCodeId: form.taxCodeId || null, ref: `reconciliation:${r.id}:${e.key}` }, ip);
+            reconciler.markWrite(r.id, e.key, { id: out.writeId, url: out.url });
+            return ok(`/conciliations/${r.id}`, `Créé dans QuickBooks : ${out.account}.`), true;
+          }
+          if (rc[2] === '/creer-tout' && POST) {
+            const r = reconciler.get(u, rc[1]);
+            if (!writer.enabled()) throw new PortalError('L’écriture dans QuickBooks est désactivée par l’administrateur.');
+            if (!writer.canWrite(u)) throw new PortalError('Votre rôle ne permet pas de modifier QuickBooks.');
+            let n = 0; const errors = [];
+            for (const e of r.result.exceptions.filter((x) => x.kind === 'missing' && !x.done)) {
+              const sug = classifier.suggestForText(r.client_id, e.stmt.desc);
+              if (!sug) continue;
+              try {
+                const out = await writer.createFromStatement(u, r.client_id, { bankAccountId: r.account_id, date: e.stmt.date, amount: e.stmt.amount, description: e.stmt.desc, accountId: sug.accountId, taxCodeId: sug.taxCode, ref: `reconciliation:${r.id}:${e.key}` }, ip);
+                reconciler.markWrite(r.id, e.key, { id: out.writeId, url: out.url }); n += 1;
+              } catch (err) { errors.push(`${e.stmt.desc} : ${err.message}`); }
+            }
+            const msg = `${n} opération${n > 1 ? 's' : ''} créée${n > 1 ? 's' : ''} dans QuickBooks.${errors.length ? ` ${errors.length} non créée${errors.length > 1 ? 's' : ''} : ${errors[0]}` : ''}`;
+            return redirect(res, `/conciliations/${r.id}?${errors.length ? 'erreur' : 'ok'}=${encodeURIComponent(msg)}`), true;
+          }
+          if (rc[2] === '/corriger' && POST) {
+            const { r, e } = reconciler.exceptionOf(u, rc[1], form.key);
+            if (e.kind !== 'amount' || e.done) throw new PortalError('Cette ligne est déjà réglée.');
+            const out = await writer.fixAmount(u, r.client_id, { type: e.qbo.type, qboId: e.qbo.id, amount: e.stmt.amount, ref: `reconciliation:${r.id}:${e.key}` }, ip);
+            reconciler.markWrite(r.id, e.key, { id: out.writeId, url: e.qbo.url });
+            return ok(`/conciliations/${r.id}`, 'Montant corrigé dans QuickBooks.'), true;
+          }
           if (rc[2] === '/ligne' && POST) { reconciler.mark(u, rc[1], form.key, form.done === '1', ip); return redirect(res, `/conciliations/${rc[1]}#${encodeURIComponent(form.key)}`), true; }
           if (rc[2] === '/terminer' && POST) { reconciler.finish(u, rc[1], ip); return ok(`/conciliations/${rc[1]}`, 'Conciliation terminée.'), true; }
         }
@@ -507,10 +564,22 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
               shell: (inner) => P.staffClientShell(s, client, '/anomalies', inner, flashOf(url), counts(u, cid)) })), true;
           }
           if (sub === '/classement' && GET) {
-            return send200(res, CV.classifyTab(s, { client, groups: classifier.groups(u, cid), chart: classifier.chartFor(u, cid), settings: classifier.settings(),
+            const canW = writer.canWrite(u) && qboConnected(cid);
+            const w = { canWrite: canW, taxCodes: classifier.taxCodes(cid), taxFor: (g) => classifier.taxCodeFor(cid, g.items[0].counterparty, g.accountId), writes: writer.recent(cid, 'classement') };
+            return send200(res, CV.classifyTab(s, { client, w, groups: classifier.groups(u, cid), chart: classifier.chartFor(u, cid), settings: classifier.settings(),
               shell: (inner) => P.staffClientShell(s, client, '/classement', inner, flashOf(url), counts(u, cid)) })), true;
           }
           if (sub === '/classement' && POST) {
+            if (form.action === 'write') {
+              const g = classifier.groups(u, cid).find((x) => x.key === form.group || decodeURIComponent(x.key) === decodeURIComponent(form.group || ''));
+              if (!g) throw new PortalError('Ce groupe n’existe plus : la page a peut-être déjà été mise à jour.');
+              let n = 0; const errors = [];
+              for (const it of g.items) {
+                try { await writer.recategorize(u, cid, it.id, form.accountId, form.taxCodeId || null, { source: 'classement' }, ip); n += 1; } catch (err) { errors.push(err.message); }
+              }
+              const msg = `${n} opération${n > 1 ? 's' : ''} de ${g.party} classée${n > 1 ? 's' : ''} dans QuickBooks.${errors.length ? ` ${errors.length} non classée${errors.length > 1 ? 's' : ''} : ${errors[0]}` : ''}`;
+              return redirect(res, `/clients/${cid}/classement?${errors.length && !n ? 'erreur' : 'ok'}=${encodeURIComponent(msg)}`), true;
+            }
             const r = classifier.decide(u, cid, form.group, form, ip);
             const msg = form.action === 'undo' ? 'Décision annulée : de nouveau à classer.' : `${r.count} opération${r.count > 1 ? 's' : ''} de ${r.party} à classer en « ${r.account} » dans QuickBooks.`;
             return ok(`/clients/${cid}/classement`, msg), true;
@@ -527,7 +596,9 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
             const file = (form._files || []).find((f) => f.field === 'file' && f.data && f.data.length);
             const docId = file ? portal.saveDocument(u, cid, { name: file.filename, data: file.data }, { docType: 'releve_banque', note: 'Relevé pour la conciliation' }, ip) : Number(form.docId);
             if (!docId) throw new PortalError('Choisissez un relevé reçu ou envoyez le PDF.');
-            const rid = await reconciler.start(u, cid, { docId, accountId: form.accountId, section: form.section }, ip);
+            const accountId = form.accountId || reconciler.defaultAccount(cid);
+            if (!accountId) return redirect(res, `/clients/${cid}/conciliation?erreur=${encodeURIComponent('Choisissez le compte bancaire QuickBooks de ce relevé.')}`), true;
+            const rid = await reconciler.start(u, cid, { docId, accountId, section: form.section }, ip);
             return ok(`/conciliations/${rid}`, 'Relevé comparé avec QuickBooks.'), true;
           }
           if (sub === '/sante' && GET) {

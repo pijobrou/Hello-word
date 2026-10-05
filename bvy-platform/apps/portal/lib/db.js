@@ -614,6 +614,33 @@ const MIGRATIONS = [
   );
   CREATE INDEX reconciliations_client ON reconciliations(client_id, period_end);
   `,
+  // 16 — Écriture dans QuickBooks à la demande d'une personne (workflow 18) : codes de taxe, journal des écritures
+  `
+  CREATE TABLE qbo_tax_codes (
+    client_id  INTEGER NOT NULL REFERENCES clients(id),
+    qbo_id     TEXT NOT NULL,
+    name       TEXT NOT NULL,
+    PRIMARY KEY (client_id, qbo_id)
+  );
+  ALTER TABLE qbo_payee_accounts ADD COLUMN tax_code TEXT;
+  CREATE TABLE qbo_writes (
+    id          INTEGER PRIMARY KEY,
+    client_id   INTEGER NOT NULL REFERENCES clients(id),
+    action      TEXT NOT NULL CHECK (action IN ('recategorize','create','amount','delete')),
+    qbo_type    TEXT NOT NULL,
+    qbo_id      TEXT NOT NULL,
+    summary     TEXT NOT NULL,
+    before      TEXT,
+    after       TEXT,
+    source      TEXT NOT NULL,
+    ref         TEXT,
+    user_id     INTEGER REFERENCES users(id),
+    at          TEXT NOT NULL,
+    undone_at   TEXT,
+    undone_by   INTEGER REFERENCES users(id)
+  );
+  CREATE INDEX qbo_writes_client ON qbo_writes(client_id, at);
+  `,
 ];
 
 function openDb(file) {

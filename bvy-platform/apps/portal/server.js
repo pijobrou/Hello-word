@@ -37,6 +37,7 @@ const { createAi } = require('./lib/ai.js');
 const { createClassifier } = require('./lib/classify.js');
 const { createReconciler } = require('./lib/reconcile.js');
 const { parseStatement } = require('./lib/statement.js');
+const { createQboWriter } = require('./lib/qbo-write.js');
 const W = require('./lib/views-work.js');
 
 const COOKIE = '__Host-bvy_session';
@@ -204,6 +205,8 @@ function createServer(options = {}) {
   const health = createHealth(db, { audit: acc.audit, now: options.now, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day), portal });
   const reconciler = createReconciler(db, { audit: acc.audit, now: options.now, portal, ai, aiEnabled: () => classifier.settings().aiEnabled,
     parse: options.parseStatement || parseStatement, ledger: options.ledger || ((cid, a, s1, e1) => qboService.ledger(cid, a, s1, e1)) });
+  // Écriture dans QuickBooks sur le clic d'une personne (workflow 18)
+  const writer = createQboWriter(db, { audit: acc.audit, now: options.now, api: options.qboApi !== undefined ? options.qboApi : (qboService.enabled ? qboService : null), testMode: options.qboApi !== undefined });
   const summaries = createSummaries(db, { audit: acc.audit, now: options.now, health, periodTotals: (cid, a, b) => qboService.periodTotals(cid, a, b) });
   anomalies = createAnomalies(db, { audit: acc.audit, now: options.now, portal, deadlinesFor: (c, day) => workqueue.deadlinesFor(c, day), qbo: () => qboService, gov });
   // Paie (workflow 12) : crée les paies dont les heures doivent être demandées et prévient le client (toutes les heures).
@@ -221,7 +224,7 @@ function createServer(options = {}) {
   const payrollTimer = setInterval(payrollTick, 60 * 60_000);
   payrollTimer.unref();
   setImmediate(payrollTick);
-  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick, salestax, incometax, inbox, anomalies, gov, health, summaries, classifier, reconciler });
+  const portalRoutes = createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService, workqueue, payroll, payrollTick, salestax, incometax, inbox, anomalies, gov, health, summaries, classifier, reconciler, writer });
 
   async function serveAsset(req, res, pathname) {
     const name = path.basename(pathname);
@@ -531,6 +534,7 @@ function createServer(options = {}) {
   server.summaries = summaries;
   server.classifier = classifier;
   server.reconciler = reconciler;
+  server.writer = writer;
   server.qboService = qboService;
   server.accounts = acc;
   server.config = cfg;

@@ -18,7 +18,7 @@ const KIND = {
 };
 const NEW_URL = { true: 'deposit', false: 'expense' };
 
-function exceptionRow(s, r, e) {
+function exceptionRow(s, r, e, w = {}) {
   const csrf = csrfField(s);
   const [cls, label, action] = KIND[e.kind];
   const st = e.stmt; const q = e.qbo;
@@ -29,12 +29,24 @@ function exceptionRow(s, r, e) {
       ${st ? `<p class="an-title">Relevé : ${esc(st.date)} — ${esc(st.desc)} — <span class="num">${esc(money(st.amount))}</span></p>` : ''}
       ${q ? `<p class="${st ? 't-meta' : 'an-title'}">QuickBooks : ${esc(q.date)} — ${esc(q.type)}${q.docNum ? ` no ${esc(q.docNum)}` : ''}${q.name ? ` — ${esc(q.name)}` : ''} — <span class="num">${esc(money(q.amount))}</span></p>` : ''}
       ${e.kind === 'amount' ? `<p class="t-meta">Écart : ${esc(money(e.diff))}${e.note ? ` (${esc(e.note)})` : ''}</p>` : ''}
-      <p class="an-action">${esc(action)}</p></div>
+      <p class="an-action">${esc(action)}</p>
+      ${e.write ? `<p class="t-meta">Fait dans QuickBooks par BVY${e.write.url ? ` — <a class="link" href="${esc(e.write.url)}" target="_blank" rel="noopener">voir ↗</a>` : ''}</p>` : ''}
+      ${w.canWrite && !e.done && e.kind === 'missing' ? createForm(s, r, e, w) : ''}
+      ${w.canWrite && !e.done && e.kind === 'amount' && q && ['Chèque', 'Dépense', 'Dépôt'].includes(q.type) ? `<form class="inline-form mt-2" method="post" action="/conciliations/${r.id}/corriger">${csrf}<input type="hidden" name="key" value="${esc(e.key)}"><button class="btn btn-outline btn-sm" type="submit">Corriger dans QuickBooks : ${esc(money(st.amount))}</button></form>` : ''}</div>
       <div class="btn-row">
         ${q && q.url ? `<a class="qbo-link" href="${esc(q.url)}" target="_blank" rel="noopener">Ouvrir dans QuickBooks ↗</a>` : ''}
-        ${!q && st ? `<a class="qbo-link" href="${esc(`${appBase}/app/${NEW_URL[st.amount > 0]}`)}" target="_blank" rel="noopener">Saisir dans QuickBooks ↗</a>` : ''}
+        ${!q && st && !w.canWrite ? `<a class="qbo-link" href="${esc(`${appBase}/app/${NEW_URL[st.amount > 0]}`)}" target="_blank" rel="noopener">Saisir dans QuickBooks ↗</a>` : ''}
         <form class="inline-form" method="post" action="/conciliations/${r.id}/ligne">${csrf}<input type="hidden" name="key" value="${esc(e.key)}"><input type="hidden" name="done" value="${e.done ? '0' : '1'}">
           <button class="btn ${e.done ? 'btn-ghost' : 'btn-outline'} btn-sm" type="submit">${e.done ? 'Rouvrir' : 'Réglé'}</button></form></div></div></li>`;
+}
+
+// Création d'une ligne du relevé dans QuickBooks : catégorie proposée d'après l'historique du bénéficiaire
+function createForm(s, r, e, w) {
+  const sug = w.suggest(e.stmt.desc) || {};
+  return `<form class="rc-search cl-write mt-2" method="post" action="/conciliations/${r.id}/creer">${csrfField(s)}<input type="hidden" name="key" value="${esc(e.key)}">
+    <label class="rc-f"><span class="label">Catégorie${sug.accountName ? ' (proposée d’après l’historique)' : ''}</span><select class="input" name="accountId" required><option value="">— choisir —</option>${w.chart.map((a) => `<option value="${esc(a.id)}"${a.id === sug.accountId ? ' selected' : ''}>${esc(a.name)}</option>`).join('')}</select></label>
+    ${w.taxCodes.length ? `<label class="rc-f rc-short"><span class="label">Taxes</span><select class="input" name="taxCodeId"><option value="">— aucune —</option>${w.taxCodes.map((t) => `<option value="${esc(t.id)}"${t.id === sug.taxCode ? ' selected' : ''}>${esc(t.name)}</option>`).join('')}</select></label>` : ''}
+    <button class="btn btn-plum btn-sm" type="submit">Créer dans QuickBooks</button></form>`;
 }
 
 function matchedList(r) {
@@ -48,7 +60,7 @@ function matchedList(r) {
     <div class="table-wrap mt-4"><table class="table"><thead><tr><th scope="col">Date</th><th scope="col">Relevé</th><th scope="col">Montant</th><th scope="col">QuickBooks</th></tr></thead><tbody>${rows}</tbody></table></div></details>`;
 }
 
-function reconcilePage(s, { r, flash }) {
+function reconcilePage(s, { r, flash, w = {} }) {
   const csrf = csrfField(s);
   const ex = r.result.exceptions;
   const open = ex.filter((e) => !e.done && e.kind !== 'outstanding');
@@ -70,13 +82,15 @@ function reconcilePage(s, { r, flash }) {
     <article class="card mt-6"><div class="card-head"><h2 class="t-h3">À faire</h2>${r.status === 'done' ? `<span class="badge b-good">Terminée le ${esc(isoDay(r.finished_at))}</span>` : ''}</div>
       <ol class="rc-steps">
         <li>Dans QuickBooks, ouvrez le rapprochement du compte « ${esc(r.account_name)} », solde de fin du relevé <b>${esc(money(r.closing))}</b> au ${esc(r.period_end)}.</li>
-        <li>Réglez les écarts ci-dessous (bouton « Ouvrir » ou « Saisir dans QuickBooks »), puis cochez « Réglé ».</li>
-        <li>Cochez dans QuickBooks les opérations qui concordent (liste repliée plus bas) ; laissez les opérations en circulation non cochées.</li>
+        <li>${w.canWrite ? 'Réglez les écarts ci-dessous : « Créer dans QuickBooks » et « Corriger dans QuickBooks » le font pour vous ; sinon « Ouvrir dans QuickBooks », puis « Réglé ».' : 'Réglez les écarts ci-dessous (bouton « Ouvrir » ou « Saisir dans QuickBooks »), puis cochez « Réglé ».'}</li>
+        <li>Dans le rapprochement de QuickBooks, cochez tout (case en haut de la liste), puis décochez seulement les opérations « En circulation » ci-dessous.</li>
         <li>La différence affichée par QuickBooks doit être 0,00 $ — si le solde de début de QuickBooks est égal au solde d’ouverture du relevé (${esc(money(r.opening))}).</li>
       </ol>
-      ${ex.length ? `<ul class="rc-list mt-4">${ex.map((e) => exceptionRow(s, r, e)).join('')}</ul>` : `<div class="empty">${icon('i-ok', 'i empty-ico')}<p><b>Aucun écart.</b></p><p>Tout le relevé concorde avec QuickBooks.</p></div>`}
+      ${ex.length ? `<ul class="rc-list mt-4">${ex.map((e) => exceptionRow(s, r, e, w)).join('')}</ul>` : `<div class="empty">${icon('i-ok', 'i empty-ico')}<p><b>Aucun écart.</b></p><p>Tout le relevé concorde avec QuickBooks.</p></div>`}
+      ${w.canWrite && w.proposed ? `<form class="mt-4" method="post" action="/conciliations/${r.id}/creer-tout">${csrf}<button class="btn btn-plum" type="submit">Créer dans QuickBooks les ${w.proposed} opérations dont la catégorie est proposée</button> <span class="t-meta">Les autres restent à choisir une par une.</span></form>` : ''}
       <div class="mt-6">${matchedList(r)}</div>
       ${r.status === 'open' ? `<form class="mt-6" method="post" action="/conciliations/${r.id}/terminer">${csrf}<button class="btn btn-plum" type="submit"${open.length ? ' disabled' : ''}>Conciliation terminée</button>${open.length ? ` <span class="t-meta">Réglez d’abord les ${open.length} écart${open.length > 1 ? 's' : ''}.</span>` : ''}</form>` : ''}</article>
+    ${w.writesCard ? w.writesCard : ''}
     <p class="mt-6"><a class="link" href="/clients/${r.client_id}/conciliation">← Conciliations du client</a></p>`;
   return appPage(s, { title: `Conciliation — ${r.account_name}`, current: '/accueil', body, flash });
 }

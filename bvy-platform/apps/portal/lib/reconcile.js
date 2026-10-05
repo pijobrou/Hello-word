@@ -139,6 +139,7 @@ function createReconciler(db, { audit, now = () => Date.now(), portal, parse, le
     const rid = Number(db.prepare(`INSERT INTO reconciliations (client_id, document_id, account_id, account_name, section, bank, period_start, period_end, opening, closing, method, check_ok, statement, result, status, created_by, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?)`).run(id, doc.id, acc.qbo_id, acc.name, `${sec.code} — ${sec.label}`, st.bank, st.period.start, st.period.end, sec.opening, sec.closing, method, sec.check.ok ? 1 : 0,
       JSON.stringify({ lines: sec.lines, totals: sec.totals, check: sec.check, sections: st.accounts.map((a) => ({ code: a.code, label: a.label, lines: a.lines.length })) }), JSON.stringify(result), actor.id, iso(), iso()).lastInsertRowid);
+    db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value').run(`reconcile.account.${id}`, acc.qbo_id);
     audit({ userId: actor.id, action: 'reconcile.start', target: `reconciliation:${rid}`, clientId: id, ip, details: { lines: sec.lines.length, matched: result.matched.length, exceptions: result.exceptions.length, method, check: sec.check.ok } });
     return rid;
   }
@@ -180,10 +181,32 @@ function createReconciler(db, { audit, now = () => Date.now(), portal, parse, le
     audit({ userId: actor.id, action: 'reconcile.finish', target: `reconciliation:${r.id}`, clientId: r.client_id, ip });
     return r.client_id;
   }
+  // Écriture faite dans QuickBooks pour une exception : réglée, avec le lien ; l'annulation la rouvre
+  function exceptionOf(actor, rid, key) {
+    const r = get(actor, rid);
+    const e = r.result.exceptions.find((x) => x.key === key);
+    if (!e) throw new PortalError('Ligne introuvable.');
+    return { r, e };
+  }
+  function markWrite(rid, key, write) {
+    const r = db.prepare('SELECT * FROM reconciliations WHERE id = ?').get(Number(rid));
+    const res = JSON.parse(r.result);
+    const e = res.exceptions.find((x) => x.key === key);
+    if (!e) return;
+    if (write) { e.done = true; e.write = write; e.doneAt = iso(); } else { e.done = false; delete e.write; }
+    db.prepare('UPDATE reconciliations SET result = ?, updated_at = ? WHERE id = ?').run(JSON.stringify(res), iso(), r.id);
+  }
+  // Compte bancaire retenu pour ce client (le dernier utilisé, ou le seul)
+  function defaultAccount(clientId) {
+    const last = db.prepare("SELECT value FROM settings WHERE key = ?").get(`reconcile.account.${Number(clientId)}`);
+    if (last && db.prepare("SELECT 1 FROM qbo_accounts WHERE client_id = ? AND qbo_id = ? AND type = 'Bank'").get(Number(clientId), last.value)) return last.value;
+    const banks = db.prepare("SELECT qbo_id FROM qbo_accounts WHERE client_id = ? AND type = 'Bank'").all(Number(clientId));
+    return banks.length === 1 ? banks[0].qbo_id : null;
+  }
   const bankAccounts = (actor, clientId) => db.prepare("SELECT qbo_id AS id, name FROM qbo_accounts WHERE client_id = ? AND type = 'Bank' ORDER BY name").all(requireStaff(actor, clientId));
   const statements = (actor, clientId) => db.prepare("SELECT id, name, period, created_at FROM documents WHERE client_id = ? AND mime = 'application/pdf' AND (doc_type IN ('releve_banque','releve_carte') OR suggested IN ('releve_banque','releve_carte') OR doc_type IS NULL) ORDER BY id DESC LIMIT 30").all(requireStaff(actor, clientId));
 
-  return { start, get, list, mark, finish, bankAccounts, statements };
+  return { start, get, list, mark, finish, bankAccounts, statements, exceptionOf, markWrite, defaultAccount };
 }
 
 module.exports = { createReconciler, matchStatement, chequeNo, subsetSum };
