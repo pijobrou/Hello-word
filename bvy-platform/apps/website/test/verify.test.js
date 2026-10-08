@@ -54,6 +54,13 @@ test('la demande frauduleuse reçue le 2026-10-07 est bloquée, de vraies demand
     entreprise: 'Google', service: 'tps-tvq', region: 'Cote d\'Ivoire', message: 'Xin chào, tôi muốn biết giá của bạn.' };
   assert.ok(spamReason(fraud, {}));
   assert.strictEqual(checkPhone(fraud.telephone).ok, false, 'le téléphone seul le bloquait déjà');
+  // Deuxième fausse demande reçue (2026-10-04) : même robot, message en lituanien
+  const fraud2 = { prenom: 'WayneCheltGM', nom: 'RobertChelt', courriel: 'joshuaguerrero2v7t40d@gmail.com', telephone: '88334388836',
+    entreprise: 'Apple', service: 'domiciliation', region: 'Senegal', message: 'Sveiki, aš norėjau sužinoti jūsų kainą.' };
+  assert.ok(spamReason(fraud2, {}));
+  assert.strictEqual(checkPhone(fraud2.telephone).ok, false);
+  assert.match(spamReason({ message: fraud2.message }, {}), /votre prix/, 'le message seul suffit');
+  assert.match(spamReason({ region: 'Senegal' }, {}), /région/);
   // Chaque signe fort, seul
   assert.match(spamReason({ ...fraud, prenom: 'Jean', nom: 'Roy', region: 'Côte d’Ivoire', message: 'Bonjour' }, {}), /plusieurs signes|courriel/);
   assert.match(spamReason({ region: 'Cote d\'Ivoire' }, {}), /région/);

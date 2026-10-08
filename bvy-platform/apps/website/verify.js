@@ -119,6 +119,9 @@ const PRICE_TEMPLATE = [
   /muốn biết giá/i, /wanted to know your price/i, /quería saber su precio/i, /queria saber o seu preço/i, /wollte (ihren|deinen) preis/i,
   /volevo sapere il (tuo|vostro) prezzo/i, /je voulais connaître votre prix/i, /wilde je prijs weten/i, /chciałem poznać twoją cenę/i,
   /хотел узнать вашу цену/i, /fiyatınızı öğrenmek/i, /dashur të di çmimin/i, /halusin tietää hintasi/i, /ville vide din pris/i,
+  /norėjau sužinoti jūsų kainą/i, /gribēju uzzināt jūsu cenu/i, /tahtsin teada teie hinda/i, /ήθελα να μάθω την τιμή/i, /исках да знам цената/i,
+  /хотів дізнатися вашу ціну/i, /am vrut să știu prețul/i, /želio sam znati vašu cijenu/i, /jag ville veta ditt pris/i, /ég vildi vita verðið/i,
+  /أردت أن أعرف سعرك/, /רציתי לדעת את המחיר/, /価格を知りたかった/, /想知道你的价格/, /가격을 알고 싶었/, /आपकी कीमत जानना/,
   /ingin tahu harga/i, /gusto kong malaman ang presyo/i, /azt akartam kérdezni, hogy mennyi/i, /chtěl jsem znát vaši cenu/i,
 ];
 // Lettres propres au vietnamien (le site s'adresse au Québec et à la francophonie)
