@@ -8,6 +8,7 @@
 const { smtpConfigFromEnv, sendMail, leadMessage, confirmationMessage } = require('./mailer.js');
 const { createChat, chatConfigFromEnv } = require('./chat.js');
 const { isBlockedAgent } = require('./bots.js');
+const { checkEmail, checkPhone, spamReason, createDomainChecker } = require('./verify.js');
 const { googleConfigFromEnv, createGoogle } = require('./google.js');
 const { bookingConfigFromEnv, createBooking, appointmentMessages } = require('./booking.js');
 const http = require('node:http');
@@ -55,7 +56,6 @@ const MIME_TYPES = Object.freeze({
 });
 
 const MAX_BODY_BYTES = 16 * 1024;
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const QUICKBOOKS_VALUES = new Set(['', 'oui', 'non', 'ne-sais-pas']);
 const CONSENT_VALUES = new Set([true, 'on', 'true', '1']);
 
@@ -63,7 +63,7 @@ const TEXT_FIELDS = {
   prenom: { max: 80, required: true },
   nom: { max: 80, required: true },
   courriel: { max: 160, required: true },
-  telephone: { max: 40 },
+  telephone: { max: 40, required: true },
   entreprise: { max: 120 },
   service: { max: 120 },
   quickbooks: { max: 20 },
@@ -256,7 +256,8 @@ function asText(v) {
   return '';
 }
 
-function validateContact(input) {
+// receivesMail : vérificateur DNS du domaine (verify.js) ; absent → syntaxe, fautes de frappe et domaines jetables seulement
+async function validateContact(input, { receivesMail = null } = {}) {
   const errors = {};
   const data = {};
 
@@ -270,8 +271,14 @@ function validateContact(input) {
     }
   }
 
-  if (!errors.courriel && !EMAIL_RE.test(data.courriel)) {
-    errors.courriel = 'Veuillez entrer une adresse courriel valide.';
+  data.verification = {};
+  if (!errors.courriel) {
+    const e = await checkEmail(data.courriel, receivesMail);
+    if (!e.ok) { errors.courriel = e.error; if (e.suggestion) data.suggestion = e.suggestion; } else { data.courriel = e.email; data.verification.courriel = e.check; }
+  }
+  if (!errors.telephone) {
+    const t = checkPhone(data.telephone);
+    if (!t.ok) errors.telephone = t.error; else { data.telephone = t.display; data.verification.telephone = t.region; }
   }
   if (!errors.quickbooks && !QUICKBOOKS_VALUES.has(data.quickbooks)) {
     errors.quickbooks = 'Valeur invalide.';
@@ -283,7 +290,15 @@ function validateContact(input) {
   }
   data.consentement = true;
 
-  return { ok: Object.keys(errors).length === 0, errors, data };
+  const ok = Object.keys(errors).length === 0;
+  return { ok, errors, data, ...(data.suggestion ? { suggestion: data.suggestion } : {}) };
+}
+
+// La demande vient-elle d'une page de ce site ? (un autre site ne peut pas poster le formulaire)
+function sameSite(req) {
+  const o = req.headers.origin || req.headers.referer;
+  if (!o) return true;
+  try { return new URL(o).host === String(req.headers.host || '').toLowerCase(); } catch { return false; }
 }
 
 function createRateLimiter({ max, windowMs }) {
@@ -318,6 +333,20 @@ function createRateLimiter({ max, windowMs }) {
   };
 }
 
+// Courriels déjà reçus récemment (en mémoire)
+function createRepeatGuard(windowMs) {
+  const seen = new Map();
+  return {
+    seen(email) {
+      const now = Date.now();
+      for (const [k, t] of seen) if (now - t > windowMs) seen.delete(k);
+      const was = seen.has(email);
+      seen.set(email, now);
+      return was;
+    },
+  };
+}
+
 // Compteur quotidien simple (remis à zéro à chaque changement de date UTC).
 function createDailyCap(max) {
   let day = '';
@@ -333,9 +362,13 @@ function createDailyCap(max) {
   };
 }
 
-async function handleContact(req, res, cfg, limiter, confirmations) {
+async function handleContact(req, res, cfg, limiter, confirmations, guard) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { ok: false, error: 'Méthode non autorisée.' }, { Allow: 'POST' });
+  }
+  if (!sameSite(req)) {
+    req.resume();
+    return sendJson(res, 403, { ok: false, error: 'Demande refusée.' });
   }
 
   const ip = clientIp(req, cfg.trustProxy);
@@ -385,13 +418,24 @@ async function handleContact(req, res, cfg, limiter, confirmations) {
     return sendJson(res, 200, { ok: true });
   }
 
-  const result = validateContact(input);
-  if (!result.ok) {
-    return sendJson(res, 422, { ok: false, errors: result.errors });
+  const userAgent = String(req.headers['user-agent'] || '').slice(0, 200);
+  // Robot ou pourriel : on répond « reçu » sans rien envoyer ; gardé à part pour vérification
+  const spam = spamReason(input, { elapsedMs: input._t === undefined || input._t === '' ? NaN : Number(input._t) });
+  if (spam) {
+    await fsp.mkdir(cfg.dataDir, { recursive: true }).catch(() => {});
+    await fsp.appendFile(path.join(cfg.dataDir, 'spam.jsonl'), JSON.stringify({ reason: spam, receivedAt: new Date().toISOString(), ip, userAgent, courriel: asText(input.courriel).slice(0, 160) }) + '\n', { mode: 0o600 }).catch(() => {});
+    return redirectAfter ? send(res, 303, null, { Location: '/contact/merci/', 'Cache-Control': 'no-store' }) : sendJson(res, 201, { ok: true });
   }
 
-  const userAgent = String(req.headers['user-agent'] || '').slice(0, 200);
+  const result = await validateContact(input, { receivesMail: cfg.receivesMail });
+  if (!result.ok) {
+    return sendJson(res, 422, { ok: false, errors: result.errors, ...(result.suggestion ? { suggestion: result.suggestion } : {}) });
+  }
+
   const record = { ...result.data, receivedAt: new Date().toISOString(), ip, userAgent };
+  // Même courriel déjà reçu dans les dernières 24 heures : enregistré, sans nouvel avis ni accusé de réception
+  const repeat = guard.seen(record.courriel);
+  if (repeat) record.doublon = true;
 
   try {
     await fsp.mkdir(cfg.dataDir, { recursive: true });
@@ -401,7 +445,7 @@ async function handleContact(req, res, cfg, limiter, confirmations) {
     return sendJson(res, 500, { ok: false, error: 'Erreur interne. Réessayez plus tard.' });
   }
 
-  if (cfg.webhookUrl) {
+  if (cfg.webhookUrl && !repeat) {
     fetch(cfg.webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -415,7 +459,7 @@ async function handleContact(req, res, cfg, limiter, confirmations) {
       .catch((err) => console.error('Webhook des leads en échec:', err.message));
   }
 
-  if (cfg.smtp) {
+  if (cfg.smtp && !repeat) {
     sendMail(cfg.smtp, leadMessage(record))
       .catch((err) => console.error('Courriel de notification en échec:', err.message));
     // Accusé de réception au client, plafonné par jour pour protéger la réputation du compte d'envoi.
@@ -446,7 +490,10 @@ function createServer(options = {}) {
     rateLimit: { max: 5, windowMs: 10 * 60 * 1000, ...(options.rateLimit || {}) },
     confirmationsPerDay: options.confirmationsPerDay ?? 100,
     chat: { ...env.chat, ...(options.chat || {}) },
+    // Vérification du domaine du courriel par le DNS ; les tests passent un faux vérificateur
+    receivesMail: options.receivesMail !== undefined ? options.receivesMail : createDomainChecker(),
   };
+  const guard = createRepeatGuard(24 * 3600_000);
   const limiter = createRateLimiter(cfg.rateLimit);
   const confirmations = createDailyCap(cfg.confirmationsPerDay);
   const chatLimiter = createRateLimiter(cfg.chat.rateLimit);
@@ -461,7 +508,7 @@ function createServer(options = {}) {
         await sendMail(cfg.smtp, team);
       }
       : null;
-    booking = createBooking({ ...env.booking, ...(options.booking || {}) }, { google, mail, dataDir: cfg.dataDir, now: options.now });
+    booking = createBooking({ ...env.booking, ...(options.booking || {}) }, { google, mail, dataDir: cfg.dataDir, now: options.now, receivesMail: cfg.receivesMail });
   }
   const chat = createChat(cfg.chat, { limiter: chatLimiter, dailyCap: createDailyCap(cfg.chat.maxPerDay), booking });
 
@@ -479,7 +526,7 @@ function createServer(options = {}) {
         }
         return sendJson(res, 200, { ok: true });
       }
-      if (pathname === '/api/contact') return await handleContact(req, res, cfg, limiter, confirmations);
+      if (pathname === '/api/contact') return await handleContact(req, res, cfg, limiter, confirmations, guard);
       if (pathname === '/api/chat') return await chat.handle(req, res, { sendJson, readBody, clientIp: () => clientIp(req, cfg.trustProxy) });
       if (pathname === '/api' || pathname.startsWith('/api/')) {
         return sendJson(res, 404, { ok: false, error: 'Introuvable.' });

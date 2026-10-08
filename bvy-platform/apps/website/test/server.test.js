@@ -21,7 +21,7 @@ function makePublicDir() {
 }
 
 async function start(options) {
-  const server = createServer({ port: 0, ...options });
+  const server = createServer({ port: 0, receivesMail: async () => 'yes', ...options });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   return { server, port: server.address().port };
 }
@@ -61,7 +61,7 @@ const validLead = {
   prenom: '  Marie ',
   nom: 'Tremblay',
   courriel: 'marie@example.com',
-  telephone: '514-555-0100',
+  telephone: '514 387-2001',
   entreprise: 'Boulangerie Tremblay',
   service: 'Tenue de livres',
   quickbooks: 'oui',
@@ -200,7 +200,7 @@ describe('BVY website server', () => {
 
   test('urlencoded form without JSON Accept redirects 303 to /contact/merci/', async () => {
     const body = new URLSearchParams({
-      prenom: 'Jean', nom: 'Roy', courriel: 'jean@example.com', quickbooks: 'ne-sais-pas', consentement: 'on',
+      prenom: 'Jean', nom: 'Roy', courriel: 'jean@example.com', telephone: '819 387-2001', quickbooks: 'ne-sais-pas', consentement: 'on',
     }).toString();
     const res = await request(port, {
       method: 'POST',

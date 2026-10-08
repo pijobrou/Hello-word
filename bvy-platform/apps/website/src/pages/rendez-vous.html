@@ -26,7 +26,7 @@ nav: contact
         <div class="field"><label for="f-prenom">Prénom <span class="req">*</span></label><input class="input" id="f-prenom" name="prenom" autocomplete="given-name" required maxlength="80"><span class="err" aria-live="polite"></span></div>
         <div class="field"><label for="f-nom">Nom <span class="req">*</span></label><input class="input" id="f-nom" name="nom" autocomplete="family-name" required maxlength="80"><span class="err" aria-live="polite"></span></div>
         <div class="field"><label for="f-courriel">Courriel <span class="req">*</span></label><input class="input" id="f-courriel" name="courriel" type="email" autocomplete="email" required maxlength="160" placeholder="vous@entreprise.ca"><span class="err" aria-live="polite"></span></div>
-        <div class="field"><label for="f-tel">Téléphone</label><input class="input" id="f-tel" name="telephone" type="tel" autocomplete="tel" maxlength="40"><span class="err" aria-live="polite"></span></div>
+        <div class="field"><label for="f-tel">Téléphone <span class="req">*</span></label><input class="input" id="f-tel" name="telephone" type="tel" autocomplete="tel" required maxlength="40" placeholder="418 555-1234"><span class="err" aria-live="polite"></span></div>
         <div class="field full"><label for="f-ent">Entreprise</label><input class="input" id="f-ent" name="entreprise" autocomplete="organization" maxlength="120"><span class="err" aria-live="polite"></span></div>
         <div class="field full"><label for="f-service">Service recherché</label>
           <select class="input" id="f-service" name="service">
@@ -56,6 +56,7 @@ nav: contact
             <option>France</option><option>Belgique</option><option>Suisse</option><option>Maroc</option><option>Sénégal</option><option>Côte d’Ivoire</option><option>Autre pays</option>
           </select><span class="err" aria-live="polite"></span></div>
         <div class="field full"><label for="f-msg">Message</label><textarea class="input" id="f-msg" name="message" rows="4" maxlength="4000" placeholder="Décrivez brièvement votre situation…"></textarea><span class="err" aria-live="polite"></span></div>
+        <input type="hidden" name="_t" value="">
         <div class="hp" aria-hidden="true"><label for="f-website">Ne pas remplir</label><input id="f-website" name="website" tabindex="-1" autocomplete="off"></div>
         <div class="field full"><label class="consent" for="f-consent"><input type="checkbox" id="f-consent" name="consentement" value="on" required><span>J’accepte que BVY utilise ces renseignements pour répondre à ma demande, conformément à la <a href="/confidentialite/">politique de confidentialité</a>. <span class="req">*</span></span></label><span class="err" aria-live="polite"></span></div>
         <p class="form-status" role="status" aria-live="polite"></p>

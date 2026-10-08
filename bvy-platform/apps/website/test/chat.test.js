@@ -20,7 +20,7 @@ const textReply = (text) => () => ({ stop_reason: 'end_turn', content: [{ type: 
 async function start(chat) {
   chat = { bookingUrl: '', ...chat };
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bvy-data-'));
-  const app = createServer({ port: 0, dataDir, webhookUrl: '', smtp: null, chat });
+  const app = createServer({ port: 0, receivesMail: async () => 'yes', dataDir, webhookUrl: '', smtp: null, chat });
   await new Promise((r) => app.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${app.address().port}/api/chat`;
   const ask = (messages, headers = {}) => fetch(base, {

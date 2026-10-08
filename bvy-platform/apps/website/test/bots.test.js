@@ -46,7 +46,7 @@ test('les modèles nginx refusent exactement la même liste que bots.js', () => 
 test('l’API refuse les robots (403) et tout le site envoie les en-têtes noai / tdm-reservation', async () => {
   const pub = fs.mkdtempSync(path.join(os.tmpdir(), 'bvy-pub-'));
   fs.writeFileSync(path.join(pub, 'index.html'), '<!doctype html><title>x</title>');
-  const app = createServer({ port: 0, publicDir: pub, smtp: null, webhookUrl: '' });
+  const app = createServer({ port: 0, receivesMail: async () => 'yes', publicDir: pub, smtp: null, webhookUrl: '' });
   await new Promise((r) => app.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${app.address().port}`;
   try {

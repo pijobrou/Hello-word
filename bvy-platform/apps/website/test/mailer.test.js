@@ -73,14 +73,14 @@ test('une demande valide envoie un courriel de notification', async (t) => {
   const { server: smtp, log } = fakeSmtp(cert);
   await new Promise((r) => smtp.listen(0, '127.0.0.1', r));
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bvy-data-'));
-  const app = createServer({ port: 0, dataDir, webhookUrl: '', smtp: {
+  const app = createServer({ port: 0, receivesMail: async () => 'yes', dataDir, webhookUrl: '', smtp: {
     host: '127.0.0.1', port: smtp.address().port, secure: true, rejectUnauthorized: false,
     user: 'robot@bvy.ca', pass: 'secret', from: 'BVY <robot@bvy.ca>', to: ['bvypjb@protonmail.com'] } });
   await new Promise((r) => app.listen(0, '127.0.0.1', r));
   try {
     const res = await fetch(`http://127.0.0.1:${app.address().port}/api/contact`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ prenom: 'Jean', nom: 'Côté', courriel: 'jean@ex.ca', consentement: true, service: 'mise-au-clair-shopify', message: 'Bonjour' }),
+      body: JSON.stringify({ prenom: 'Jean', nom: 'Côté', courriel: 'jean@ex.ca', telephone: '418 387-2001', consentement: true, service: 'mise-au-clair-shopify', message: 'Bonjour' }),
     });
     assert.strictEqual(res.status, 201);
     for (let i = 0; i < 50 && !log.cmds.includes('QUIT'); i++) await new Promise((r) => setTimeout(r, 50));
@@ -124,13 +124,13 @@ test('une demande valide envoie aussi l’accusé de réception au client (plafo
   const { server: smtp, log } = fakeSmtp(cert);
   await new Promise((r) => smtp.listen(0, '127.0.0.1', r));
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bvy-data-'));
-  const app = createServer({ port: 0, dataDir, webhookUrl: '', confirmationsPerDay: 1, smtp: {
+  const app = createServer({ port: 0, receivesMail: async () => 'yes', dataDir, webhookUrl: '', confirmationsPerDay: 1, smtp: {
     host: '127.0.0.1', port: smtp.address().port, secure: true, rejectUnauthorized: false, confirmation: true,
     user: 'robot@bvy.ca', pass: 'secret', from: 'BVY <robot@bvy.ca>', to: ['bvypjb@protonmail.com'] } });
   await new Promise((r) => app.listen(0, '127.0.0.1', r));
   const post = (courriel) => fetch(`http://127.0.0.1:${app.address().port}/api/contact`, {
     method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({ prenom: 'Jean', nom: 'Côté', courriel, consentement: true, service: 'paie', message: 'Bonjour' }),
+    body: JSON.stringify({ prenom: 'Jean', nom: 'Côté', courriel, telephone: '418 387-2001', consentement: true, service: 'paie', message: 'Bonjour' }),
   });
   const quits = () => log.cmds.filter((c) => c === 'QUIT').length;
   try {

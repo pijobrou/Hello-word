@@ -92,7 +92,7 @@ test('réservation : agenda, feuille Google, copie locale et courriels ; garde-f
   assert.match(ok.confirmation, /mardi 6 octobre 2026 à 8 h 00/);
   assert.strictEqual(log.events.length, 1);
   assert.strictEqual(log.events[0].summary, 'Consultation BVY — Marie Tremblay');
-  assert.match(log.events[0].description, /Téléphone : 418 555-1234/);
+  assert.match(log.events[0].description, /Téléphone : \(418\) 555-1234/);
   assert.strictEqual(log.events[0].start.dateTime, '2026-10-06T12:00:00.000Z');
   assert.strictEqual(log.rows.length, 1);
   assert.strictEqual(log.rows[0][4], 'marie@ex.ca');
@@ -142,7 +142,7 @@ test('Jessica réserve via ses outils : boucle d’outils complète à travers /
   ];
   const client = { beta: { messages: { create: async (p) => { calls.push(structuredClone(p)); return replies[calls.length - 1]; } } } };
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bvy-rdv-'));
-  const app = createServer({ port: 0, dataDir, smtp: null, webhookUrl: '', google, now: () => NOW,
+  const app = createServer({ port: 0, receivesMail: async () => 'yes', dataDir, smtp: null, webhookUrl: '', google, now: () => NOW,
     chat: { client, bookingUrl: '', rateLimit: { max: 50, windowMs: 60_000 }, maxPerDay: 100 } });
   await new Promise((r) => app.listen(0, '127.0.0.1', r));
   const base = `http://127.0.0.1:${app.address().port}/api/chat`;

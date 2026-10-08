@@ -95,6 +95,45 @@ On `STATUS: REJECTED`: stop.
 - Footer on every page: no audit, review or compilation engagements; certification work is referred to an
   independent licensed CPA. BVY Accounting & Tax Services Inc. is incorporated (owner, 2026-09-30).
 
+## Revision 3 — protection du formulaire de consultation (2026-10-08, demande du propriétaire)
+
+> « il faut sécuriser notre site contre les fraudeurs et autres ; vérifier si le courriel et le téléphone sont bons
+> avant d'envoyer la demande lorsqu'un client fait une demande de consultation »
+
+STATUS: WAITING_FOR_OWNER_APPROVAL
+
+Outil : `apps/website/verify.js` (tests : `apps/website/test/verify.test.js`). Aucun service externe, aucune clé.
+
+**Courriel** (formulaire et Jessica) :
+- syntaxe stricte ;
+- fautes de frappe connues (gmial.com, hotmial.com, videotron.com…) : « Vouliez-vous écrire marie@gmail.com ? »,
+  corrigé d'un clic ;
+- adresses jetables refusées (yopmail, mailinator, 10minutemail… ~50 domaines) ;
+- le domaine doit recevoir du courrier (enregistrement MX vérifié dans le DNS, 3 s au plus). Si le DNS du serveur
+  est en panne (même gmail.com ne répond pas), la demande passe, marquée « domaine non vérifié ».
+
+**Téléphone** — maintenant obligatoire :
+- 10 chiffres nord-américains (ou international avec « + ») ; poste accepté ;
+- refusés : indicatif ou central qui commence par 0 ou 1, N11 (911, 411…), 555-01xx (numéros fictifs), 900/976,
+  chiffres tous identiques, 1234567890 ;
+- enregistré au format (418) 555-1234, avec « Canada » ou « États-Unis ».
+
+**Fraudeurs et robots** (la demande est ignorée en silence ; le robot croit qu'elle est partie ; gardée dans
+`data/spam.jsonl` pour vérification) :
+- formulaire rempli en moins de 3 secondes ;
+- lien dans un nom, plus de 2 liens dans le message, mots de pourriel connus, texte surtout en cyrillique ou chinois ;
+- champ piège invisible (existait déjà) ;
+- demande postée depuis un autre site : refusée (403) ;
+- même courriel dans les 24 dernières heures : enregistré, mais sans nouvel avis ni accusé de réception ;
+- limite par adresse IP : 5 demandes par 10 minutes (existait déjà).
+
+L'avis envoyé à BVY indique « domaine vérifié : reçoit du courriel » et « numéro valide — Canada ».
+
+**Limites** : on vérifie que l'adresse peut recevoir du courriel et que le numéro peut exister, pas qu'ils
+appartiennent à la personne. Pour le prouver : code envoyé par courriel avant d'accepter la demande (possible sans
+frais), ou code par texto (service payant, p. ex. Twilio). Un test « je ne suis pas un robot » (Cloudflare
+Turnstile, gratuit, clé ajoutée sur le serveur) est aussi possible. À décider par le propriétaire.
+
 ## Deployment log
 
 - 2026-10-01 — Owner deployed revision 2 to the OVH VPS with `deploy.cmd --nginx`. The old nginx file

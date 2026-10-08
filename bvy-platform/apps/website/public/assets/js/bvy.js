@@ -60,6 +60,45 @@
     });
   }
 
+  var started = Date.now();
+  var TYPOS = { 'gmial.com': 'gmail.com', 'gmai.com': 'gmail.com', 'gmail.co': 'gmail.com', 'gmail.con': 'gmail.com', 'gamil.com': 'gmail.com', 'gnail.com': 'gmail.com',
+    'hotmial.com': 'hotmail.com', 'hotmai.com': 'hotmail.com', 'hotmail.co': 'hotmail.com', 'hotmial.ca': 'hotmail.ca', 'outlok.com': 'outlook.com',
+    'yahooo.com': 'yahoo.com', 'yaho.com': 'yahoo.com', 'videotron.com': 'videotron.ca', 'sympatico.com': 'sympatico.ca', 'iclod.com': 'icloud.com' };
+  // Téléphone : 10 chiffres nord-américains valides (ou international avec +), mis en forme (418) 555-1234
+  function phoneCheck(v) {
+    var main = v.replace(/\s*(poste|ext\.?|x)\s*\d{1,6}$/i, '');
+    var d = main.replace(/\D/g, '');
+    if (/^\+/.test(main) && !/^\+1/.test(main)) return d.length >= 8 && d.length <= 15 ? { ok: true, display: v } : { ok: false };
+    if (d.length === 11 && d.charAt(0) === '1') d = d.slice(1);
+    if (d.length !== 10 || /[01]/.test(d.charAt(0)) || /[01]/.test(d.charAt(3)) || /^(\d)\1{9}$/.test(d) || /^\d11/.test(d) || /^\d{3}\d11/.test(d)
+      || /^\d{3}55501\d\d$/.test(d) || /^(555|900|976)/.test(d) || d === '1234567890') return { ok: false };
+    return { ok: true, display: '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6) + v.slice(main.length) };
+  }
+  function fieldMsg(name, text) {
+    var el = form.querySelector('[name="' + name + '"]'); var field = el && el.closest('.field'); if (!field) return;
+    field.classList.toggle('invalid', Boolean(text)); var err = field.querySelector('.err'); if (err) err.textContent = text || '';
+  }
+  function suggestEmail(s) {
+    var field = form.courriel.closest('.field'); var err = field.querySelector('.err');
+    field.classList.add('invalid');
+    err.textContent = 'Vouliez-vous écrire ';
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'link-btn'; b.textContent = s + ' ?';
+    b.addEventListener('click', function () { form.courriel.value = s; fieldMsg('courriel', ''); form.courriel.focus(); });
+    err.appendChild(b);
+  }
+  if (form.courriel) form.courriel.addEventListener('blur', function () {
+    var v = form.courriel.value.trim().toLowerCase(); if (!v) return;
+    var dom = v.split('@')[1];
+    if (dom && TYPOS[dom]) suggestEmail(v.split('@')[0] + '@' + TYPOS[dom]);
+    else if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v)) fieldMsg('courriel', 'Cette adresse courriel n’est pas valide. Exemple : vous@entreprise.ca');
+    else fieldMsg('courriel', '');
+  });
+  if (form.telephone) form.telephone.addEventListener('blur', function () {
+    var v = form.telephone.value.trim(); if (!v) return;
+    var c = phoneCheck(v);
+    if (c.ok) { form.telephone.value = c.display; fieldMsg('telephone', ''); } else fieldMsg('telephone', 'Numéro invalide : 10 chiffres, indicatif régional compris. Exemple : 418 555-1234');
+  });
+
   var status = form.querySelector('.form-status');
   var submit = form.querySelector('button[type=submit]');
   var label = submit ? submit.textContent : '';
@@ -92,11 +131,14 @@
     var data = {};
     new FormData(form).forEach(function (v, k) { data[k] = typeof v === 'string' ? v.trim() : v; });
     data.consentement = form.consentement && form.consentement.checked;
+    data._t = String(Date.now() - started);
 
     var local = {};
     if (!data.prenom) local.prenom = 'Indiquez votre prénom.';
     if (!data.nom) local.nom = 'Indiquez votre nom.';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.courriel || '')) local.courriel = 'Indiquez un courriel valide.';
+    if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(data.courriel || '')) local.courriel = 'Indiquez un courriel valide.';
+    if (!data.telephone) local.telephone = 'Indiquez votre numéro de téléphone.';
+    else if (!phoneCheck(data.telephone).ok) local.telephone = 'Numéro invalide : 10 chiffres, indicatif régional compris. Exemple : 418 555-1234';
     if (!data.consentement) local.consentement = 'Votre consentement est nécessaire pour traiter la demande.';
     if (Object.keys(local).length) { showErrors(local); return; }
 
@@ -115,7 +157,7 @@
         submit.textContent = '✓ Demande envoyée';
         return;
       }
-      if (r.res.status === 422) showErrors(r.body.errors);
+      if (r.res.status === 422) { showErrors(r.body.errors); if (r.body.suggestion) suggestEmail(r.body.suggestion); }
       setStatus('ko', r.body.error || 'Certaines informations sont à corriger.');
       submit.disabled = false;
       submit.textContent = label;

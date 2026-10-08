@@ -13,7 +13,7 @@
 const fsp = require('node:fs/promises');
 const path = require('node:path');
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const { checkEmail, checkPhone } = require('./verify.js');
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function bookingConfigFromEnv(env = process.env) {
@@ -160,7 +160,7 @@ function createDailyCounter() {
   };
 }
 
-function createBooking(cfg, { google, mail, dataDir, now = () => Date.now() }) {
+function createBooking(cfg, { google, mail, dataDir, now = () => Date.now(), receivesMail = null }) {
   const perIp = createDailyCounter();
   const perEmail = createDailyCounter();
   const site = createDailyCounter();
@@ -195,9 +195,11 @@ function createBooking(cfg, { google, mail, dataDir, now = () => Date.now() }) {
     const errors = [];
     if (input.consentement !== true) errors.push('la personne n’a pas donné son accord à l’enregistrement de ses coordonnées');
     if (!v.prenom || !v.nom) errors.push('prénom et nom requis');
-    if (!EMAIL_RE.test(v.courriel)) errors.push('courriel invalide');
-    const digits = v.telephone.replace(/\D/g, '');
-    if (digits.length < 10 || digits.length > 15) errors.push('numéro de téléphone invalide (10 à 15 chiffres)');
+    // Coordonnées vérifiées avant toute réservation : faute de frappe, adresse jetable, domaine sans courriel, faux numéro
+    const ce = await checkEmail(v.courriel, receivesMail);
+    if (!ce.ok) errors.push(`courriel à faire corriger par la personne : ${ce.error}`); else v.courriel = ce.email;
+    const cp = checkPhone(v.telephone);
+    if (!cp.ok) errors.push(`téléphone à faire corriger par la personne : ${cp.error}`); else v.telephone = cp.display;
     if (errors.length) return { ok: false, erreur: errors.join('; ') };
 
     if (site.count('all') >= cfg.maxPerDay) return { ok: false, erreur: 'limite quotidienne de réservations atteinte : propose le formulaire /rendez-vous/' };
