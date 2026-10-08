@@ -782,6 +782,53 @@ Limites : un robot qui ment sur son identité et imite un vrai navigateur, lente
 distingué d'un visiteur par ces règles. Pour aller plus loin (comme les grands sites marchands), il faut un
 service anti-robots payant ou Cloudflare devant le site (option « Block AI bots », défis automatiques).
 
+### 9.6 Case « Je ne suis pas un robot » sur le formulaire de consultation
+
+La case (avec les images à choisir quand le visiteur semble suspect) est celle de **Google reCAPTCHA v2**.
+Tant que les clés ne sont pas sur le serveur, le formulaire fonctionne comme avant, sans la case.
+
+1. Sur votre PC, ouvrez <https://www.google.com/recaptcha/admin/create> avec le compte Google de BVY.
+2. Remplissez :
+   - **Libellé** : `BVY site`
+   - **Type** : **reCAPTCHA v2** → **Case à cocher « Je ne suis pas un robot »** (pas la v3, qui n'a ni case ni images)
+   - **Domaines** : `bvyaccountingtax.ca` (ajoutez aussi `localhost` seulement si vous voulez l'essayer sur votre PC)
+3. Envoyez. Google affiche deux clés : la **clé du site** (publique) et la **clé secrète**.
+   Ne les envoyez à personne, ni dans une conversation : vous les tapez vous-même sur le serveur.
+4. Sur le serveur :
+
+```bash
+sudo nano /var/www/bvy-website/shared/.env
+```
+
+Ajoutez à la fin (remplacez par vos clés), enregistrez (Ctrl+O, Entrée, Ctrl+X) :
+
+```
+CAPTCHA_PROVIDER=recaptcha
+CAPTCHA_SITE_KEY=la-cle-du-site
+CAPTCHA_SECRET=la-cle-secrete
+```
+
+```bash
+sudo systemctl restart bvy-website
+```
+
+5. Vérifiez : ouvrez https://bvyaccountingtax.ca/contact/ — la case apparaît au-dessus du consentement.
+   Une demande envoyée sans la cocher est refusée ; l'avis que vous recevez indique « Je ne suis pas un
+   robot : vérifié ».
+
+**Autre fournisseur possible** : hCaptcha (<https://dashboard.hcaptcha.com>), qui montre des images à choisir
+plus souvent. Même procédure avec `CAPTCHA_PROVIDER=hcaptcha` et ses deux clés.
+
+**Si Google ne répond pas** (panne), la demande n'est pas bloquée : elle est acceptée avec la mention
+« non vérifié (service injoignable) », et les autres filtres (courriel, téléphone, pourriel) restent actifs.
+
+**Loi 25** : la case transmet à Google (ou hCaptcha) l'adresse IP et des informations techniques du
+navigateur, traitées hors du Québec. C'est indiqué dans la politique de confidentialité (section 9 bis).
+La Loi 25 demande aussi, avant une communication de renseignements hors du Québec, une **évaluation des
+facteurs relatifs à la vie privée** : gardez une courte note datée (quoi : IP et données du navigateur ;
+pourquoi : bloquer les robots ; qui : Google LLC ; protection : politique de Google, aucune donnée du
+formulaire transmise) dans vos dossiers de conformité.
+
 ---
 
 ## 9 bis. Le portail client (portail.bvyaccountingtax.ca)

@@ -39,6 +39,23 @@ STATUS: WAITING_FOR_OWNER_APPROVAL
    Administration → « Avis » : facilité moyenne sur 90 jours, sujets, pages qui posent problème, état
    (Reçu, Lu, Prévu, Fait, Pas retenu) et réponse visible par la personne. 10 avis par jour et par personne au plus.
 
+## Ajout — case « Je ne suis pas un robot » (2026-10-08, choix du propriétaire)
+
+> « La case « Je ne suis pas un robot » sur le formulaire de consultation, et les images à choisir. »
+
+- Google reCAPTCHA v2 « case à cocher » (images à choisir quand le visiteur semble suspect) ; hCaptcha possible.
+  Outil : `apps/website/captcha.js` ; tests : `test/captcha.test.js`.
+- Le serveur vérifie chaque jeton auprès du fournisseur (clé secrète, adresse IP, nom du site) avant d'accepter
+  la demande ; un jeton obtenu sur un autre site est refusé. Google en panne → demande acceptée, marquée
+  « non vérifié », les autres filtres restent actifs.
+- La politique de sécurité du contenu est élargie au fournisseur sur les deux pages du formulaire seulement
+  (`/contact/`, `/rendez-vous/`) ; partout ailleurs, elle reste stricte (nginx et Node, identiques, vérifié par test).
+- Clés : le propriétaire les crée et les tape sur le serveur (DEPLOIEMENT.md, 9.6). Sans clés, rien ne change.
+- Politique de confidentialité, section 9 bis. Loi 25 : courte évaluation des facteurs relatifs à la vie privée
+  à garder au dossier (transfert hors du Québec).
+- Limite honnête : les images de ces cases sont aujourd'hui résolues par des IA et des services payants de
+  résolution. La case arrête les robots ordinaires ; elle ne remplace pas les autres filtres, qui restent actifs.
+
 ## Pourquoi des règles fixes et pas une IA pour la sécurité
 
 Une IA qui jugerait chaque visite serait lente, coûteuse et elle-même trompable (un texte peut la manipuler).

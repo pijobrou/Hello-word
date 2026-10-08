@@ -542,3 +542,5 @@ fieldset.field{border:0}
 }
 @media print{.jx{display:none}}
 .trap{display:none!important}
+.captcha-field #captcha{min-height:78px}
+.captcha-field[hidden]{display:none}

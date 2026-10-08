@@ -150,6 +150,7 @@ function leadMessage(lead) {
     field('Nom', name),
     field('Courriel', lead.courriel && `${lead.courriel}${lead.verification && lead.verification.courriel === 'verified' ? ' (domaine vérifié : reçoit du courriel)' : lead.verification ? ' (domaine non vérifié)' : ''}`),
     field('Téléphone', lead.telephone && `${lead.telephone}${lead.verification && lead.verification.telephone ? ` (numéro valide — ${lead.verification.telephone})` : ''}`),
+    field('« Je ne suis pas un robot »', lead.verification && lead.verification.robot),
     field('Entreprise', lead.entreprise),
     field('Service', lead.service),
     field('QuickBooks Online', lead.quickbooks),

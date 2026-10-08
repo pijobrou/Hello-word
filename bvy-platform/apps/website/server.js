@@ -9,6 +9,7 @@ const { smtpConfigFromEnv, sendMail, leadMessage, confirmationMessage } = requir
 const { createChat, chatConfigFromEnv } = require('./chat.js');
 const { isBlockedAgent } = require('./bots.js');
 const { checkEmail, checkPhone, spamReason, createDomainChecker } = require('./verify.js');
+const { captchaConfigFromEnv, verifyCaptcha, FORM_CSP, PROVIDERS } = require('./captcha.js');
 const { googleConfigFromEnv, createGoogle } = require('./google.js');
 const { bookingConfigFromEnv, createBooking, appointmentMessages } = require('./booking.js');
 const http = require('node:http');
@@ -79,6 +80,7 @@ function envConfig() {
     webhookUrl: process.env.LEADS_WEBHOOK_URL || '',
     smtp: smtpConfigFromEnv(),
     chat: chatConfigFromEnv(),
+    captcha: captchaConfigFromEnv(),
     google: googleConfigFromEnv(),
     booking: bookingConfigFromEnv(),
     dataDir: path.resolve(__dirname, process.env.DATA_DIR || 'data'),
@@ -90,7 +92,7 @@ function envConfig() {
 
 function send(res, status, body, headers = {}) {
   const buf = body === undefined || body === null ? null : Buffer.isBuffer(body) ? body : Buffer.from(String(body));
-  const h = { ...SECURITY_HEADERS, ...headers };
+  const h = { ...SECURITY_HEADERS, ...headers, ...formCsp(res.req) };
   if (buf) h['Content-Length'] = buf.length;
   res.writeHead(status, h);
   if (buf && res.req.method !== 'HEAD') res.end(buf);
@@ -121,12 +123,18 @@ function statSafe(p) {
 
 /* ------------------------------------------------------------------- static */
 
+// Pages du formulaire : la case « Je ne suis pas un robot » vient du fournisseur choisi (politique élargie à ces pages seulement)
+function formCsp(req) {
+  return /^\/(contact|rendez-vous)\/(index\.html)?$/.test(String((req && req.url) || '').split('?')[0]) ? { 'Content-Security-Policy': FORM_CSP } : {};
+}
+
 async function serveFile(req, res, filePath, status = 200) {
   const st = await statSafe(filePath);
   if (!st || !st.isFile()) return false;
   const ext = path.extname(filePath).toLowerCase();
   const headers = {
     ...SECURITY_HEADERS,
+    ...formCsp(req),
     'Content-Type': MIME_TYPES[ext] || 'application/octet-stream',
     'Content-Length': st.size,
     'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=604800',
@@ -427,12 +435,21 @@ async function handleContact(req, res, cfg, limiter, confirmations, guard) {
     return redirectAfter ? send(res, 303, null, { Location: '/contact/merci/', 'Cache-Control': 'no-store' }) : sendJson(res, 201, { ok: true });
   }
 
+  // Case « Je ne suis pas un robot » (si un fournisseur est configuré sur le serveur)
+  let captcha = { ok: true, checked: false, off: true };
+  if (cfg.captcha) {
+    const token = asText(input.captcha) || asText(input[PROVIDERS[cfg.captcha.provider].field]);
+    captcha = await verifyCaptcha(cfg.captcha, token, ip, { fetchImpl: cfg.captchaFetch });
+    if (!captcha.ok) return sendJson(res, 422, { ok: false, errors: { captcha: 'Cochez la case « Je ne suis pas un robot » (et choisissez les images demandées, s’il y a lieu).' } });
+  }
+
   const result = await validateContact(input, { receivesMail: cfg.receivesMail });
   if (!result.ok) {
     return sendJson(res, 422, { ok: false, errors: result.errors, ...(result.suggestion ? { suggestion: result.suggestion } : {}) });
   }
 
   const record = { ...result.data, receivedAt: new Date().toISOString(), ip, userAgent };
+  if (!captcha.off) record.verification.robot = captcha.checked ? 'vérifié' : 'non vérifié (service injoignable)';
   // Même courriel déjà reçu dans les dernières 24 heures : enregistré, sans nouvel avis ni accusé de réception
   const repeat = guard.seen(record.courriel);
   if (repeat) record.doublon = true;
@@ -492,6 +509,8 @@ function createServer(options = {}) {
     chat: { ...env.chat, ...(options.chat || {}) },
     // Vérification du domaine du courriel par le DNS ; les tests passent un faux vérificateur
     receivesMail: options.receivesMail !== undefined ? options.receivesMail : createDomainChecker(),
+    captcha: options.captcha !== undefined ? options.captcha : env.captcha,
+    captchaFetch: options.captchaFetch || fetch,
   };
   const guard = createRepeatGuard(24 * 3600_000);
   const limiter = createRateLimiter(cfg.rateLimit);
@@ -525,6 +544,10 @@ function createServer(options = {}) {
           return sendJson(res, 405, { ok: false, error: 'Méthode non autorisée.' }, { Allow: 'GET, HEAD' });
         }
         return sendJson(res, 200, { ok: true });
+      }
+      // Clé publique de la case « Je ne suis pas un robot » (jamais la clé secrète)
+      if (pathname === '/api/captcha') {
+        return sendJson(res, 200, cfg.captcha ? { provider: cfg.captcha.provider, siteKey: cfg.captcha.siteKey } : { provider: null }, { 'Cache-Control': 'no-store' });
       }
       if (pathname === '/api/contact') return await handleContact(req, res, cfg, limiter, confirmations, guard);
       if (pathname === '/api/chat') return await chat.handle(req, res, { sendJson, readBody, clientIp: () => clientIp(req, cfg.trustProxy) });

@@ -99,6 +99,34 @@
     if (c.ok) { form.telephone.value = c.display; fieldMsg('telephone', ''); } else fieldMsg('telephone', 'Numéro invalide : 10 chiffres, indicatif régional compris. Exemple : 418 555-1234');
   });
 
+  // Case « Je ne suis pas un robot » : affichée seulement si le serveur a un fournisseur configuré
+  var captcha = null;
+  var capField = form.querySelector('.captcha-field');
+  if (capField && window.fetch) {
+    fetch('/api/captcha', { headers: { 'Accept': 'application/json' } }).then(function (r) { return r.json(); }).then(function (c) {
+      if (!c || !c.provider || !c.siteKey) return;
+      var api = c.provider === 'hcaptcha' ? 'hcaptcha' : 'grecaptcha';
+      captcha = { api: api, id: null };
+      capField.hidden = false;
+      window.bvyCaptchaReady = function () {
+        captcha.id = window[api].render('captcha', { sitekey: c.siteKey, callback: function () { fieldMsg('captcha', ''); } });
+      };
+      var sc = document.createElement('script');
+      sc.async = true; sc.defer = true;
+      sc.src = c.provider === 'hcaptcha'
+        ? 'https://js.hcaptcha.com/1/api.js?hl=fr&render=explicit&onload=bvyCaptchaReady'
+        : 'https://www.google.com/recaptcha/api.js?hl=fr-CA&render=explicit&onload=bvyCaptchaReady';
+      document.head.appendChild(sc);
+    }).catch(function () {});
+  }
+  function captchaToken() {
+    if (!captcha || captcha.id === null || !window[captcha.api]) return '';
+    try { return window[captcha.api].getResponse(captcha.id) || ''; } catch (e) { return ''; }
+  }
+  function captchaReset() {
+    if (captcha && captcha.id !== null && window[captcha.api]) { try { window[captcha.api].reset(captcha.id); } catch (e) { /* rien */ } }
+  }
+
   var status = form.querySelector('.form-status');
   var submit = form.querySelector('button[type=submit]');
   var label = submit ? submit.textContent : '';
@@ -132,6 +160,7 @@
     new FormData(form).forEach(function (v, k) { data[k] = typeof v === 'string' ? v.trim() : v; });
     data.consentement = form.consentement && form.consentement.checked;
     data._t = String(Date.now() - started);
+    if (captcha) data.captcha = captchaToken();
 
     var local = {};
     if (!data.prenom) local.prenom = 'Indiquez votre prénom.';
@@ -139,6 +168,7 @@
     if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(data.courriel || '')) local.courriel = 'Indiquez un courriel valide.';
     if (!data.telephone) local.telephone = 'Indiquez votre numéro de téléphone.';
     else if (!phoneCheck(data.telephone).ok) local.telephone = 'Numéro invalide : 10 chiffres, indicatif régional compris. Exemple : 418 555-1234';
+    if (captcha && !data.captcha) local.captcha = 'Cochez la case « Je ne suis pas un robot ».';
     if (!data.consentement) local.consentement = 'Votre consentement est nécessaire pour traiter la demande.';
     if (Object.keys(local).length) { showErrors(local); return; }
 
@@ -157,7 +187,7 @@
         submit.textContent = '✓ Demande envoyée';
         return;
       }
-      if (r.res.status === 422) { showErrors(r.body.errors); if (r.body.suggestion) suggestEmail(r.body.suggestion); }
+      if (r.res.status === 422) { showErrors(r.body.errors); if (r.body.suggestion) suggestEmail(r.body.suggestion); captchaReset(); }
       setStatus('ko', r.body.error || 'Certaines informations sont à corriger.');
       submit.disabled = false;
       submit.textContent = label;
