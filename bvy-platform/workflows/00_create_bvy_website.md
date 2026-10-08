@@ -127,6 +127,17 @@ Outil : `apps/website/verify.js` (tests : `apps/website/test/verify.test.js`). A
 - même courriel dans les 24 dernières heures : enregistré, mais sans nouvel avis ni accusé de réception ;
 - limite par adresse IP : 5 demandes par 10 minutes (existait déjà).
 
+**Ajout du 2026-10-08** — après une fausse demande reçue le 2026-10-07 (« JasonCheltGM RobertChelt », téléphone
+85389153862, entreprise « Google », région « Cote d'Ivoire » hors de la liste, message vietnamien « je voulais connaître
+votre prix ») :
+- service ou région absents des listes du formulaire → robot (il n'a pas rempli le formulaire à l'écran) ;
+- modèle de pourriel « votre prix » reconnu en une vingtaine de langues ; message en vietnamien ;
+- noms générés (« JasonCheltGM », même fin « Chelt » dans prénom et nom) ;
+- signes faibles, bloquants à deux : courriel à suite aléatoire (« 2v7t40d »), courriel sans rapport avec le nom,
+  entreprise « Google / Facebook / Amazon… », nom collé (« RobertChelt » ; pas McDonald, MacKenzie, LeBlanc).
+Test de non-régression : cette demande exacte est bloquée ; de vraies demandes (Marie-Ève Côté, Jean-François
+McDonald, Aïssatou Diallo, Nguyen Tran) passent.
+
 L'avis envoyé à BVY indique « domaine vérifié : reçoit du courriel » et « numéro valide — Canada ».
 
 **Limites** : on vérifie que l'adresse peut recevoir du courriel et que le numéro peut exister, pas qu'ils

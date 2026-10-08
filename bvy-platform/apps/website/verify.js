@@ -109,9 +109,45 @@ function checkPhone(raw, { required = true } = {}) {
   return { ok: true, e164: `+1${d}`, display: `(${area}) ${exch}-${line}${ext ? ` poste ${ext}` : ''}`, region: CANADA.has(area) ? 'Canada' : 'États-Unis' };
 }
 
+// Choix offerts par le formulaire : une autre valeur veut dire que le formulaire n'a pas été rempli à l'écran (robot)
+const SERVICES = ['', 'diagnostic', 'mise-au-clair-shopify', 'tenue-de-livres', 'paie', 'tps-tvq', 'impot-societes', 'travailleurs-autonomes',
+  'etats-financiers', 'incorporation', 'domiciliation', 'plateforme', 'autre'];
+const REGIONS = ['', 'Québec, Canada', 'Ontario, Canada', 'Autre province canadienne', 'France', 'Belgique', 'Suisse', 'Maroc', 'Sénégal', 'Côte d’Ivoire', 'Autre pays'];
+
+// Modèle de pourriel connu : « Bonjour, je voulais connaître votre prix » envoyé en toutes les langues par des robots
+const PRICE_TEMPLATE = [
+  /muốn biết giá/i, /wanted to know your price/i, /quería saber su precio/i, /queria saber o seu preço/i, /wollte (ihren|deinen) preis/i,
+  /volevo sapere il (tuo|vostro) prezzo/i, /je voulais connaître votre prix/i, /wilde je prijs weten/i, /chciałem poznać twoją cenę/i,
+  /хотел узнать вашу цену/i, /fiyatınızı öğrenmek/i, /dashur të di çmimin/i, /halusin tietää hintasi/i, /ville vide din pris/i,
+  /ingin tahu harga/i, /gusto kong malaman ang presyo/i, /azt akartam kérdezni, hogy mennyi/i, /chtěl jsem znát vaši cenu/i,
+];
+// Lettres propres au vietnamien (le site s'adresse au Québec et à la francophonie)
+const VIET = /[ạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹđươă]/gi;
+const BIG_BRANDS = /^(google|facebook|meta|amazon|apple|microsoft|youtube|instagram|tiktok|test|company|business|n\/?a)$/i;
+
 // Signes de robot ou de pourriel → raison (la demande est alors ignorée en silence), sinon null
 function spamReason(data, { elapsedMs } = {}) {
   if (Number.isFinite(elapsedMs) && elapsedMs >= 0 && elapsedMs < 3000) return 'rempli en moins de 3 secondes';
+  const str = (k) => (typeof data[k] === 'string' ? data[k].trim() : '');
+  if (data.service !== undefined && !SERVICES.includes(str('service'))) return 'service hors de la liste du formulaire';
+  if (data.region !== undefined && !REGIONS.includes(str('region'))) return 'région hors de la liste du formulaire';
+  if (PRICE_TEMPLATE.some((re) => re.test(str('message')))) return 'modèle de pourriel « votre prix »';
+  // Noms générés par les logiciels de pourriel : « JasonCheltGM RobertChelt » (2 majuscules collées, même fin de nom)
+  const pn = str('prenom'); const nm = str('nom');
+  if (/[a-z][A-Z]{2,}$/.test(pn) || /[a-z][A-Z]{2,}$/.test(nm)) return 'nom généré (majuscules collées)';
+  const tail = (w) => (w.match(/[A-Z][a-z]{3,}$/) || [''])[0];
+  if (tail(pn) && tail(pn) === tail(nm) && pn !== nm && /[a-z][A-Z]/.test(pn + nm)) return 'nom généré (même fin de nom)';
+  const viet = (str('message').match(VIET) || []).length;
+  if (viet >= 3) return 'message en vietnamien (pourriel)';
+  // Signes faibles : deux ensemble suffisent
+  const weak = [];
+  const local = str('courriel').split('@')[0] || '';
+  if (/[a-z]{3,}\d[a-z0-9]*\d[a-z0-9]*$/i.test(local) && /\d.*[a-z].*\d|[a-z]\d[a-z]/i.test(local.replace(/^[a-z]+/i, ''))) weak.push('courriel à suite aléatoire');
+  if (local && pn && nm && !local.toLowerCase().includes(pn.toLowerCase().slice(0, 4)) && !local.toLowerCase().includes(nm.toLowerCase().slice(0, 4))) weak.push('courriel sans rapport avec le nom');
+  if (BIG_BRANDS.test(str('entreprise'))) weak.push('entreprise fictive');
+  // « RobertChelt » ; pas « McDonald », « MacKay », « LeBlanc »
+  if (/[A-Z][a-z]{3,}[A-Z][a-z]{2,}/.test(pn) || /[A-Z][a-z]{3,}[A-Z][a-z]{2,}/.test(nm)) weak.push('nom collé');
+  if (weak.length >= 2) return `plusieurs signes : ${weak.join(', ')}`;
   const urls = (s) => (String(s || '').match(/https?:\/\/|www\.|\[url|<a\s/gi) || []).length;
   if (['prenom', 'nom', 'entreprise', 'region'].some((k) => urls(data[k]))) return 'lien dans un nom';
   if (urls(data.message) > 2) return 'trop de liens dans le message';
@@ -123,4 +159,4 @@ function spamReason(data, { elapsedMs } = {}) {
   return null;
 }
 
-module.exports = { checkEmail, checkPhone, spamReason, createDomainChecker, DISPOSABLE, TYPOS, CANADA };
+module.exports = { checkEmail, checkPhone, spamReason, createDomainChecker, DISPOSABLE, TYPOS, CANADA, SERVICES, REGIONS };

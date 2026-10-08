@@ -49,6 +49,39 @@ test('robots et pourriel', () => {
   assert.match(spamReason({ message: 'Best SEO services for you' }, {}), /pourriel/);
 });
 
+test('la demande frauduleuse reçue le 2026-10-07 est bloquée, de vraies demandes passent', async () => {
+  const fraud = { prenom: 'JasonCheltGM', nom: 'RobertChelt', courriel: 'joshuaguerrero2v7t40d@gmail.com', telephone: '85389153862',
+    entreprise: 'Google', service: 'tps-tvq', region: 'Cote d\'Ivoire', message: 'Xin chào, tôi muốn biết giá của bạn.' };
+  assert.ok(spamReason(fraud, {}));
+  assert.strictEqual(checkPhone(fraud.telephone).ok, false, 'le téléphone seul le bloquait déjà');
+  // Chaque signe fort, seul
+  assert.match(spamReason({ ...fraud, prenom: 'Jean', nom: 'Roy', region: 'Côte d’Ivoire', message: 'Bonjour' }, {}), /plusieurs signes|courriel/);
+  assert.match(spamReason({ region: 'Cote d\'Ivoire' }, {}), /région/);
+  assert.match(spamReason({ service: 'seo' }, {}), /service/);
+  assert.match(spamReason({ message: 'Hi, I wanted to know your price.' }, {}), /votre prix/);
+  assert.match(spamReason({ prenom: 'JasonCheltGM', nom: 'Roy' }, {}), /nom généré/);
+  assert.match(spamReason({ prenom: 'Jason', nom: 'RobertChelt', courriel: 'jason@x.ca' }, {}) || '', /^$|nom/);
+  assert.match(spamReason({ message: 'Xin chào, tôi cần dịch vụ kế toán cho công ty' }, {}), /vietnamien/);
+  // Vraies demandes : noms composés, accents, courriel avec chiffres, région de la liste
+  for (const ok of [
+    { prenom: 'Marie-Ève', nom: 'Côté', courriel: 'marie.cote84@videotron.ca', entreprise: 'Boutique Côté', service: 'tps-tvq', region: 'Québec, Canada', message: 'Bonjour, je veux un prix pour la TPS/TVQ.' },
+    { prenom: 'Jean-François', nom: 'McDonald', courriel: 'jf@mcdonald-plomberie.ca', entreprise: 'Plomberie McDonald', service: '', region: 'Côte d’Ivoire', message: '' },
+    { prenom: 'Aïssatou', nom: 'Diallo', courriel: 'adiallo2021@gmail.com', entreprise: '', service: 'paie', region: 'Sénégal', message: 'Merci' },
+    { prenom: 'Nguyen', nom: 'Tran', courriel: 'nguyen.tran@gmail.com', entreprise: 'Pho Québec', service: 'tenue-de-livres', region: 'Québec, Canada', message: 'Bonjour, restaurant à Lévis.' },
+  ]) assert.strictEqual(spamReason(ok, { elapsedMs: 20000 }), null, JSON.stringify(ok));
+});
+
+test('les listes de choix du serveur correspondent aux formulaires', () => {
+  const { SERVICES, REGIONS } = require('../verify.js');
+  for (const page of ['contact', 'rendez-vous']) {
+    const html = fs.readFileSync(path.join(__dirname, '..', 'src', 'pages', `${page}.html`), 'utf8');
+    const svc = html.slice(html.indexOf('name="service"'), html.indexOf('</select>', html.indexOf('name="service"')));
+    assert.deepStrictEqual([...svc.matchAll(/option value="([^"]*)"/g)].map((m) => m[1]), SERVICES, page);
+    const reg = html.slice(html.indexOf('name="region"'), html.indexOf('</select>', html.indexOf('name="region"')));
+    assert.deepStrictEqual([...reg.matchAll(/<option>([^<]*)<\/option>/g)].map((m) => m[1]), REGIONS.slice(1), page);
+  }
+});
+
 test('formulaire : erreurs claires, robot ignoré en silence, autre site refusé, doublon sans nouvel avis', async () => {
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bvy-verif-'));
   const app = createServer({ port: 0, dataDir, smtp: null, webhookUrl: '', receivesMail: async (d) => (d === 'faux-domaine.ca' ? 'no' : 'yes') });

@@ -63,9 +63,9 @@ const validLead = {
   courriel: 'marie@example.com',
   telephone: '514 387-2001',
   entreprise: 'Boulangerie Tremblay',
-  service: 'Tenue de livres',
+  service: 'tenue-de-livres',
   quickbooks: 'oui',
-  region: 'Montréal',
+  region: 'Québec, Canada',
   message: 'Bonjour, j’ai besoin d’aide.',
   consentement: true,
 };
