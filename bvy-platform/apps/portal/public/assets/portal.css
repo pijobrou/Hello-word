@@ -302,3 +302,10 @@ tr.rc-todo td{background:var(--bvy-bg-app)}
 .an-item.rc-extra{border-left-color:var(--bvy-watch)}
 .an-item.rc-outstanding{border-left-color:var(--bvy-border)}
 .an-item.rc-done{opacity:.6}
+/* Avis des utilisateurs */
+.fb-ease{display:flex;flex-wrap:wrap;gap:8px}
+.fb-ease label{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--bvy-border,#e5dfe9);border-radius:999px;font-size:var(--bvy-fs-small);cursor:pointer}
+.fb-reply{display:inline-block;margin-top:4px;color:var(--bvy-plum-700,#4a1d5c);font-size:var(--bvy-fs-small)}
+fieldset.field{border:0;padding:0;margin:0}
+.wq-kpis.fb-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:900px){.wq-kpis.fb-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}

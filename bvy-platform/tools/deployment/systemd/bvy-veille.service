@@ -1,0 +1,16 @@
+# Veille de sécurité BVY : rapport quotidien par courriel (installé par remote-install.sh)
+[Unit]
+Description=BVY — veille de sécurité (rapport quotidien)
+After=network-online.target
+
+[Service]
+Type=oneshot
+# root : lecture des journaux nginx et de l’état de fail2ban ; /usr, /boot et /etc en lecture seule
+WorkingDirectory=/var/www/bvy-website/current
+ExecStart=/usr/bin/node /var/www/bvy-website/current/veille.js
+EnvironmentFile=-/var/www/bvy-website/shared/.env
+Environment=NODE_ENV=production
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true

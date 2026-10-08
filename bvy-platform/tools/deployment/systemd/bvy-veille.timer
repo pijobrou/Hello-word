@@ -1,0 +1,10 @@
+[Unit]
+Description=BVY — veille de sécurité, chaque matin
+
+[Timer]
+OnCalendar=*-*-* 07:05:00 America/Toronto
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

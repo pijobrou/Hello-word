@@ -18,10 +18,11 @@ const RV = require('./views-inbox.js');
 const AV = require('./views-anomalies.js');
 const GV = require('./views-govrequests.js');
 const SV = require('./views-summaries.js');
+const FV = require('./views-feedback.js');
 const CV = require('./views-classify.js');
 const RCV = require('./views-reconcile.js');
 
-function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax, inbox, anomalies, gov, health, summaries, classifier, reconciler, writer }) {
+function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService = null, workqueue, payroll, payrollTick = () => {}, salestax, incometax, inbox, anomalies, gov, health, summaries, classifier, reconciler, writer, feedback }) {
   const isStaff = (u) => STAFF_ROLES.includes(u.role);
 
   const qboStatus = (clientId) => (qboService ? qboService.status(clientId) : null);
@@ -63,6 +64,11 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
     const ok = (path, msg) => redirect(res, `${path}${path.includes('?') ? '&' : '?'}ok=${encodeURIComponent(msg)}`);
 
     try {
+      /* Avis des utilisateurs : clients et équipe (la lecture de tous les avis est réservée à l'administrateur) */
+      if (p === '/avis') {
+        if (GET) return send200(res, FV.feedbackPage(s, { mine: feedback.mine(u), flash: flashOf(url), page: String(url.searchParams.get('page') || '').slice(0, 120) })), true;
+        if (POST) { feedback.submit(u, form, ip); return ok('/avis', 'Merci ! Votre avis est bien reçu : notre équipe le lit.'), true; }
+      }
       /* ---------------------------------------------------------- accueil */
       if (p === '/accueil' && GET) {
         if (u.role === 'client') {
@@ -203,6 +209,13 @@ function createPortalRoutes({ db, portal, notifyClient, notifyTeam, qboService =
           const msg = { take: 'Vous êtes responsable de cette anomalie.', resolve: 'Anomalie résolue.', dismiss: 'Anomalie ignorée : elle ne sera plus signalée.', previous: 'Anomalie résolue avec la réponse précédente du client.', reopen: 'Anomalie rouverte.' }[action];
           return ok(backTo(form.back, `/clients/${cid}/anomalies`), msg), true;
         }
+        /* Avis des utilisateurs : l'administrateur les lit et répond */
+        if (p === '/admin/avis' && GET) {
+          const filter = ['new', 'planned', 'done'].includes(url.searchParams.get('etat')) ? url.searchParams.get('etat') : '';
+          return send200(res, FV.feedbackAdmin(s, { items: feedback.list(u, { status: filter || null }), sum: feedback.summary(u), filter, flash: flashOf(url) })), true;
+        }
+        const fa = p.match(/^\/admin\/avis\/(\d+)$/);
+        if (fa && POST) { feedback.answer(u, fa[1], form, ip); return ok('/admin/avis', 'Avis mis à jour.'), true; }
         /* Réglages de l'IA (workflow 07) : administrateur */
         if (p === '/admin/suggestions') {
           if (u.role !== 'admin') throw new PortalError('Accès refusé.');

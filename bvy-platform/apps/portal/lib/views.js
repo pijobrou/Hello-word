@@ -157,6 +157,7 @@ function navItems(user, nav = {}) {
       { href: '/documents', label: 'Documents', icon: 'i-folder', tab: true },
       { href: '/messages', label: 'Messages', icon: 'i-message', count: nav.messages, tab: true },
       { href: '/rapports', label: 'Rapports', icon: 'i-clip' },
+      { href: '/avis', label: 'Votre avis', icon: 'i-message' },
       { href: '/compte', label: 'Mon compte', icon: 'i-lock' },
     ];
     if (nav.qboUrl) items.push({ href: nav.qboUrl, label: 'QuickBooks', icon: 'i-book', qbo: true });
@@ -175,6 +176,7 @@ function navItems(user, nav = {}) {
   if (['admin', 'lead', 'payroll'].includes(user.role)) items.push({ href: '/paie', label: 'Paie', icon: 'i-users' });
   if (['admin', 'lead'].includes(user.role)) items.push({ href: '/facturation', label: 'Facturation', icon: 'i-wallet' });
   if (can(user, 'audit.view') || can(user, 'users.invite_client')) items.push({ href: '/admin', label: 'Administration', icon: 'i-lock', short: 'Admin' });
+  items.push({ href: '/avis', label: 'Votre avis', icon: 'i-message' });
   items.push({ href: '/compte', label: 'Mon compte', icon: 'i-lock' });
   const room = items.length <= 5 ? 5 : 4;
   items.forEach((it, i) => { it.tab = i < room; });
@@ -331,7 +333,7 @@ function adminPage(s, { users, clients, flash, extra = '' }) {
     <td>${can(u, 'users.manage') ? `<a class="link" href="/admin/utilisateurs/${x.id}">Gérer</a>` : ''}</td></tr>`).join('');
 
   const body = `${pageHead('Administration', 'Personnes et clients', 'Invitez les personnes, créez les clients et choisissez qui voit quoi.')}
-  ${u.role === 'admin' ? '<nav class="subnav" aria-label="Administration"><a href="/admin" aria-current="page">Personnes et clients</a><a href="/cabinet">QBO du cabinet</a><a href="/admin/suggestions">Suggestions</a></nav>' : ''}
+  ${u.role === 'admin' ? '<nav class="subnav" aria-label="Administration"><a href="/admin" aria-current="page">Personnes et clients</a><a href="/cabinet">QBO du cabinet</a><a href="/admin/suggestions">Suggestions</a><a href="/admin/avis">Avis</a></nav>' : ''}
   <div class="cols-2">
     <article class="card"><div class="card-head"><h2 class="t-h3">Inviter une personne</h2></div>
       <form class="form" method="post" action="/admin/inviter">${csrf}

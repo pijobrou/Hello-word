@@ -4,7 +4,7 @@
  * Conciliation assistée (workflow 07, partie B). On compare le relevé bancaire (PDF lu sur le serveur, vérifié par le
  * calcul) avec les opérations du compte dans QuickBooks, et on ne montre que les exceptions (décision du
  * propriétaire) : ce qui concorde est seulement compté, pour être coché dans l'outil de rapprochement de QuickBooks.
- * BVY ne modifie pas QuickBooks.
+ * Rien n'est écrit dans QuickBooks ici : les écritures passent par qbo-write.js, sur un clic (workflow 18).
  */
 
 const fs = require('node:fs');

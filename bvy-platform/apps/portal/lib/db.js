@@ -641,6 +641,25 @@ const MIGRATIONS = [
   );
   CREATE INDEX qbo_writes_client ON qbo_writes(client_id, at);
   `,
+  // 17 — avis des utilisateurs (clients et équipe) pour améliorer le logiciel
+  `
+  CREATE TABLE feedback (
+    id          INTEGER PRIMARY KEY,
+    user_id     INTEGER NOT NULL REFERENCES users(id),
+    client_id   INTEGER REFERENCES clients(id),
+    role        TEXT NOT NULL,
+    ease        INTEGER CHECK (ease BETWEEN 1 AND 5),
+    topic       TEXT NOT NULL CHECK (topic IN ('bug','idee','difficile','merci','autre')),
+    message     TEXT NOT NULL,
+    page        TEXT,
+    status      TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new','read','planned','done','declined')),
+    reply       TEXT,
+    replied_by  INTEGER REFERENCES users(id),
+    replied_at  TEXT,
+    created_at  TEXT NOT NULL
+  );
+  CREATE INDEX feedback_status ON feedback(status, created_at);
+  `,
 ];
 
 function openDb(file) {

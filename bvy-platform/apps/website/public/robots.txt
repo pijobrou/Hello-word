@@ -7,6 +7,7 @@ User-agent: *
 Content-Signal: search=yes, ai-train=no, ai-input=no
 Disallow: /portail-comptable/
 Disallow: /api/
+Disallow: /acces-reserve/
 
 User-agent: GPTBot
 User-agent: ChatGPT-User

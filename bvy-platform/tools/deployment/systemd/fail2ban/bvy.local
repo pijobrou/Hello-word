@@ -1,0 +1,35 @@
+# fail2ban — prisons du site BVY (installé par remote-install.sh dans /etc/fail2ban/jail.d/)
+# Le bannissement bloque l'adresse IP sur les ports web du serveur (site et portail).
+# Débannir une adresse :  sudo fail2ban-client set bvy-piege unbanip 1.2.3.4
+# Voir les adresses bannies :  sudo fail2ban-client status bvy-piege
+
+[DEFAULT]
+ignoreip = 127.0.0.1/8 ::1
+
+[bvy-piege]
+enabled  = true
+filter   = bvy-piege
+logpath  = /var/log/nginx/bvy-piege.log
+port     = http,https
+maxretry = 1
+findtime = 1d
+bantime  = 1d
+
+[bvy-abus]
+enabled  = true
+filter   = bvy-abus
+logpath  = /var/log/nginx/bvy-website.access.log
+           /var/log/nginx/bvy-portail.access.log
+port     = http,https
+maxretry = 30
+findtime = 10m
+bantime  = 1d
+
+# Récidive : une adresse bannie 3 fois en une semaine l'est pour 4 semaines, sur tous les ports
+[recidive]
+enabled  = true
+logpath  = /var/log/fail2ban.log
+banaction = %(banaction_allports)s
+findtime = 1w
+bantime  = 4w
+maxretry = 3

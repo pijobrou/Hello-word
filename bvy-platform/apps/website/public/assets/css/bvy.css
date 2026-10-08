@@ -541,3 +541,4 @@ fieldset.field{border:0}
   .jx-panel{width:calc(100vw - 24px);height:calc(100vh - 96px);height:calc(100dvh - 96px)}
 }
 @media print{.jx{display:none}}
+.trap{display:none!important}

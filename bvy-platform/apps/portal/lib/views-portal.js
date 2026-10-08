@@ -322,7 +322,7 @@ function staffQuickbooks(s, { client, sync, items, enabled, flash, counts }) {
   if (!enabled) {
     card = `<p>La connexion QuickBooks n’est pas encore configurée sur ce serveur (clés de l’application Intuit). Voir le guide DEPLOIEMENT.md, section QuickBooks.</p>`;
   } else if (!sync) {
-    card = `<p>Reliez l’entreprise QuickBooks Online de ce client : BVY lira ses soldes bancaires, factures et dépenses (lecture seule, aucune modification dans QuickBooks) et vous proposera les tâches à faire.</p>
+    card = `<p>Reliez l’entreprise QuickBooks Online de ce client : BVY lira ses soldes bancaires, factures et dépenses (rien n’est modifié dans QuickBooks sans le clic d’un membre de l’équipe) et vous proposera les tâches à faire.</p>
       <form class="mt-4" method="post" action="/clients/${client.id}/quickbooks/connecter">${csrf}<button class="btn btn-plum" type="submit">Connecter QuickBooks</button></form>
       <p class="t-meta mt-4">Il faut un accès administrateur à l’entreprise dans QuickBooks (par QuickBooks Online Accountant, ou par le client).</p>`;
   } else {

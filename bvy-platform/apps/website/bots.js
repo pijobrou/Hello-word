@@ -46,6 +46,7 @@ function robotsTxt(site) {
     'Content-Signal: search=yes, ai-train=no, ai-input=no',
     'Disallow: /portail-comptable/',
     'Disallow: /api/',
+    'Disallow: /acces-reserve/',
     '',
     ...AI_CRAWLERS.map((a) => `User-agent: ${a}`),
     'Disallow: /',

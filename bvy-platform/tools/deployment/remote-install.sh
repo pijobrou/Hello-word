@@ -780,6 +780,40 @@ ensure_firewall() {
 }
 
 # ----------------------------------------------------------------------------
+# 9 bis. Protection : bannissement automatique (fail2ban) et veille quotidienne
+# ----------------------------------------------------------------------------
+ensure_security() {
+  step "9 bis. Protection contre les robots et les attaques"
+  local src="$SCRIPT_DIR/systemd"
+  [ -d "$src/fail2ban" ] || { warn "Fichiers fail2ban absents du kit — étape sautée."; return 0; }
+  if ! command -v fail2ban-client >/dev/null 2>&1; then
+    info "Installation de fail2ban..."
+    apt-get update -qq && apt-get install -y -qq fail2ban >/dev/null || { warn "Installation de fail2ban impossible — à refaire plus tard."; return 0; }
+  fi
+  put() { tr -d '\r' < "$1" > "$2" && chmod 644 "$2"; }   # fins de ligne Windows retirées
+  put "$src/fail2ban/bvy-piege.conf" /etc/fail2ban/filter.d/bvy-piege.conf
+  put "$src/fail2ban/bvy-abus.conf" /etc/fail2ban/filter.d/bvy-abus.conf
+  put "$src/fail2ban/bvy.local" /etc/fail2ban/jail.d/bvy.local
+  # Les journaux doivent exister pour que fail2ban démarre
+  for f in /var/log/nginx/bvy-piege.log /var/log/nginx/bvy-website.access.log /var/log/nginx/bvy-portail.access.log; do
+    [ -e "$f" ] || { touch "$f"; chown www-data:adm "$f" 2>/dev/null || true; chmod 640 "$f"; }
+  done
+  systemctl enable fail2ban >/dev/null 2>&1 || true
+  if systemctl restart fail2ban && sleep 2 && fail2ban-client status bvy-piege >/dev/null 2>&1; then
+    ok "fail2ban actif : piège à robots, recherche de failles, abus et récidive"
+  else
+    warn "fail2ban ne démarre pas — voir : sudo journalctl -u fail2ban -n 50"
+  fi
+  if [ -f "$src/bvy-veille.service" ]; then
+    put "$src/bvy-veille.service" /etc/systemd/system/bvy-veille.service
+    put "$src/bvy-veille.timer" /etc/systemd/system/bvy-veille.timer
+    systemctl daemon-reload
+    systemctl enable --now bvy-veille.timer >/dev/null 2>&1 && ok "Veille de sécurité : rapport chaque matin vers 7 h (courriel de notification)" \
+      || warn "Minuterie bvy-veille non activée."
+  fi
+}
+
+# ----------------------------------------------------------------------------
 # 10. Vérifications finales
 # ----------------------------------------------------------------------------
 smoke_test() {
@@ -906,6 +940,7 @@ fi
 
 maybe_nginx
 ensure_firewall
+ensure_security
 smoke_test
 if [ -n "$ARCHIVE" ]; then
   step "11. Nettoyage"

@@ -20,7 +20,7 @@ function groupCard(s, client, g, chart, w = {}) {
     return `<li class="an-item cl-todo"><div class="rc-head"><div><p class="an-title">${esc(g.party)} — ${g.count} opération${g.count > 1 ? 's' : ''} — ${esc(formatAmount(g.total))}</p>
       <p class="an-tags"><span class="badge b-good">À faire dans QuickBooks</span> classer en <b>${esc(g.chosen || '')}</b></p></div>
       <form class="inline-form" method="post" action="/clients/${client.id}/classement">${hidden}<input type="hidden" name="action" value="undo"><button class="btn btn-ghost btn-sm" type="submit">Annuler</button></form></div>
-      <p class="t-meta">BVY ne modifie pas QuickBooks : ouvrez chaque opération et classez-la ; la prochaine synchronisation la retire de cette liste.</p>${items}</li>`;
+      <p class="t-meta">À classer dans QuickBooks : ouvrez chaque opération et classez-la ; la prochaine synchronisation la retire de cette liste.</p>${items}</li>`;
   }
   const [cls, label] = LEVEL[g.level];
   return `<li class="an-item cl-${g.level}"><div class="rc-head"><div>
@@ -68,7 +68,7 @@ function writesCard(s, writes, back) {
 function aiSettingsPage(s, { settings, calls, flash, writeEnabled = true }) {
   const csrf = csrfField(s);
   const body = `${pageHead('Administration', 'Suggestions automatiques', 'Réglages du classement des opérations que QuickBooks n’a pas catégorisées.')}
-    <nav class="subnav" aria-label="Administration"><a href="/admin">Personnes et clients</a><a href="/cabinet">QBO du cabinet</a><a href="/admin/suggestions" aria-current="page">Suggestions</a></nav>
+    <nav class="subnav" aria-label="Administration"><a href="/admin">Personnes et clients</a><a href="/cabinet">QBO du cabinet</a><a href="/admin/suggestions" aria-current="page">Suggestions</a><a href="/admin/avis">Avis</a></nav>
     <div class="cols-2"><article class="card"><div class="card-head"><h2 class="t-h3">Réglages</h2><span class="badge ${settings.aiEnabled && settings.aiAvailable ? 'b-good' : 'b-neutral'}">${settings.aiEnabled && settings.aiAvailable ? 'Actives' : 'Inactives'}</span></div>
       ${settings.aiAvailable ? '' : `<div class="alert alert-watch">${icon('i-alert')}<div><p>Le service de suggestions automatiques n’est pas installé sur le serveur du portail (clé dans portail.env, voir DEPLOIEMENT.md). Le classement par l’historique fonctionne quand même.</p></div></div>`}
       <form class="form mt-4" method="post" action="/admin/suggestions">${csrf}

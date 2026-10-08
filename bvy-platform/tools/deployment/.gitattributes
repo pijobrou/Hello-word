@@ -5,3 +5,4 @@
 *.service text eol=lf
 *.md      text eol=lf
 *.timer   text eol=lf
+*.local   text eol=lf
