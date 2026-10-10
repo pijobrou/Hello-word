@@ -1,0 +1,182 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   AVORYN — Design tokens
+   Couleurs officielles : Bleu nuit #101C2D · Or champagne #C8A96D · Blanc #FFFFFF
+   Répartition visée : 60 % fonds clairs · 30 % bleu nuit · 10 % or champagne
+   ========================================================================== */
+
+:root {
+  /* Principales */
+  --avoryn-night: #101c2d;
+  --avoryn-champagne: #c8a96d;
+  --avoryn-white: #ffffff;
+  /* Secondaires */
+  --avoryn-mist: #f7f8fa;
+  --avoryn-ink: #172235;
+  --avoryn-slate: #64748b;
+  --avoryn-line: #e2e8f0;
+  --avoryn-navy: #24344b;
+
+  /* Texte secondaire contextuel : #64748B passe AA sur blanc (4,76:1)
+     mais pas sur #F7F8FA (4,48:1) — voir .surface-mist. */
+  --text-muted: var(--avoryn-slate);
+  --focus-ring: var(--avoryn-navy);
+  --header-height: 4.5rem;
+}
+
+@theme {
+  --color-night: var(--avoryn-night);
+  --color-champagne: var(--avoryn-champagne);
+  --color-white: var(--avoryn-white);
+  --color-mist: var(--avoryn-mist);
+  --color-ink: var(--avoryn-ink);
+  --color-slate: var(--avoryn-slate);
+  --color-line: var(--avoryn-line);
+  --color-navy: var(--avoryn-navy);
+
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --text-display: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem);
+  --text-display--line-height: 1.04;
+  --text-display--letter-spacing: -0.03em;
+  --text-headline: clamp(1.875rem, 1.4rem + 1.9vw, 3rem);
+  --text-headline--line-height: 1.1;
+  --text-headline--letter-spacing: -0.025em;
+
+  --animate-rise: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+/* `inline` : la couleur suit la surface (variable contextuelle), au lieu d'être figée sur :root. */
+@theme inline {
+  --color-muted: var(--text-muted);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: 6rem;
+  }
+
+  body {
+    background-color: var(--avoryn-white);
+    color: var(--avoryn-ink);
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--avoryn-champagne);
+    color: var(--avoryn-night);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+}
+
+@layer components {
+  /* Surfaces : chacune ajuste le texte secondaire et l'anneau de focus. */
+  .surface-night {
+    background-color: var(--avoryn-night);
+    color: var(--avoryn-white);
+    --text-muted: rgb(255 255 255 / 0.72);
+    --focus-ring: var(--avoryn-champagne);
+  }
+  .surface-navy {
+    background-color: var(--avoryn-navy);
+    color: var(--avoryn-white);
+    --text-muted: rgb(255 255 255 / 0.75);
+    --focus-ring: var(--avoryn-champagne);
+  }
+  .surface-mist {
+    background-color: var(--avoryn-mist);
+    color: var(--avoryn-ink);
+    --text-muted: var(--avoryn-navy);
+    --focus-ring: var(--avoryn-navy);
+  }
+  .surface-white {
+    background-color: var(--avoryn-white);
+    color: var(--avoryn-ink);
+    --text-muted: var(--avoryn-slate);
+    --focus-ring: var(--avoryn-navy);
+  }
+
+  /* Filet or décoratif, signature visuelle de la marque. */
+  .gold-rule {
+    display: block;
+    height: 1px;
+    width: 3rem;
+    background: var(--avoryn-champagne);
+  }
+
+  /* Trame géométrique très discrète pour les zones bleu nuit. */
+  .grid-veil {
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: radial-gradient(ellipse at 70% 40%, black 10%, transparent 70%);
+  }
+
+  .prose-avoryn p + p {
+    margin-top: 1.1em;
+  }
+  .prose-avoryn h2 {
+    font-size: 1.5rem;
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin-top: 2.5rem;
+    margin-bottom: 0.9rem;
+  }
+  .prose-avoryn ul {
+    list-style: none;
+    margin: 1rem 0;
+    padding: 0;
+  }
+  .prose-avoryn li {
+    position: relative;
+    padding-left: 1.25rem;
+    margin-top: 0.5rem;
+  }
+  .prose-avoryn li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.7em;
+    width: 0.5rem;
+    height: 1px;
+    background: var(--avoryn-champagne);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

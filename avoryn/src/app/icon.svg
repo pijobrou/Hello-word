@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="title">
+  <title id="title">AVORYN</title>
+  <rect width="64" height="64" rx="14" fill="#101C2D"/>
+  <svg x="7" y="16" width="49.68" height="31.28" viewBox="-4 -4 108 68">
+    <g fill="none" stroke="#C8A96D" stroke-width="6" stroke-linejoin="miter" stroke-miterlimit="10">
+      <polygon points="0,30 18,10 50,0 82,10 100,30 82,50 50,60 18,50"/>
+      <path d="M31 20 L50 39 L69 20 M50 39 L50 51.5"/>
+    </g>
+  </svg>
+</svg>
