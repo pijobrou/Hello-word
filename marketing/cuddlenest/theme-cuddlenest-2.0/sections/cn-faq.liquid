@@ -1,0 +1,47 @@
+{%- liquid
+  assign threshold_money = settings.cn_free_shipping_threshold | default: 39 | times: 100 | money_without_trailing_zeros
+  assign delivery = section.settings.delivery_time
+-%}
+<section id="cn-faq" class="cn-section cn-faq" style="--cn-pad-top: {{ section.settings.padding_top }}px; --cn-pad-bottom: {{ section.settings.padding_bottom }}px;">
+  <div class="cn-container">
+    <div class="cn-center">
+      <p class="cn-eyebrow">FAQ</p>
+      <h2 class="cn-heading">{{ 'cuddlenest.faq.heading' | t }}</h2>
+    </div>
+    <div class="cn-faq__list">
+      {%- for i in (1..9) -%}
+        {%- capture q_key -%}cuddlenest.faq.q{{ i }}{%- endcapture -%}
+        {%- capture a_key -%}cuddlenest.faq.a{{ i }}{%- endcapture -%}
+        <details class="cn-faq__item">
+          <summary>{{ q_key | t }}</summary>
+          <div class="cn-faq__answer">
+            {%- if i == 8 -%}
+              {{ a_key | t: amount: threshold_money }}
+              {%- if delivery != blank %} {{ 'cuddlenest.faq.a8_delivery' | t: delivery: delivery }}{%- endif -%}
+            {%- else -%}
+              {{ a_key | t }}
+            {%- endif -%}
+          </div>
+        </details>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "CN · FAQ",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "text",
+      "id": "delivery_time",
+      "label": "Delivery time (optional)",
+      "info": "Only a delivery time you can actually meet, e.g. \"10 to 20 business days\". Leave empty to hide."
+    },
+    { "type": "range", "id": "padding_top", "label": "Top padding", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 64 },
+    { "type": "range", "id": "padding_bottom", "label": "Bottom padding", "min": 0, "max": 120, "step": 4, "unit": "px", "default": 64 }
+  ],
+  "presets": [{ "name": "CN · FAQ" }]
+}
+{% endschema %}

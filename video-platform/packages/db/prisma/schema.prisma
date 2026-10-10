@@ -1,0 +1,302 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// USERS & AUTH
+// ============================================================================
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  name      String?
+  image     String?
+  clerkId   String?    @unique
+
+  tier      SubscriptionTier @default(FREE)
+  status    UserStatus       @default(ACTIVE)
+
+  projects    Project[]
+  templates   Template[]
+  exports     Export[]
+  stripeId    String?    @unique
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([email])
+  @@index([tier])
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum SubscriptionTier {
+  FREE      // 5 exports/month, 720p max, watermark
+  PRO       // unlimited, 1080p, no watermark
+  STUDIO    // unlimited, 4K, custom branding
+}
+
+// ============================================================================
+// PROJECTS
+// ============================================================================
+
+model Project {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title     String
+  description String?
+  status    ProjectStatus @default(DRAFT)
+
+  clips     Clip[]
+  exports   Export[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum ProjectStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  ARCHIVED
+}
+
+// ============================================================================
+// CLIPS & CONTENT
+// ============================================================================
+
+model Clip {
+  id        String     @id @default(cuid())
+  projectId String
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  title     String
+  type      ClipType   // TEXT, VIDEO, IMAGE, AUDIO, AI_GENERATED
+  duration  Int        // milliseconds
+
+  // Content source
+  content   String?    // URL or raw text
+
+  // AI Generation config
+  prompt    String?
+  style     String?    // PROFESSIONAL, CASUAL, ENERGETIC, etc
+
+  // Timing in project
+  startTime Int        @default(0)
+
+  // Status
+  status    ClipStatus @default(PENDING)
+
+  // Generated files
+  sourceUrl String?    // Original content URL
+  outputUrl String?    // Generated/processed URL
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+}
+
+enum ClipType {
+  TEXT
+  VIDEO
+  IMAGE
+  AUDIO
+  AI_GENERATED
+  AVATAR
+}
+
+enum ClipStatus {
+  PENDING
+  PROCESSING
+  READY
+  ERROR
+}
+
+// ============================================================================
+// TEMPLATES
+// ============================================================================
+
+model Template {
+  id        String     @id @default(cuid())
+  userId    String?
+  user      User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  name      String
+  description String?
+  category  TemplateCategory
+
+  // Template structure (JSON)
+  config    Json       // Duration, transitions, music, color scheme
+
+  thumbnail String?
+
+  isPublic  Boolean    @default(false)
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([category])
+  @@index([isPublic])
+}
+
+enum TemplateCategory {
+  MARKETING
+  SOCIAL
+  EXPLAINER
+  PRODUCT
+  TUTORIAL
+  TESTIMONIAL
+  INTRO
+  OUTRO
+  OTHER
+}
+
+// ============================================================================
+// EXPORTS & DOWNLOADS
+// ============================================================================
+
+model Export {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  projectId String
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Export config
+  format    VideoFormat
+  resolution Resolution
+
+  // Output
+  fileUrl   String?
+  filename  String
+  fileSize  Int?       // bytes
+
+  status    ExportStatus @default(QUEUED)
+  error     String?
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum VideoFormat {
+  MP4
+  WEBM
+  MOV
+}
+
+enum Resolution {
+  P480
+  P720
+  P1080
+  P4K
+}
+
+enum ExportStatus {
+  QUEUED
+  PROCESSING
+  READY
+  ERROR
+  DOWNLOADED
+}
+
+// ============================================================================
+// JOBS & BACKGROUND TASKS
+// ============================================================================
+
+model Job {
+  id        String     @id @default(cuid())
+
+  type      JobType
+  status    JobStatus  @default(PENDING)
+
+  // Reference data
+  exportId  String?
+  clipId    String?
+
+  // Execution data
+  input     Json
+  output    Json?
+  error     String?
+
+  retries   Int        @default(0)
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([type])
+  @@index([status])
+}
+
+enum JobType {
+  GENERATE_VIDEO
+  GENERATE_AUDIO
+  PROCESS_VIDEO
+  EXPORT_PROJECT
+  GENERATE_AVATAR
+  TRANSCRIBE_AUDIO
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ============================================================================
+// SHARING & COLLABORATION
+// ============================================================================
+
+model Share {
+  id        String     @id @default(cuid())
+  projectId String
+
+  token     String     @unique
+  expiresAt DateTime?
+
+  viewOnly  Boolean    @default(true)
+
+  createdAt DateTime   @default(now())
+
+  @@index([token])
+}
+
+// ============================================================================
+// WEBHOOKS
+// ============================================================================
+
+model Webhook {
+  id        String     @id @default(cuid())
+
+  event     String     // export.completed, clip.ready
+  url       String
+
+  active    Boolean    @default(true)
+
+  createdAt DateTime   @default(now())
+
+  @@index([event])
+}

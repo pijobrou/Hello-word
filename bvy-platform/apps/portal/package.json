@@ -1,0 +1,19 @@
+{
+  "name": "bvy-portal",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Portail BVY — connexion, rôles et portail client. Node.js (node:sqlite) ; seule dépendance : le SDK Anthropic pour le classement par l’IA (workflow 07), facultatif.",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js",
+    "sync-design": "node scripts/sync-design.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.131.0",
+    "pdfjs-dist": "5.4.296"
+  }
+}

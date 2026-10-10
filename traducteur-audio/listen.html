@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><title>Traducteur Audio — Écoute</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="wrap page">
+  <h1 id="heading">🎙️ Micro → voix traduite</h1>
+  <p id="direction" class="direction"></p>
+  <p id="engine" class="hint engine"></p>
+  <p id="lag" class="hint lag"></p>
+  <p id="dupWarning" class="hint status-err" hidden></p>
+  <p class="hint" id="intro"></p>
+
+  <div class="row" id="headphonesRow">
+    <label for="headphones">J'utilise un casque (continuer d'écouter pendant la voix française)</label>
+    <input type="checkbox" id="headphones">
+  </div>
+  <div class="row" id="tabVolumeRow" hidden>
+    <label for="tabVolume">Volume de l'onglet <span id="tabVolumeVal"></span></label>
+    <input type="range" id="tabVolume" min="0" max="1" step="0.05" value="1">
+  </div>
+
+  <div class="card langs">
+    <label>Langue parlée<select id="qSource"></select></label>
+    <button id="qSwap" class="secondary" title="Inverser les langues">⇄</button>
+    <label>Traduire en<select id="qTarget"></select></label>
+  </div>
+
+  <details class="card quick" id="quick" open>
+    <summary><strong>🎚️ Réglages rapides</strong> <span class="hint">(appliqués à la phrase suivante)</span></summary>
+    <div class="row"><label for="qLive"><strong>⚡ Priorité au direct</strong> (jamais de silence, rattrapage du retard)</label>
+      <input type="checkbox" id="qLive"></div>
+    <div class="row"><label for="qLock"><strong>🔒 Voix verrouillée</strong> (toujours la même)
+      <br><span class="hint" id="qLockName"></span></label>
+      <input type="checkbox" id="qLock"></div>
+    <div class="row"><label for="qProfile">Profil</label>
+      <select id="qProfile"></select></div>
+    <div class="row"><label for="qRate">Vitesse de la voix <span class="val" id="qRateVal"></span></label>
+      <input type="range" id="qRate" data-setting="rate" min="0.5" max="2" step="0.05"></div>
+    <div class="row"><label for="qPitch">Hauteur : grave ↔ aiguë <span class="val" id="qPitchVal"></span></label>
+      <input type="range" id="qPitch" data-setting="pitch" min="0.5" max="2" step="0.05"></div>
+    <div class="row"><label for="qExpr" title="Voix IA Premium">Style : posé ↔ expressif* <span class="val" id="qExprVal"></span></label>
+      <input type="range" id="qExpr" data-setting="expressiveness" min="0" max="1" step="0.05"></div>
+    <div class="row"><label for="qTimbre">Timbre : aigu ↔ doux <span class="val" id="qTimbreVal"></span></label>
+      <input type="range" id="qTimbre" data-setting="timbre" min="0" max="1" step="0.05"></div>
+    <div class="row"><label for="qQuality" title="Voix IA Premium">Qualité voix IA*</label>
+      <select id="qQuality">
+        <option value="fast">Rapide</option>
+        <option value="fluid">Fluide et naturelle</option>
+      </select></div>
+    <div class="row"><label for="qFallback">Si la voix IA échoue</label>
+      <select id="qFallback">
+        <option value="silent">Texte seulement (une seule voix)</option>
+        <option value="local">Voix du navigateur</option>
+      </select></div>
+    <div class="row"><label for="qVoiceVolume">Volume de la voix <span class="val" id="qVoiceVolumeVal"></span></label>
+      <input type="range" id="qVoiceVolume" data-setting="voiceVolume" min="0" max="1" step="0.05"></div>
+    <div class="row"><label for="qDuck">Volume vidéo pendant la voix <span class="val" id="qDuckVal"></span></label>
+      <input type="range" id="qDuck" data-setting="duckVolume" min="0" max="1" step="0.05"></div>
+    <div class="row"><label for="qGap">Pause entre les phrases <span class="val" id="qGapVal"></span></label>
+      <input type="range" id="qGap" data-setting="gapMs" min="0" max="1500" step="50"></div>
+    <div class="row"><label for="qChunking">Découpage</label>
+      <select id="qChunking" data-setting="chunking">
+        <option value="fast">Rapide</option>
+        <option value="balanced">Équilibré</option>
+        <option value="full">Phrases complètes</option>
+      </select></div>
+    <p class="hint">* avec la voix IA Premium uniquement.</p>
+    <button id="allSettings" class="secondary wide">⚙️ Tous les réglages</button>
+  </details>
+
+  <div class="buttons">
+    <button id="toggle">▶️ Démarrer l'écoute</button>
+    <button id="clear" class="secondary">Effacer</button>
+  </div>
+  <p id="status" class="hint">À l'arrêt.</p>
+  <p id="notice" class="hint status-warn" hidden></p>
+  <div id="aiSuspended" class="card suspended" hidden>
+    ⚡ La voix IA était trop lente pour le direct : la <strong>voix du navigateur</strong> la remplace pour la suite
+    de cette session (une seule voix, sans alterner).
+    <button id="retryAi" class="secondary">🎙️ Réessayer la voix IA</button>
+  </div>
+  <p id="interim" class="hint"></p>
+
+  <div id="log" class="log"></div>
+</div>
+<script src="common.js"></script>
+<script src="listen.js"></script>
+</body>
+</html>

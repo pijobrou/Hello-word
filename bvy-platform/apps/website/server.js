@@ -1,0 +1,595 @@
+'use strict';
+
+/**
+ * BVY Accounting & Tax Services — public website server.
+ * node: built-ins only (Node >= 20.12), except the optional Anthropic SDK used by the Jessica chat.
+ */
+
+const { smtpConfigFromEnv, sendMail, leadMessage, confirmationMessage } = require('./mailer.js');
+const { createChat, chatConfigFromEnv } = require('./chat.js');
+const { isBlockedAgent } = require('./bots.js');
+const { checkEmail, checkPhone, spamReason, createDomainChecker } = require('./verify.js');
+const { captchaConfigFromEnv, verifyCaptcha, FORM_CSP, PROVIDERS } = require('./captcha.js');
+const { googleConfigFromEnv, createGoogle } = require('./google.js');
+const { bookingConfigFromEnv, createBooking, appointmentMessages } = require('./booking.js');
+const http = require('node:http');
+const fs = require('node:fs');
+const fsp = require('node:fs/promises');
+const path = require('node:path');
+
+try {
+  process.loadEnvFile(path.join(__dirname, '.env'));
+} catch {
+  // .env is optional
+}
+
+const SECURITY_HEADERS = Object.freeze({
+  'Content-Security-Policy':
+    "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+    "font-src https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; " +
+    "frame-ancestors 'none'; base-uri 'self'; object-src 'none'",
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'X-Frame-Options': 'DENY',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  // Refus de l'utilisation du contenu par les systèmes d'IA (voir bots.js et /.well-known/tdmrep.json)
+  'X-Robots-Tag': 'noai, noimageai',
+  'tdm-reservation': '1',
+});
+
+const MIME_TYPES = Object.freeze({
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.xml': 'application/xml; charset=utf-8',
+  '.txt': 'text/plain; charset=utf-8',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
+});
+
+const MAX_BODY_BYTES = 16 * 1024;
+const QUICKBOOKS_VALUES = new Set(['', 'oui', 'non', 'ne-sais-pas']);
+const CONSENT_VALUES = new Set([true, 'on', 'true', '1']);
+
+const TEXT_FIELDS = {
+  prenom: { max: 80, required: true },
+  nom: { max: 80, required: true },
+  courriel: { max: 160, required: true },
+  telephone: { max: 40, required: true },
+  entreprise: { max: 120 },
+  service: { max: 120 },
+  quickbooks: { max: 20 },
+  region: { max: 80 },
+  message: { max: 4000 },
+};
+
+function envConfig() {
+  return {
+    port: process.env.PORT !== undefined && process.env.PORT !== '' ? Number(process.env.PORT) : 3000,
+    host: process.env.HOST || '127.0.0.1',
+    trustProxy: process.env.TRUST_PROXY === '1',
+    webhookUrl: process.env.LEADS_WEBHOOK_URL || '',
+    smtp: smtpConfigFromEnv(),
+    chat: chatConfigFromEnv(),
+    captcha: captchaConfigFromEnv(),
+    google: googleConfigFromEnv(),
+    booking: bookingConfigFromEnv(),
+    dataDir: path.resolve(__dirname, process.env.DATA_DIR || 'data'),
+    publicDir: path.join(__dirname, 'public'),
+  };
+}
+
+/* ------------------------------------------------------------------ helpers */
+
+function send(res, status, body, headers = {}) {
+  const buf = body === undefined || body === null ? null : Buffer.isBuffer(body) ? body : Buffer.from(String(body));
+  const h = { ...SECURITY_HEADERS, ...headers, ...formCsp(res.req) };
+  if (buf) h['Content-Length'] = buf.length;
+  res.writeHead(status, h);
+  if (buf && res.req.method !== 'HEAD') res.end(buf);
+  else res.end();
+}
+
+function sendJson(res, status, obj, headers = {}) {
+  send(res, status, JSON.stringify(obj), {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'no-store',
+    ...headers,
+  });
+}
+
+function clientIp(req, trustProxy) {
+  if (trustProxy) {
+    const xff = req.headers['x-forwarded-for'];
+    if (typeof xff === 'string' && xff.trim()) return xff.split(',')[0].trim();
+    const xri = req.headers['x-real-ip'];
+    if (typeof xri === 'string' && xri.trim()) return xri.trim();
+  }
+  return req.socket.remoteAddress || 'unknown';
+}
+
+function statSafe(p) {
+  return fsp.stat(p).catch(() => null);
+}
+
+/* ------------------------------------------------------------------- static */
+
+// Pages du formulaire : la case « Je ne suis pas un robot » vient du fournisseur choisi (politique élargie à ces pages seulement)
+function formCsp(req) {
+  return /^\/(contact|rendez-vous)\/(index\.html)?$/.test(String((req && req.url) || '').split('?')[0]) ? { 'Content-Security-Policy': FORM_CSP } : {};
+}
+
+async function serveFile(req, res, filePath, status = 200) {
+  const st = await statSafe(filePath);
+  if (!st || !st.isFile()) return false;
+  const ext = path.extname(filePath).toLowerCase();
+  const headers = {
+    ...SECURITY_HEADERS,
+    ...formCsp(req),
+    'Content-Type': MIME_TYPES[ext] || 'application/octet-stream',
+    'Content-Length': st.size,
+    'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=604800',
+    'Last-Modified': st.mtime.toUTCString(),
+  };
+  res.writeHead(status, headers);
+  if (req.method === 'HEAD') {
+    res.end();
+    return true;
+  }
+  await new Promise((resolve) => {
+    const stream = fs.createReadStream(filePath);
+    stream.on('error', (err) => {
+      console.error('Erreur de lecture du fichier', filePath, err.message);
+      res.destroy(err);
+      resolve();
+    });
+    stream.on('end', resolve);
+    res.on('close', () => {
+      stream.destroy();
+      resolve();
+    });
+    stream.pipe(res);
+  });
+  return true;
+}
+
+async function notFound(req, res, publicDir) {
+  const served = await serveFile(req, res, path.join(publicDir, '404.html'), 404);
+  if (!served) {
+    send(res, 404, 'Page introuvable', { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-cache' });
+  }
+}
+
+async function handleStatic(req, res, cfg) {
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    return send(res, 405, 'Méthode non autorisée', { Allow: 'GET, HEAD', 'Content-Type': 'text/plain; charset=utf-8' });
+  }
+
+  const rawUrl = req.url || '/';
+  const qIndex = rawUrl.indexOf('?');
+  const rawPath = qIndex === -1 ? rawUrl : rawUrl.slice(0, qIndex);
+  const query = qIndex === -1 ? '' : rawUrl.slice(qIndex);
+
+  let decoded;
+  try {
+    decoded = decodeURIComponent(rawPath);
+  } catch {
+    return send(res, 400, 'Requête invalide', { 'Content-Type': 'text/plain; charset=utf-8' });
+  }
+
+  if (!decoded.startsWith('/') || decoded.includes('\0') || decoded.includes('\\')) {
+    return send(res, 400, 'Requête invalide', { 'Content-Type': 'text/plain; charset=utf-8' });
+  }
+
+  const segments = decoded.split('/');
+  // Reject traversal and hidden files outright (except /.well-known/).
+  if (segments.some((s, i) => s === '..' || (s.startsWith('.') && !(i === 1 && s === '.well-known')))) {
+    return notFound(req, res, cfg.publicDir);
+  }
+
+  const root = cfg.publicDir;
+  const target = path.resolve(root, '.' + decoded);
+  if (target !== root && !target.startsWith(root + path.sep)) {
+    return notFound(req, res, root);
+  }
+
+  if (decoded.endsWith('/')) {
+    if (await serveFile(req, res, path.join(target, 'index.html'))) return;
+    return notFound(req, res, root);
+  }
+
+  const st = await statSafe(target);
+  if (st && st.isFile()) {
+    if (await serveFile(req, res, target)) return;
+  } else if (st && st.isDirectory()) {
+    // Collapse leading slashes to avoid protocol-relative open redirects.
+    const location = '/' + rawPath.replace(/^\/+/, '') + '/' + query;
+    return send(res, 301, null, { Location: location, 'Cache-Control': 'no-cache' });
+  } else if (await serveFile(req, res, target + '.html')) {
+    return;
+  }
+  return notFound(req, res, root);
+}
+
+/* ---------------------------------------------------------------- contact */
+
+function readBody(req, limit) {
+  return new Promise((resolve, reject) => {
+    const declared = Number(req.headers['content-length']);
+    if (Number.isFinite(declared) && declared > limit) {
+      const err = new Error('too large');
+      err.code = 'TOO_LARGE';
+      return reject(err);
+    }
+    const chunks = [];
+    let size = 0;
+    let done = false;
+    req.on('data', (chunk) => {
+      if (done) return;
+      size += chunk.length;
+      if (size > limit) {
+        done = true;
+        const err = new Error('too large');
+        err.code = 'TOO_LARGE';
+        reject(err);
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on('end', () => {
+      if (done) return;
+      done = true;
+      resolve(Buffer.concat(chunks).toString('utf8'));
+    });
+    req.on('error', (err) => {
+      if (done) return;
+      done = true;
+      reject(err);
+    });
+  });
+}
+
+function asText(v) {
+  if (typeof v === 'string') return v.trim();
+  if (typeof v === 'number' && Number.isFinite(v)) return String(v);
+  return '';
+}
+
+// receivesMail : vérificateur DNS du domaine (verify.js) ; absent → syntaxe, fautes de frappe et domaines jetables seulement
+async function validateContact(input, { receivesMail = null } = {}) {
+  const errors = {};
+  const data = {};
+
+  for (const [field, rule] of Object.entries(TEXT_FIELDS)) {
+    const value = asText(input[field]);
+    data[field] = value;
+    if (rule.required && !value) {
+      errors[field] = 'Ce champ est obligatoire.';
+    } else if (value.length > rule.max) {
+      errors[field] = `Ce champ ne doit pas dépasser ${rule.max} caractères.`;
+    }
+  }
+
+  data.verification = {};
+  if (!errors.courriel) {
+    const e = await checkEmail(data.courriel, receivesMail);
+    if (!e.ok) { errors.courriel = e.error; if (e.suggestion) data.suggestion = e.suggestion; } else { data.courriel = e.email; data.verification.courriel = e.check; }
+  }
+  if (!errors.telephone) {
+    const t = checkPhone(data.telephone);
+    if (!t.ok) errors.telephone = t.error; else { data.telephone = t.display; data.verification.telephone = t.region; }
+  }
+  if (!errors.quickbooks && !QUICKBOOKS_VALUES.has(data.quickbooks)) {
+    errors.quickbooks = 'Valeur invalide.';
+  }
+
+  const consent = typeof input.consentement === 'string' ? input.consentement.trim().toLowerCase() : input.consentement;
+  if (!CONSENT_VALUES.has(consent)) {
+    errors.consentement = 'Votre consentement est requis pour que nous puissions vous répondre.';
+  }
+  data.consentement = true;
+
+  const ok = Object.keys(errors).length === 0;
+  return { ok, errors, data, ...(data.suggestion ? { suggestion: data.suggestion } : {}) };
+}
+
+// La demande vient-elle d'une page de ce site ? (un autre site ne peut pas poster le formulaire)
+function sameSite(req) {
+  const o = req.headers.origin || req.headers.referer;
+  if (!o) return true;
+  try { return new URL(o).host === String(req.headers.host || '').toLowerCase(); } catch { return false; }
+}
+
+function createRateLimiter({ max, windowMs }) {
+  const hits = new Map(); // ip -> array of timestamps
+  const prune = () => {
+    const cutoff = Date.now() - windowMs;
+    for (const [ip, times] of hits) {
+      const kept = times.filter((t) => t > cutoff);
+      if (kept.length) hits.set(ip, kept);
+      else hits.delete(ip);
+    }
+  };
+  const timer = setInterval(prune, Math.min(windowMs, 60_000));
+  timer.unref();
+  return {
+    hit(ip) {
+      const now = Date.now();
+      const cutoff = now - windowMs;
+      const times = (hits.get(ip) || []).filter((t) => t > cutoff);
+      if (times.length >= max) {
+        hits.set(ip, times);
+        return false;
+      }
+      times.push(now);
+      hits.set(ip, times);
+      return true;
+    },
+    stop() {
+      clearInterval(timer);
+      hits.clear();
+    },
+  };
+}
+
+// Courriels déjà reçus récemment (en mémoire)
+function createRepeatGuard(windowMs) {
+  const seen = new Map();
+  return {
+    seen(email) {
+      const now = Date.now();
+      for (const [k, t] of seen) if (now - t > windowMs) seen.delete(k);
+      const was = seen.has(email);
+      seen.set(email, now);
+      return was;
+    },
+  };
+}
+
+// Compteur quotidien simple (remis à zéro à chaque changement de date UTC).
+function createDailyCap(max) {
+  let day = '';
+  let count = 0;
+  return {
+    take() {
+      const today = new Date().toISOString().slice(0, 10);
+      if (today !== day) { day = today; count = 0; }
+      if (count >= max) return false;
+      count += 1;
+      return true;
+    },
+  };
+}
+
+async function handleContact(req, res, cfg, limiter, confirmations, guard) {
+  if (req.method !== 'POST') {
+    return sendJson(res, 405, { ok: false, error: 'Méthode non autorisée.' }, { Allow: 'POST' });
+  }
+  if (!sameSite(req)) {
+    req.resume();
+    return sendJson(res, 403, { ok: false, error: 'Demande refusée.' });
+  }
+
+  const ip = clientIp(req, cfg.trustProxy);
+  if (!limiter.hit(ip)) {
+    req.resume();
+    return sendJson(res, 429, { ok: false, error: 'Trop de demandes. Réessayez plus tard.' }, { 'Retry-After': String(Math.ceil(cfg.rateLimit.windowMs / 1000)) });
+  }
+
+  const contentType = String(req.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+  const isJson = contentType === 'application/json';
+  const isForm = contentType === 'application/x-www-form-urlencoded';
+  if (!isJson && !isForm) {
+    req.resume();
+    return sendJson(res, 415, { ok: false, error: 'Type de contenu non pris en charge.' });
+  }
+
+  let raw;
+  try {
+    raw = await readBody(req, MAX_BODY_BYTES);
+  } catch (err) {
+    if (err.code === 'TOO_LARGE') {
+      req.resume();
+      return sendJson(res, 413, { ok: false, error: 'Requête trop volumineuse.' }, { Connection: 'close' });
+    }
+    return sendJson(res, 400, { ok: false, error: 'Requête invalide.' });
+  }
+
+  let input;
+  if (isJson) {
+    try {
+      input = JSON.parse(raw || '{}');
+    } catch {
+      return sendJson(res, 400, { ok: false, error: 'JSON invalide.' });
+    }
+    if (!input || typeof input !== 'object' || Array.isArray(input)) {
+      return sendJson(res, 400, { ok: false, error: 'JSON invalide.' });
+    }
+  } else {
+    input = Object.fromEntries(new URLSearchParams(raw));
+  }
+
+  const wantsJson = String(req.headers.accept || '').includes('application/json');
+  const redirectAfter = isForm && !wantsJson;
+
+  // Honeypot: pretend success, store nothing.
+  if (asText(input.website) !== '') {
+    return sendJson(res, 200, { ok: true });
+  }
+
+  const userAgent = String(req.headers['user-agent'] || '').slice(0, 200);
+  // Robot ou pourriel : on répond « reçu » sans rien envoyer ; gardé à part pour vérification
+  const spam = spamReason(input, { elapsedMs: input._t === undefined || input._t === '' ? NaN : Number(input._t) });
+  if (spam) {
+    await fsp.mkdir(cfg.dataDir, { recursive: true }).catch(() => {});
+    await fsp.appendFile(path.join(cfg.dataDir, 'spam.jsonl'), JSON.stringify({ reason: spam, receivedAt: new Date().toISOString(), ip, userAgent, courriel: asText(input.courriel).slice(0, 160) }) + '\n', { mode: 0o600 }).catch(() => {});
+    return redirectAfter ? send(res, 303, null, { Location: '/contact/merci/', 'Cache-Control': 'no-store' }) : sendJson(res, 201, { ok: true });
+  }
+
+  // Case « Je ne suis pas un robot » (si un fournisseur est configuré sur le serveur)
+  let captcha = { ok: true, checked: false, off: true };
+  if (cfg.captcha) {
+    const token = asText(input.captcha) || asText(input[PROVIDERS[cfg.captcha.provider].field]);
+    captcha = await verifyCaptcha(cfg.captcha, token, ip, { fetchImpl: cfg.captchaFetch });
+    if (!captcha.ok) return sendJson(res, 422, { ok: false, errors: { captcha: 'Cochez la case « Je ne suis pas un robot » (et choisissez les images demandées, s’il y a lieu).' } });
+  }
+
+  const result = await validateContact(input, { receivesMail: cfg.receivesMail });
+  if (!result.ok) {
+    return sendJson(res, 422, { ok: false, errors: result.errors, ...(result.suggestion ? { suggestion: result.suggestion } : {}) });
+  }
+
+  const record = { ...result.data, receivedAt: new Date().toISOString(), ip, userAgent };
+  if (!captcha.off) record.verification.robot = captcha.checked ? 'vérifié' : 'non vérifié (service injoignable)';
+  // Même courriel déjà reçu dans les dernières 24 heures : enregistré, sans nouvel avis ni accusé de réception
+  const repeat = guard.seen(record.courriel);
+  if (repeat) record.doublon = true;
+
+  try {
+    await fsp.mkdir(cfg.dataDir, { recursive: true });
+    await fsp.appendFile(path.join(cfg.dataDir, 'leads.jsonl'), JSON.stringify(record) + '\n', { mode: 0o600 });
+  } catch (err) {
+    console.error('Impossible d’enregistrer la demande de contact:', err.message);
+    return sendJson(res, 500, { ok: false, error: 'Erreur interne. Réessayez plus tard.' });
+  }
+
+  if (cfg.webhookUrl && !repeat) {
+    fetch(cfg.webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record),
+      signal: AbortSignal.timeout(5000),
+    })
+      .then((r) => {
+        if (!r.ok) console.error(`Webhook des leads: réponse HTTP ${r.status}`);
+        return r.body?.cancel();
+      })
+      .catch((err) => console.error('Webhook des leads en échec:', err.message));
+  }
+
+  if (cfg.smtp && !repeat) {
+    sendMail(cfg.smtp, leadMessage(record))
+      .catch((err) => console.error('Courriel de notification en échec:', err.message));
+    // Accusé de réception au client, plafonné par jour pour protéger la réputation du compte d'envoi.
+    if (cfg.smtp.confirmation && confirmations.take()) {
+      sendMail(cfg.smtp, confirmationMessage(record, { replyTo: cfg.smtp.to[0], bookingUrl: cfg.chat.bookingUrl }))
+        .catch((err) => console.error('Courriel de confirmation au client en échec:', err.message));
+    }
+  }
+
+  if (redirectAfter) {
+    return send(res, 303, null, { Location: '/contact/merci/', 'Cache-Control': 'no-store' });
+  }
+  return sendJson(res, 201, { ok: true });
+}
+
+/* ----------------------------------------------------------------- server */
+
+function createServer(options = {}) {
+  const env = envConfig();
+  const cfg = {
+    port: options.port ?? env.port,
+    host: options.host ?? env.host,
+    publicDir: path.resolve(options.publicDir ?? env.publicDir),
+    dataDir: path.resolve(options.dataDir ?? env.dataDir),
+    webhookUrl: options.webhookUrl ?? env.webhookUrl,
+    smtp: options.smtp !== undefined ? options.smtp : env.smtp,
+    trustProxy: options.trustProxy ?? env.trustProxy,
+    rateLimit: { max: 5, windowMs: 10 * 60 * 1000, ...(options.rateLimit || {}) },
+    confirmationsPerDay: options.confirmationsPerDay ?? 100,
+    chat: { ...env.chat, ...(options.chat || {}) },
+    // Vérification du domaine du courriel par le DNS ; les tests passent un faux vérificateur
+    receivesMail: options.receivesMail !== undefined ? options.receivesMail : createDomainChecker(),
+    captcha: options.captcha !== undefined ? options.captcha : env.captcha,
+    captchaFetch: options.captchaFetch || fetch,
+  };
+  const guard = createRepeatGuard(24 * 3600_000);
+  const limiter = createRateLimiter(cfg.rateLimit);
+  const confirmations = createDailyCap(cfg.confirmationsPerDay);
+  const chatLimiter = createRateLimiter(cfg.chat.rateLimit);
+  // Rendez-vous par Jessica : actif seulement si l'agenda Google est configuré (ou un faux agenda en test).
+  const google = options.google || (env.google && options.google !== null ? createGoogle(env.google) : null);
+  let booking = null;
+  if (google) {
+    const mail = cfg.smtp
+      ? async (r) => {
+        const { client, team } = appointmentMessages(r, { replyTo: cfg.smtp.to[0] });
+        await sendMail(cfg.smtp, client);
+        await sendMail(cfg.smtp, team);
+      }
+      : null;
+    booking = createBooking({ ...env.booking, ...(options.booking || {}) }, { google, mail, dataDir: cfg.dataDir, now: options.now, receivesMail: cfg.receivesMail });
+  }
+  const chat = createChat(cfg.chat, { limiter: chatLimiter, dailyCap: createDailyCap(cfg.chat.maxPerDay), booking });
+
+  const server = http.createServer(async (req, res) => {
+    try {
+      const pathname = (req.url || '/').split('?')[0];
+      // Robots d'IA et outils d'aspiration : aucun accès à l'API (Jessica, formulaire).
+      if ((pathname === '/api' || pathname.startsWith('/api/')) && isBlockedAgent(req.headers['user-agent'])) {
+        req.resume();
+        return sendJson(res, 403, { ok: false, error: 'Accès refusé aux robots automatisés.' });
+      }
+      if (pathname === '/api/health') {
+        if (req.method !== 'GET' && req.method !== 'HEAD') {
+          return sendJson(res, 405, { ok: false, error: 'Méthode non autorisée.' }, { Allow: 'GET, HEAD' });
+        }
+        return sendJson(res, 200, { ok: true });
+      }
+      // Clé publique de la case « Je ne suis pas un robot » (jamais la clé secrète)
+      if (pathname === '/api/captcha') {
+        return sendJson(res, 200, cfg.captcha ? { provider: cfg.captcha.provider, siteKey: cfg.captcha.siteKey } : { provider: null }, { 'Cache-Control': 'no-store' });
+      }
+      if (pathname === '/api/contact') return await handleContact(req, res, cfg, limiter, confirmations, guard);
+      if (pathname === '/api/chat') return await chat.handle(req, res, { sendJson, readBody, clientIp: () => clientIp(req, cfg.trustProxy) });
+      if (pathname === '/api' || pathname.startsWith('/api/')) {
+        return sendJson(res, 404, { ok: false, error: 'Introuvable.' });
+      }
+      return await handleStatic(req, res, cfg);
+    } catch (err) {
+      console.error('Erreur serveur:', err);
+      if (!res.headersSent) sendJson(res, 500, { ok: false, error: 'Erreur interne.' });
+      else res.destroy();
+    }
+  });
+
+  server.config = cfg;
+  server.google = google;
+  server.on('close', () => { limiter.stop(); chatLimiter.stop(); });
+  return server;
+}
+
+module.exports = { createServer, SECURITY_HEADERS, MIME_TYPES, validateContact };
+
+if (require.main === module) {
+  const server = createServer();
+  const { port, host } = server.config;
+  server.listen(port, host, () => {
+    console.log(`BVY website running on http://${host}:${port}`);
+  });
+  // Vérification de l'agenda Google au démarrage (visible avec : journalctl -u bvy-website)
+  if (server.google) {
+    const t = Date.now();
+    server.google.busy(new Date(t).toISOString(), new Date(t + 86_400_000).toISOString())
+      .then(() => console.log('Rendez-vous Jessica : connexion à Google Agenda OK.'))
+      .catch((err) => console.error('Rendez-vous Jessica : Google Agenda inaccessible :', err.message));
+  }
+
+  const shutdown = (signal) => {
+    console.log(`${signal} reçu, arrêt en cours...`);
+    server.close(() => process.exit(0));
+    server.closeIdleConnections?.();
+    setTimeout(() => process.exit(1), 10_000).unref();
+  };
+  process.once('SIGTERM', () => shutdown('SIGTERM'));
+  process.once('SIGINT', () => shutdown('SIGINT'));
+}

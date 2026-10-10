@@ -1,0 +1,45 @@
+{%- liquid
+  assign threshold = settings.cn_free_shipping_threshold | default: 39 | times: 100
+  assign threshold_money = threshold | money_without_trailing_zeros
+-%}
+
+<section class="cn-section cn-trust" style="--cn-pad-top: 18px; --cn-pad-bottom: 18px;">
+  <div class="cn-container">
+    <ul class="cn-trust__list">
+      <li class="cn-trust__item">
+        <span class="cn-icon" aria-hidden="true">🚚</span>
+        <p><strong>{{ 'cuddlenest.trust.shipping_title' | t }}</strong><span>{{ 'cuddlenest.trust.shipping_text' | t: amount: threshold_money }}</span></p>
+      </li>
+      <li class="cn-trust__item">
+        <span class="cn-icon" aria-hidden="true">↺</span>
+        <p><strong>{{ 'cuddlenest.trust.guarantee_title' | t }}</strong><span>{{ 'cuddlenest.trust.guarantee_text' | t }}</span></p>
+      </li>
+      <li class="cn-trust__item">
+        <span class="cn-icon" aria-hidden="true">🔒</span>
+        <p><strong>{{ 'cuddlenest.trust.payment_title' | t }}</strong><span>{{ 'cuddlenest.trust.payment_text' | t }}</span></p>
+      </li>
+      {%- if section.settings.delivery_time != blank -%}
+        <li class="cn-trust__item">
+          <span class="cn-icon" aria-hidden="true">📦</span>
+          <p><strong>{{ 'cuddlenest.trust.delivery_title' | t }}</strong><span>{{ section.settings.delivery_time }}</span></p>
+        </li>
+      {%- endif -%}
+    </ul>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "CN · Trust bar",
+  "tag": "div",
+  "settings": [
+    {
+      "type": "text",
+      "id": "delivery_time",
+      "label": "Delivery time (optional)",
+      "info": "Only show a delivery time you can actually meet, e.g. \"10 to 20 business days\". Leave empty to hide."
+    }
+  ],
+  "presets": [{ "name": "CN · Trust bar" }]
+}
+{% endschema %}

@@ -1,0 +1,211 @@
+{
+  "slug": "comptable-shopify-commerce-electronique-quebec",
+  "order": 2,
+  "title": "Comptable Shopify et e-commerce au Québec | BVY",
+  "description": "Comptable Shopify au Québec : ventes, frais, remboursements, TPS/TVQ et marges organisés dans QuickBooks Online. Mise au clair Shopify à 850 $ CA.",
+  "breadcrumb": "Boutiques Shopify et commerce électronique",
+  "card": {
+    "title": "Boutiques Shopify et commerce électronique",
+    "text": "Vos ventes, vos frais et vos marges enfin réunis, pour voir ce que votre boutique gagne réellement et choisir la suite.",
+    "button": "Comptable Shopify"
+  },
+  "image": {
+    "alt": "Propriétaire d'une boutique Shopify analysant ses ventes et ses commandes au Québec"
+  },
+  "image2": {
+    "alt": "Préparation de colis dans un petit entrepôt, avec l'inventaire rangé sur des tablettes"
+  },
+  "eyebrow": "Boutiques Shopify et commerce électronique",
+  "h1": "Comptable Shopify au Québec : transformer les ventes de votre boutique en décisions rentables",
+  "quote": "Une vente n'est pas encore un profit. C'est le début d'un parcours financier.",
+  "intro": [
+    "Les commandes entrent, les colis partent, la boutique grandit. Un comptable Shopify vous aide à voir ce qui reste réellement une fois les frais, les remboursements, la publicité et les taxes passés.",
+    "BVY Accounting & Tax Services travaille directement dans votre QuickBooks Online. QBO reste votre système comptable; nous y relions Shopify, vos moyens de paiement et vos comptes bancaires, puis nous ajoutons l'explication et les tableaux de bord qui vous aident à décider."
+  ],
+  "reality": {
+    "h2": "Des ventes brutes aux dépôts nets",
+    "paragraphs": [
+      "Shopify affiche un chiffre de ventes. Votre compte bancaire en reçoit un autre. Entre les deux : frais de plateforme, frais de paiement, remboursements, rétrofacturations, livraison et taxes perçues.",
+      "Ajoutez l'inventaire, la publicité numérique et les ventes en dollars américains, et la marge réelle devient difficile à lire. Une fois ces éléments bien classés, vous savez quels produits financent votre croissance."
+    ]
+  },
+  "stages": {
+    "h2": "Une structure qui évolue avec votre boutique",
+    "intro": "Votre comptabilité peut grandir au même rythme que vos commandes.",
+    "items": [
+      {
+        "name": "Lancement",
+        "text": "Les premières ventes arrivent et les outils se mettent en place.",
+        "needs": [
+          "Connexion de Shopify, Stripe ou PayPal à QBO",
+          "Plan comptable adapté au commerce en ligne",
+          "Inscription et configuration TPS/TVQ"
+        ]
+      },
+      {
+        "name": "Croissance",
+        "text": "Les commandes augmentent, la publicité et l'inventaire aussi.",
+        "needs": [
+          "Rapprochement des ventes et des dépôts",
+          "Suivi du coût des produits vendus",
+          "Marges par produit"
+        ]
+      },
+      {
+        "name": "Expansion",
+        "text": "Nouveaux marchés, nouvelles devises, nouveaux canaux de vente.",
+        "needs": [
+          "Ventes en CAD et en USD",
+          "Prévisions de trésorerie",
+          "Tableaux de bord pour décider des achats"
+        ]
+      }
+    ]
+  },
+  "flow": {
+    "h2": "Le parcours financier d'une vente en ligne",
+    "intro": "Chaque commande suit un trajet précis avant de devenir un profit.",
+    "steps": [
+      {
+        "label": "Commande",
+        "detail": "Le client achète sur votre boutique Shopify."
+      },
+      {
+        "label": "Paiement",
+        "detail": "Shopify Payments, Stripe ou PayPal encaisse et retient ses frais."
+      },
+      {
+        "label": "Dépôt",
+        "detail": "Un montant net, regroupant plusieurs commandes, arrive à la banque."
+      },
+      {
+        "label": "Coûts",
+        "detail": "Produits, livraison et publicité s'appliquent à chaque vente."
+      },
+      {
+        "label": "Taxes",
+        "detail": "La TPS/TVQ perçue est isolée et réservée."
+      },
+      {
+        "label": "Marge",
+        "detail": "Ce qui reste réellement, par produit et pour la boutique."
+      }
+    ],
+    "result": "Comprendre aujourd'hui pour mieux décider demain : quoi racheter, quoi promouvoir, quoi abandonner."
+  },
+  "expertise": {
+    "h2": "Comptable Shopify : notre expertise en commerce électronique",
+    "intro": "Notre expertise comptable appliquée à votre réalité de commerçant en ligne.",
+    "items": [
+      "Shopify, Stripe et PayPal",
+      "Ventes brutes et dépôts nets",
+      "Frais de plateforme",
+      "Remboursements et rétrofacturations",
+      "Inventaire et coût des produits",
+      "Publicité numérique",
+      "Marges par produit",
+      "TPS/TVH/TVQ",
+      "Ventes en CAD et en USD"
+    ]
+  },
+  "services": {
+    "h2": "Les services BVY pour votre boutique",
+    "items": [
+      {
+        "name": "Tenue de livres et « Clarté mensuelle »",
+        "text": "Un suivi mensuel de vos ventes, frais et marges dans QBO, offert sur soumission.",
+        "link": "/services/#tenue-de-livres"
+      },
+      {
+        "name": "TPS/TVQ",
+        "text": "Déclarations préparées à partir de ventes et de taxes bien rapprochées.",
+        "link": "/services/#tps-tvq"
+      },
+      {
+        "name": "Travailleurs autonomes",
+        "text": "Déclarations T1/TP-1 et état des résultats pour la boutique non incorporée.",
+        "link": "/services/#travailleurs-autonomes"
+      },
+      {
+        "name": "Incorporation",
+        "text": "Accompagnement lorsque la boutique est prête à devenir une société.",
+        "link": "/services/#incorporation"
+      }
+    ]
+  },
+  "offer": {
+    "name": "Mise au clair Shopify",
+    "price": "850 $ CA",
+    "text": "Un paiement unique pour organiser vos données Shopify dans QuickBooks Online et comprendre enfin vos ventes, vos frais, vos taxes, votre trésorerie et votre rentabilité.",
+    "includes": [
+      "Diagnostic de Shopify, de QBO et de vos moyens de paiement",
+      "Connexion ou configuration de Shopify, Stripe, PayPal et du compte bancaire",
+      "Organisation du plan comptable QBO",
+      "Classement des ventes, remboursements, frais, livraison et coût des produits",
+      "Rapprochement d'au plus deux mois d'activité",
+      "Vérification de la configuration TPS/TVQ",
+      "Tableau de bord simplifié : ventes, frais, marge estimée, trésorerie et taxes à réserver",
+      "Rencontre de 45 minutes",
+      "Plan d'action des 30 prochains jours"
+    ],
+    "limits": "Une boutique Shopify, une entreprise canadienne, deux mois d'activité, jusqu'à deux comptes bancaires ou de paiement. Les retards plus anciens, la paie, les déclarations de revenus, les stocks complexes et les opérations multidevises sont évalués séparément.",
+    "button": "Réserver mon diagnostic Shopify"
+  },
+  "changes": {
+    "updated": "2026-09-30",
+    "items": [
+      {
+        "kind": "Technologies",
+        "title": "Des moyens de paiement plus nombreux",
+        "text": "Portefeuilles mobiles, paiement en plusieurs versements, passerelles multiples : chaque moyen de paiement produit ses propres frais et ses propres rapports à relier dans QBO.",
+        "link": null,
+        "source": null
+      },
+      {
+        "kind": "Modèles de revenus",
+        "title": "Une boutique, plusieurs canaux",
+        "text": "Beaucoup de commerçants vendent à la fois sur leur site, sur les réseaux sociaux et sur des places de marché. Suivre chaque canal séparément aide à voir lequel est vraiment rentable.",
+        "link": null,
+        "source": null
+      },
+      {
+        "kind": "Obligations fiscales et administratives",
+        "title": "Des plateformes qui déclarent les ventes",
+        "text": "Certaines plateformes numériques qui facilitent la vente de biens doivent recueillir des renseignements sur leurs vendeurs et les déclarer chaque année à l'ARC. Des livres qui concordent avec vos rapports de plateformes deviennent d'autant plus utiles.",
+        "link": null,
+        "source": "https://www.canada.ca/fr/agence-revenu/programmes/a-propos-agence-revenu-canada-arc/observation/declaration-honoraires-service/regles-declaration-plateformes-numeriques.html"
+      }
+    ]
+  },
+  "faq": [
+    {
+      "q": "Travaillez-vous directement dans QuickBooks Online?",
+      "a": "Oui. QuickBooks Online demeure votre système comptable et le travail s'y fait. BVY ajoute par-dessus l'explication, les tâches, les alertes et les tableaux de bord qui vous aident à suivre vos chiffres."
+    },
+    {
+      "q": "Que comprend la Mise au clair Shopify?",
+      "a": "Un diagnostic, la connexion de vos outils à QBO, le classement de deux mois d'activité, la vérification TPS/TVQ, un tableau de bord simplifié, une rencontre de 45 minutes et un plan d'action pour les 30 jours suivants."
+    },
+    {
+      "q": "Et après la Mise au clair?",
+      "a": "Vous pouvez poursuivre seul avec une structure propre, ou choisir la « Clarté mensuelle », un suivi mensuel offert sur soumission."
+    },
+    {
+      "q": "Pourquoi mon dépôt ne correspond-il pas à mes ventes?",
+      "a": "Parce qu'il regroupe plusieurs commandes, moins les frais, les remboursements et parfois les rétrofacturations. Le rapprochement permet de retrouver chaque élément."
+    }
+  ],
+  "cta": {
+    "title": "Votre entreprise avance. Vos chiffres doivent avancer avec elle.",
+    "text": "Commencez par une Mise au clair Shopify et voyez votre boutique sous un nouvel angle : ventes, frais, taxes et marge réelle.",
+    "button": "Découvrir ce que ma boutique gagne réellement",
+    "service": "mise-au-clair-shopify"
+  },
+  "keywords": [
+    "comptable Shopify Québec",
+    "comptabilité commerce électronique",
+    "Shopify QuickBooks Online",
+    "TPS TVQ boutique en ligne",
+    "mise au clair Shopify"
+  ]
+}

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><title>Traducteur Audio — Diagnostics</title><link rel="stylesheet" href="../style.css"></head>
+<body>
+<div class="wrap page">
+  <h1>🩺 Diagnostics — Traducteur Audio EN → FR</h1>
+  <p class="hint" id="meta"></p>
+
+  <div class="card">
+    <table><tbody id="results"></tbody></table>
+  </div>
+
+  <div class="buttons">
+    <button id="rerun">🔄 Relancer les tests</button>
+    <button id="mic" class="secondary">🎙️ Autoriser le micro</button>
+    <button id="voice" class="secondary">🔊 Tester la voix FR</button>
+    <button id="reset" class="secondary">♻️ Réinitialiser les réglages</button>
+    <button id="copy" class="secondary">📋 Copier le rapport</button>
+  </div>
+
+  <h2>Réglages enregistrés</h2>
+  <pre class="card" id="settings"></pre>
+</div>
+<script src="../common.js"></script>
+<script src="diagnostics.js"></script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+{
+  "slug": "fiscalite-societe-canadienne-non-resident",
+  "order": 6,
+  "title": "Société canadienne gérée depuis l'étranger | BVY",
+  "description": "Comptabilité et fiscalité d'une société canadienne gérée depuis l'étranger : QuickBooks Online, multidevise, TPS/TVQ, échéances et domiciliation.",
+  "breadcrumb": "Société canadienne gérée depuis l'étranger",
+  "card": {
+    "title": "Société canadienne gérée depuis l'étranger",
+    "text": "Votre société canadienne suivie à distance, en plusieurs devises, pour avancer à l'international avec des obligations bien alignées.",
+    "button": "Gérer ma société à distance"
+  },
+  "image": {
+    "alt": "Entrepreneur francophone dirigeant une société canadienne depuis l'étranger"
+  },
+  "image2": {
+    "alt": "Réunion vidéo avec une équipe internationale réunie autour d'un ordinateur portable"
+  },
+  "eyebrow": "Sociétés canadiennes dirigées depuis l'étranger",
+  "h1": "Société canadienne gérée depuis l'étranger : garder votre société alignée, où que vous soyez",
+  "quote": "Les activités traversent les frontières instantanément. Les obligations, elles, voyagent à leur propre rythme.",
+  "intro": [
+    "Vous dirigez votre entreprise d'un autre pays, mais votre société canadienne a ses propres échéances. Une société canadienne gérée depuis l'étranger avance mieux avec des livres à jour, des taxes suivies et un calendrier clair.",
+    "BVY Accounting & Tax Services travaille à distance, en français ou en anglais, directement dans votre QuickBooks Online. QBO reste votre système comptable; nous y ajoutons l'explication, les tâches, les alertes et les tableaux de bord qui vous aident à décider."
+  ],
+  "reality": {
+    "h2": "Une société au Canada, des activités partout",
+    "paragraphs": [
+      "Vos clients paient par Stripe, PayPal ou Wise. Vos comptes bancaires sont au Canada et ailleurs. Vos dépenses arrivent en plusieurs devises. Chaque transaction doit trouver sa place, en dollars canadiens, dans les livres de la société.",
+      "Certaines questions demandent un regard spécialisé : résidence de la société, établissement stable, prix de transfert ou déclarations de renseignements étrangers comme les formulaires T1134 et T1135. Nous rassemblons les faits et coordonnons ces questions avec des fiscalistes spécialisés lorsque nécessaire."
+    ]
+  },
+  "stages": {
+    "h2": "Une structure qui évolue avec votre société",
+    "intro": "De la constitution aux activités internationales, chaque étape a ses repères.",
+    "items": [
+      {
+        "name": "Création",
+        "text": "La société prend forme et s'installe au Canada.",
+        "needs": [
+          "Incorporation",
+          "Domiciliation et adresse au Canada",
+          "Ouverture de QBO et plan comptable"
+        ]
+      },
+      {
+        "name": "Premières opérations",
+        "text": "Les premiers clients et fournisseurs arrivent.",
+        "needs": [
+          "Configuration multidevise",
+          "Inscription et suivi TPS/TVQ",
+          "Collecte organisée des documents"
+        ]
+      },
+      {
+        "name": "Expansion internationale",
+        "text": "Plus de marchés, plus de comptes, plus de devises.",
+        "needs": [
+          "Calendrier des échéances",
+          "Déclarations fiscales canadiennes",
+          "Coordination avec des fiscalistes spécialisés"
+        ]
+      }
+    ]
+  },
+  "flow": {
+    "h2": "Le parcours de l'argent entre les frontières",
+    "intro": "Une vente conclue n'importe où finit dans les livres de votre société canadienne.",
+    "steps": [
+      {
+        "label": "Vente",
+        "detail": "Un client, au Canada ou ailleurs, achète vos produits ou services."
+      },
+      {
+        "label": "Paiement",
+        "detail": "Stripe, PayPal ou Wise encaisse, parfois en devise étrangère."
+      },
+      {
+        "label": "Comptes",
+        "detail": "Les fonds circulent entre comptes canadiens et étrangers."
+      },
+      {
+        "label": "Conversion",
+        "detail": "Chaque montant est enregistré en CAD dans QBO."
+      },
+      {
+        "label": "Obligations",
+        "detail": "Taxes et déclarations sont suivies selon le calendrier."
+      },
+      {
+        "label": "Lecture",
+        "detail": "Résultats, trésorerie et échéances visibles d'un coup d'œil."
+      }
+    ],
+    "result": "Comprendre aujourd'hui pour mieux décider demain, où que vous soyez."
+  },
+  "expertise": {
+    "h2": "Société canadienne gérée depuis l'étranger : notre expertise",
+    "intro": "Notre expertise comptable appliquée à votre réalité internationale.",
+    "items": [
+      "QuickBooks Online",
+      "Multidevise",
+      "Stripe, PayPal et Wise",
+      "Comptes bancaires canadiens et étrangers",
+      "TPS/TVH/TVQ",
+      "Déclarations fiscales canadiennes",
+      "Collecte des documents",
+      "Calendrier des échéances",
+      "Coordination avec des fiscalistes spécialisés lorsque nécessaire"
+    ]
+  },
+  "services": {
+    "h2": "Les services BVY pour votre société à distance",
+    "items": [
+      {
+        "name": "Domiciliation pour entreprises étrangères",
+        "text": "Une présence au Canada pour votre société.",
+        "link": "/services/#domiciliation"
+      },
+      {
+        "name": "Incorporation",
+        "text": "Accompagnement dans la constitution de votre société canadienne.",
+        "link": "/services/#incorporation"
+      },
+      {
+        "name": "Tenue de livres",
+        "text": "Transactions multidevises classées chaque mois dans QBO.",
+        "link": "/services/#tenue-de-livres"
+      },
+      {
+        "name": "TPS/TVQ",
+        "text": "Inscription, suivi et déclarations selon vos activités.",
+        "link": "/services/#tps-tvq"
+      },
+      {
+        "name": "Impôt des sociétés",
+        "text": "Déclarations T2 et CO-17 préparées à partir de livres à jour.",
+        "link": "/services/#impot-societes"
+      }
+    ]
+  },
+  "offer": null,
+  "changes": {
+    "updated": "2026-09-30",
+    "items": [
+      {
+        "kind": "Technologies",
+        "title": "Des comptes multidevises plus accessibles",
+        "text": "Les services de paiement et les comptes multidevises facilitent la gestion à distance. Chaque nouveau compte ajoute toutefois des relevés à rapprocher dans QBO.",
+        "link": null,
+        "source": null
+      },
+      {
+        "kind": "Modèles de revenus",
+        "title": "Des clients partout, une société au Canada",
+        "text": "Vendre en ligne à des clients de plusieurs pays est devenu courant. Suivre les ventes par marché aide à comprendre d'où vient réellement la croissance.",
+        "link": null,
+        "source": null
+      },
+      {
+        "kind": "Obligations fiscales et administratives",
+        "title": "La déclaration des bénéficiaires ultimes",
+        "text": "Au Québec, les entreprises immatriculées doivent déclarer leurs bénéficiaires ultimes au Registraire des entreprises. Les informations sur les personnes qui détiennent ou contrôlent la société doivent donc rester à jour.",
+        "link": null,
+        "source": "https://www.quebec.ca/entreprises-et-travailleurs-autonomes/demarrer-entreprise/immatriculer-constituer-entreprise/nouvelles-obligations-transparence/declarer-beneficiaire-ultime"
+      }
+    ]
+  },
+  "faq": [
+    {
+      "q": "BVY peut-elle travailler dans notre QuickBooks Online à distance?",
+      "a": "Oui. QuickBooks Online demeure votre système comptable et le travail s'y fait. BVY ajoute par-dessus l'explication, les tâches, les alertes et les tableaux de bord qui vous aident à suivre vos chiffres."
+    },
+    {
+      "q": "Ma société est-elle résidente du Canada aux fins fiscales?",
+      "a": "La résidence dépend de plusieurs facteurs. Nous rassemblons les faits et la question est validée avec un fiscaliste spécialisé."
+    },
+    {
+      "q": "Les formulaires T1134 ou T1135 s'appliquent-ils à ma société?",
+      "a": "Cela dépend de vos placements et de vos sociétés étrangères. Nous repérons les situations à examiner, et leur applicabilité est validée avec un spécialiste."
+    },
+    {
+      "q": "BVY offre-t-elle des audits ou des missions d'examen?",
+      "a": "BVY n'offre actuellement aucune mission d'audit, d'examen ou de compilation. Lorsque ce type de rapport est requis, nous pouvons préparer le dossier comptable et orienter le client vers un CPA autorisé indépendant."
+    },
+    {
+      "q": "Quels sont vos tarifs?",
+      "a": "La domiciliation a son propre tarif, présenté sur la page Services. Nos autres services sont offerts sur soumission."
+    }
+  ],
+  "cta": {
+    "title": "Votre entreprise avance. Vos chiffres doivent avancer avec elle.",
+    "text": "Parlons de votre société, de vos comptes et de vos échéances. Nous vous proposerons une structure qui vous suit, où que vous soyez.",
+    "button": "Structurer ma société canadienne à distance",
+    "service": "domiciliation"
+  },
+  "keywords": [
+    "société canadienne non-résident",
+    "comptable pour entreprise étrangère Canada",
+    "domiciliation entreprise Québec",
+    "fiscalité société canadienne à l'étranger",
+    "QuickBooks multidevise"
+  ]
+}

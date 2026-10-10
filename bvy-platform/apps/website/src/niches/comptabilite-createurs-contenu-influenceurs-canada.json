@@ -1,0 +1,198 @@
+{
+  "slug": "comptabilite-createurs-contenu-influenceurs-canada",
+  "order": 3,
+  "title": "Comptabilité pour créateurs et influenceurs | BVY",
+  "description": "Comptabilité pour créateurs de contenu et influenceurs au Canada : revenus de plateformes, commandites, affiliation, TPS/TVQ et QuickBooks Online.",
+  "breadcrumb": "Créateurs de contenu et influenceurs",
+  "card": {
+    "title": "Créateurs de contenu et influenceurs",
+    "text": "Plateformes, commandites et affiliation réunies dans une structure claire, pour faire de votre créativité une entreprise durable.",
+    "button": "Comptabilité pour créateurs"
+  },
+  "image": {
+    "alt": "Créatrice de contenu canadienne organisant ses revenus de plateformes numériques"
+  },
+  "image2": {
+    "alt": "Créatrice préparant une collaboration de marque dans son studio, produits et caméra à portée de main"
+  },
+  "eyebrow": "Créateurs de contenu, influenceurs et marques personnelles",
+  "h1": "Comptabilité pour créateurs de contenu : donner une structure durable à votre créativité",
+  "quote": "L'attention crée une occasion. Une bonne structure permet d'en faire une entreprise.",
+  "intro": [
+    "Votre audience grandit, les marques vous contactent et les revenus arrivent de partout. La comptabilité pour créateurs de contenu et influenceurs transforme ces sources dispersées en une entreprise qui se lit clairement.",
+    "BVY Accounting & Tax Services travaille directement dans votre QuickBooks Online. QBO reste votre système comptable; nous y ajoutons l'explication, les tâches, les alertes et les tableaux de bord qui vous aident à décider. À distance, en français ou en anglais."
+  ],
+  "reality": {
+    "h2": "Plusieurs sources de revenus, une seule entreprise",
+    "paragraphs": [
+      "Versements de plateformes, commandites, liens d'affiliation, produits reçus en échange de contenu : chaque source arrive à sa façon, souvent en devises étrangères et selon son propre calendrier.",
+      "Votre équipement, votre studio et vos logiciels sont de vrais outils de travail. Bien documentés, ils racontent le coût réel de votre production. Réunis au même endroit, vos chiffres montrent quelles activités font vraiment avancer votre marque."
+    ]
+  },
+  "stages": {
+    "h2": "Une structure qui évolue avec votre marque",
+    "intro": "De la première monétisation à une marque établie, vos besoins changent.",
+    "items": [
+      {
+        "name": "Émergence",
+        "text": "Les premiers revenus arrivent, souvent en parallèle d'un autre travail.",
+        "needs": [
+          "Séparation des comptes personnels et d'affaires",
+          "Suivi des revenus de plateformes",
+          "Déclaration T1/TP-1 avec état des résultats"
+        ]
+      },
+      {
+        "name": "Diversification",
+        "text": "Commandites, affiliation et produits s'ajoutent aux plateformes.",
+        "needs": [
+          "Suivi des commandites et des produits reçus",
+          "Inscription et suivi TPS/TVQ",
+          "Rentabilité par activité"
+        ]
+      },
+      {
+        "name": "Développement de marque",
+        "text": "Votre nom devient une entreprise, parfois avec une équipe.",
+        "needs": [
+          "Réflexion sur l'incorporation",
+          "Paie ou sous-traitants",
+          "Prévisions de trésorerie"
+        ]
+      }
+    ]
+  },
+  "flow": {
+    "h2": "Le parcours de vos revenus de créateur",
+    "intro": "Entre une publication et votre compte bancaire, plusieurs étapes méritent d'être suivies.",
+    "steps": [
+      {
+        "label": "Contenu",
+        "detail": "Vous publiez, collaborez ou recommandez un produit."
+      },
+      {
+        "label": "Revenu",
+        "detail": "Plateforme, marque ou programme d'affiliation vous rémunère, en argent ou en produits."
+      },
+      {
+        "label": "Conversion",
+        "detail": "Les montants en devises étrangères sont convertis en CAD."
+      },
+      {
+        "label": "Dépenses",
+        "detail": "Équipement, studio et logiciels sont rattachés à votre activité."
+      },
+      {
+        "label": "Taxes",
+        "detail": "La TPS/TVQ applicable est suivie et réservée."
+      },
+      {
+        "label": "Lecture",
+        "detail": "Chaque activité montre ce qu'elle rapporte réellement."
+      }
+    ],
+    "result": "Des chiffres conçus pour éclairer la prochaine décision : accepter une collaboration, investir dans un studio ou diversifier."
+  },
+  "expertise": {
+    "h2": "Comptabilité pour créateurs et influenceurs : notre expertise",
+    "intro": "Notre expertise comptable appliquée à votre réalité de créateur.",
+    "items": [
+      "Revenus des plateformes",
+      "Commandites et collaborations",
+      "Affiliation",
+      "Produits et services reçus",
+      "Équipement, studio et logiciels",
+      "Revenus étrangers",
+      "Conversion en CAD",
+      "TPS/TVH/TVQ",
+      "Rentabilité par activité"
+    ]
+  },
+  "services": {
+    "h2": "Les services BVY pour votre activité créative",
+    "items": [
+      {
+        "name": "Travailleurs autonomes",
+        "text": "Déclarations T1/TP-1 avec T2125/TP-80 préparées à partir de revenus bien classés.",
+        "link": "/services/#travailleurs-autonomes"
+      },
+      {
+        "name": "Tenue de livres",
+        "text": "Revenus de plateformes, commandites et dépenses organisés chaque mois dans QBO.",
+        "link": "/services/#tenue-de-livres"
+      },
+      {
+        "name": "TPS/TVQ",
+        "text": "Inscription, suivi et déclarations lorsque votre activité le demande.",
+        "link": "/services/#tps-tvq"
+      },
+      {
+        "name": "Incorporation",
+        "text": "Accompagnement lorsque votre marque est prête à devenir une société.",
+        "link": "/services/#incorporation"
+      }
+    ]
+  },
+  "offer": null,
+  "changes": {
+    "updated": "2026-09-30",
+    "items": [
+      {
+        "kind": "Technologies",
+        "title": "Des outils de création plus accessibles",
+        "text": "Montage, sous-titres, visuels : les outils assistés par l'IA s'installent dans la production de contenu. Ces abonnements logiciels deviennent une dépense courante à suivre.",
+        "link": null,
+        "source": null
+      },
+      {
+        "kind": "Modèles de revenus",
+        "title": "Des revenus de plus en plus diversifiés",
+        "text": "Abonnements de fans, produits dérivés, formations en ligne : les créateurs combinent de plus en plus de sources. Les distinguer aide à voir lesquelles soutiennent réellement la croissance.",
+        "link": null,
+        "source": null
+      },
+      {
+        "kind": "Obligations fiscales et administratives",
+        "title": "Les revenus non monétaires comptent aussi",
+        "text": "L'ARC précise que les influenceurs résidant au Canada déclarent leurs revenus monétaires et non monétaires, gagnés au Canada et à l'étranger. Consigner les produits reçus au fil de l'année simplifie la suite.",
+        "link": null,
+        "source": "https://www.canada.ca/fr/agence-revenu/programmes/a-propos-agence-revenu-canada-arc/observation/economie-plateformes/influenceurs-medias-sociaux.html"
+      }
+    ]
+  },
+  "faq": [
+    {
+      "q": "BVY travaille-t-elle dans QuickBooks Online?",
+      "a": "Oui. QuickBooks Online demeure votre système comptable et le travail s'y fait. BVY ajoute par-dessus l'explication, les tâches, les alertes et les tableaux de bord qui vous aident à suivre vos chiffres."
+    },
+    {
+      "q": "Les produits reçus d'une marque sont-ils un revenu?",
+      "a": "Ils peuvent l'être. Nous les consignons avec leur valeur et la documentation de la collaboration, pour que votre déclaration reflète votre situation."
+    },
+    {
+      "q": "Dois-je m'inscrire aux fichiers de la TPS et de la TVQ?",
+      "a": "Cela dépend notamment de vos revenus et de leur provenance. Nous analysons votre situation et vous accompagnons dans l'inscription lorsqu'elle est requise."
+    },
+    {
+      "q": "Est-ce le bon moment pour m'incorporer?",
+      "a": "C'est une décision propre à chaque créateur. Nous en regardons les chiffres avec vous : revenus, besoins personnels et projets de développement."
+    },
+    {
+      "q": "Quels sont vos tarifs?",
+      "a": "Nos services sont offerts sur soumission, selon le volume de transactions et les besoins de votre entreprise."
+    }
+  ],
+  "cta": {
+    "title": "Votre entreprise avance. Vos chiffres doivent avancer avec elle.",
+    "text": "Parlons de vos plateformes, de vos collaborations et de vos projets. Nous vous proposerons une structure à la mesure de votre marque.",
+    "button": "Transformer mon activité créative en entreprise structurée",
+    "service": "travailleurs-autonomes"
+  },
+  "keywords": [
+    "comptabilité créateurs de contenu",
+    "comptable influenceur Canada",
+    "impôt influenceur Québec",
+    "revenus YouTube TPS TVQ",
+    "commandites comptabilité"
+  ]
+}
