@@ -51,13 +51,118 @@ comptabilité publique, réservée aux CPA titulaires d'un permis. Donc :
 
 ## 3. Le plan comptable BVY
 
-- Un plan **simplifié** (environ 40 comptes) en langage clair, par type d'entreprise : Revenus, Achats,
-  Loyer, Électricité, Télécommunications, Repas (50 %), Véhicule, Assurances, Frais bancaires, Salaires, TPS à
-  recevoir / à payer, TVQ à recevoir / à payer, Capital, Emprunts, etc.
-- Numéros et libellés compatibles avec QuickBooks pour que le passage à QuickBooks soit un simple transfert.
-- Comptabilité en **partie double** sous le capot (chaque opération équilibrée) ; le client ne voit que
-  « argent entré / argent sorti / catégorie ».
-- Le propriétaire valide la liste des comptes avant la construction.
+**Base retenue par le propriétaire (2026-10-10)** : les lignes du formulaire fédéral **T2125, État des résultats
+des activités d'une entreprise ou d'une profession libérale** (parties 3, 4 et 7). Chaque compte BVY porte le
+numéro de ligne T2125 : le rapport annuel donne directement les montants à inscrire dans la déclaration.
+Comptabilité en partie double sous le capot ; le client ne voit que des noms clairs.
+
+### 3.1 Revenus (partie 3C)
+
+| Compte BVY | Nom affiché au client | Ligne T2125 | Notes |
+|---|---|---|---|
+| 4000 | Ventes et honoraires | 8000 (via 3A) | Montant **avant** TPS/TVQ si inscrit aux taxes |
+| 4100 | Commissions | 8000 (via 3A) | |
+| 4900 | Autres revenus | 8230 | Subventions, intérêts d'entreprise, etc. |
+
+TPS et TVQ perçues → comptes de taxes à payer (3.5), jamais dans les revenus.
+
+### 3.2 Coût des marchandises vendues (partie 3D) — pour ceux qui vendent des produits (Shopify, boutique)
+
+| Compte | Nom affiché | Ligne T2125 |
+|---|---|---|
+| 5000 | Achats de marchandises | 8320 |
+| 5100 | Main-d'œuvre directe | 8340 |
+| 5200 | Sous-traitance | 8360 |
+| 5300 | Autres coûts (emballage, frais de plateforme liés aux ventes) | 8450 |
+| — | Stock au début / à la fin de l'année | 8300 / 8500 (saisi une fois par an) |
+
+### 3.3 Dépenses (partie 4)
+
+| Compte | Nom affiché au client | Ligne T2125 | Règle automatique |
+|---|---|---|---|
+| 6010 | Publicité | 8521 | |
+| 6020 | Repas et frais de représentation | 8523 | **50 % seulement** reporté à la ligne 8523 |
+| 6030 | Créances irrécouvrables | 8590 | Seulement si le revenu avait été inscrit |
+| 6040 | Assurances (entreprise) | 8690 | Pas l'assurance auto ni maison (voir 3.4) |
+| 6050 | Intérêts et frais bancaires | 8710 | |
+| 6060 | Taxes d'affaires, droits d'adhésion et licences | 8760 | |
+| 6070 | Frais de bureau | 8810 | Logiciels, abonnements, petits équipements |
+| 6080 | Papeterie et fournitures de bureau | 8811 | |
+| 6090 | Honoraires professionnels (comptables, juridiques) | 8860 | |
+| 6100 | Frais de gestion et d'administration | 8871 | |
+| 6110 | Loyer | 8910 | Local d'affaires (pas la maison : voir 3.4) |
+| 6120 | Réparations et entretien | 8960 | |
+| 6130 | Salaires et avantages (y compris cotisations de l'employeur) | 9060 | |
+| 6140 | Impôts fonciers (local d'affaires) | 9180 | |
+| 6150 | Frais de déplacement | 9200 | Hébergement, transport ; repas → 6020 |
+| 6160 | Services publics (local d'affaires) | 9220 | Électricité, chauffage, eau, Internet, téléphone |
+| 6170 | Carburant et huile (sauf véhicules à moteur) | 9224 | Machinerie, génératrice |
+| 6180 | Livraison, transport et messagerie | 9275 | Postes Canada, Purolator, frais d'expédition |
+| 6900 | Autres dépenses (préciser) | 9270 | Le client doit écrire une précision |
+
+### 3.4 Dépenses avec une part personnelle
+
+**Véhicule à moteur (tableau A → ligne 9281)** — le client indique une fois par an les kilomètres d'affaires et
+les kilomètres totaux ; BVY applique le pourcentage d'affaires.
+
+| Compte | Nom affiché | Vers |
+|---|---|---|
+| 7010 | Véhicule : essence et huile | 9281 × % affaires |
+| 7020 | Véhicule : entretien et réparations | 9281 × % affaires |
+| 7030 | Véhicule : assurance | 9281 × % affaires |
+| 7040 | Véhicule : permis et immatriculation | 9281 × % affaires |
+| 7050 | Véhicule : intérêts sur le prêt | 9281 × % affaires (plafond ARC) |
+| 7060 | Véhicule : frais de location (bail) | 9281 × % affaires (plafond ARC) |
+| 7070 | Véhicule : autres frais (stationnement d'affaires, lave-auto) | 9281 |
+
+**Utilisation de la résidence aux fins de l'entreprise (partie 7 → ligne 9945)** — le client indique une fois par
+an la superficie du bureau et la superficie totale de la maison ; BVY calcule la part d'affaires, et la déduction
+ne peut pas créer ou augmenter une perte (report à l'année suivante, ligne 7O).
+
+| Compte | Nom affiché | Ligne partie 7 |
+|---|---|---|
+| 7510 | Maison : chauffage | 7A |
+| 7520 | Maison : électricité | 7B |
+| 7530 | Maison : assurance | 7C |
+| 7540 | Maison : entretien | 7D |
+| 7550 | Maison : intérêts hypothécaires | 7E |
+| 7560 | Maison : impôts fonciers (taxes municipales et scolaires) | 7F |
+| 7590 | Maison : autres (préciser) — loyer si locataire, Internet | 7G |
+
+**Déduction pour amortissement (DPA, ligne 9936)** : jamais saisie comme dépense. Le client inscrit l'achat d'un
+bien durable (ordinateur, équipement, véhicule) dans « Biens de l'entreprise » (1500) ; la DPA est calculée à la
+fin de l'année (catégorie, taux, règle de la demi-année) et **revue par BVY** avant d'être utilisée.
+
+### 3.5 Bilan (actif, passif, avoir du propriétaire)
+
+| Compte | Nom affiché | Notes |
+|---|---|---|
+| 1010 | Compte bancaire 1 | Forfait gratuit : 2 comptes au maximum |
+| 1020 | Compte bancaire 2 | |
+| 1050 | Petite caisse (argent comptant) | Ne compte pas comme compte bancaire |
+| 1200 | Clients — argent à recevoir | Factures envoyées non payées |
+| 1300 | TPS à recevoir (CTI) | Si inscrit |
+| 1310 | TVQ à recevoir (RTI) | Si inscrit |
+| 1400 | Stock de marchandises | Fin d'année |
+| 1500 | Biens de l'entreprise (équipement, ordinateur, véhicule) | Base de la DPA |
+| 2100 | Fournisseurs — factures à payer | |
+| 2200 | TPS à payer | Si inscrit |
+| 2210 | TVQ à payer | Si inscrit |
+| 2300 | Carte de crédit d'entreprise | Compte bancaire au sens du forfait ? **À décider** |
+| 2500 | Emprunts | |
+| 3100 | Apports du propriétaire | Argent personnel mis dans l'entreprise |
+| 3200 | Retraits du propriétaire | Argent de l'entreprise pris pour soi (pas une dépense) |
+| 3900 | Avoir du propriétaire (début d'exercice) | |
+
+### 3.6 Limites de cette base
+
+- **T2125 = travailleurs autonomes et sociétés de personnes** (déclaration T1). Les **sociétés par actions**
+  (incorporées) utilisent la déclaration T2 et les codes de l'**IGRF** (annexes 100 et 125). Proposition : même
+  plan BVY, avec une deuxième colonne de correspondance IGRF pour les sociétés.
+- **Québec** : le travailleur autonome québécois remplit aussi le formulaire **TP-80** de Revenu Québec, dont les
+  lignes diffèrent. Ajouter la colonne de correspondance TP-80 (à valider par le propriétaire).
+- Les règles (50 % des repas, plafonds des véhicules, DPA) sont celles de l'ARC à la date de construction ; elles
+  changent avec les années : à revoir chaque année.
 
 ## 4. Limites du forfait gratuit (à décider)
 
@@ -122,3 +227,5 @@ comptabilité publique, réservée aux CPA titulaires d'un permis. Donc :
 4. Qui peut s'inscrire : Québec seulement, Canada, ou partout.
 5. Confirmation, avec l'Ordre des CPA ou un conseiller, de la façon de présenter le « bilan ».
 6. L'équipe BVY regarde-t-elle les dossiers gratuits (et combien de temps), ou le gratuit est-il 100 % libre-service ?
+7. Plan comptable (section 3) : validation de la liste ; carte de crédit = « compte bancaire » ou non ;
+   ajout des correspondances IGRF (sociétés) et TP-80 (Revenu Québec).
