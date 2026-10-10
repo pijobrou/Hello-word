@@ -298,12 +298,20 @@ Conséquences de « tout le Canada » :
 - Vie privée : Loi 25 pour les clients du Québec, **LPRPDE** (fédérale) pour les autres provinces ; même niveau de
   protection pour tous.
 
+### Services offerts aux inscrits BVY Libre (2026-10-10)
+
+Tous offerts, en service payant : **T2 + CO-17** (société au Québec), **T2** (hors Québec), **T1 + T2125 + TP-80**
+(travailleur autonome), **déclarations TPS/TVQ**, **revue en cours d'année**, **paie**, et le **forfait mensuel**
+au-delà de 2 comptes.
+
+**Prix** : comme sur la page Tarifs du site, **sur soumission, confirmée par écrit**. BVY Libre aide à la
+soumission : à la demande du client, le portail joint automatiquement le nombre d'opérations de l'année, de comptes,
+d'employés (s'il y a des salaires), l'inscription aux taxes et l'indicateur « Prêt pour la fin d'année ». L'équipe
+BVY prépare le prix en quelques minutes, sans avoir à poser ces questions.
+
 ## 10. Décisions encore attendues
 
-1. Prix de la **T2 + CO-17** (société au Québec) et de la **T2 seule** (hors Québec).
-2. Prix de la **T1 + T2125 + TP-80** (travailleur autonome).
-3. Prix des **déclarations TPS/TVQ** (par période) et de la **revue en cours d'année** (si offerte).
-4. Prix du **forfait mensuel** (3 comptes ou plus) et du dépassement (opérations, utilisateurs).
-5. Limites du gratuit : proposé **300 opérations par mois** et **1 utilisateur**.
-6. Offrir l'**AT1 (Alberta)** ou non.
-7. Confirmation (Ordre des CPA ou conseiller) de la présentation du rapport (section 2).
+1. Limites du gratuit : proposé **300 opérations par mois** et **1 utilisateur**.
+2. Offrir l'**AT1 (Alberta)** ou non.
+3. Confirmation (Ordre des CPA ou conseiller) de la présentation du rapport (section 2).
+4. Validation de ce plan : « STATUS: APPROVED », puis plan marketing complet et construction par étapes.
