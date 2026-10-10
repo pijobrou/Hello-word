@@ -261,7 +261,9 @@ occasion naturelle de proposer le service.
   pas du tout ; créateurs de contenu ; petites boutiques Shopify (pages sectorielles déjà sur le site).
 - **Canaux** : page d'accueil du site (bouton « Commencer gratuitement »), page dédiée, fiche Google, publicités
   Meta (vidéos déjà produites), courriels de bienvenue sur 30 jours, parrainage (un mois gratuit au parrain).
-- **Mesures** : inscriptions, comptes réellement utilisés après 30 jours, passages au forfait mensuel,
+- **Entonnoir** : inscription gratuite → données de l'année classées et conciliées → indicateur « Prêt pour la
+  fin d'année » → offre T2/CO-17 (ou T1/TP-80) 60 jours avant la fin de l'exercice → client de BVY.
+- **Mesures** : déclarations T2/CO-17 et T1 vendues aux inscrits gratuits (mesure principale), inscriptions, comptes réellement utilisés après 30 jours, passages au forfait mensuel,
   passages à QuickBooks avec BVY, demandes de consultation venues du gratuit.
 - Le plan marketing complet (messages, calendrier, budget) peut être produit avec l'outil Marketing Pro du dépôt.
 
