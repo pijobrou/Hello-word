@@ -14,6 +14,32 @@ STATUS: PLAN — À VALIDER PAR LE PROPRIÉTAIRE AVANT TOUTE CONSTRUCTION
 C'est la partie « Internal Accounting for Non-QBO Clients » prévue dans CLAUDE.md :
 relevé / saisie → import → classement → validation → comptabilité → conciliation → états financiers.
 
+## 0. Objectif : un outil de marketing (précision du propriétaire, 2026-10-10)
+
+> « La gratuité, c'est comme un marketing pour m'attirer la clientèle. Une fois le bilan fait, on leur propose la
+> T2/CO-17. »
+
+Le forfait gratuit n'est pas un produit en soi : c'est la **porte d'entrée**. Il attire les petites entreprises,
+les habitue à BVY pendant l'année, et prépare les données de leur fin d'exercice. La vente visée :
+
+| Client | Ce que BVY propose à la fin de l'exercice |
+|---|---|
+| Société par actions (incorporée) | **T2** (fédéral) et **CO-17** (Québec), avec les états financiers IGRF tirés de ses données BVY |
+| Travailleur autonome | T1 avec **T2125** (fédéral) et **TP-80** (Québec) |
+| Inscrit aux taxes | Déclarations de TPS/TVQ (déjà calculées dans BVY) |
+| 3 comptes bancaires ou plus | Forfait mensuel BVY, ou passage à QuickBooks avec BVY |
+
+Conséquences sur le plan :
+- **Le moment clé est la fin de l'exercice** : 60 jours avant, le portail affiche « Votre année se termine le … :
+  BVY peut produire votre T2 et votre CO-17 à partir de vos données » avec le prix et un bouton « Je veux que BVY
+  s'en occupe » (demande envoyée à l'équipe, devis, paiement).
+- **La qualité des données compte plus que le volume** : une T2 se prépare vite si les opérations sont classées et
+  conciliées. Le portail montre au client un indicateur « Prêt pour la fin d'année » (comptes conciliés, opérations
+  non classées, pièces manquantes).
+- **Le « bilan » du gratuit sert à préparer la déclaration** : ce sont les renseignements IGRF (annexes 100 et 125
+  de la T2) produits dans le cadre du service fiscal payant, et non des états financiers « compilés » remis à des
+  tiers. La mention « rapport de gestion interne » reste sur le rapport téléchargé par le client (section 2).
+
 ## 1. Le parcours du client
 
 1. **Inscription sur le site** (« Commencer gratuitement ») : prénom, nom, courriel, téléphone, nom de
@@ -154,15 +180,46 @@ fin de l'année (catégorie, taux, règle de la demi-année) et **revue par BVY*
 | 3200 | Retraits du propriétaire | Argent de l'entreprise pris pour soi (pas une dépense) |
 | 3900 | Avoir du propriétaire (début d'exercice) | |
 
-### 3.6 Limites de cette base
+### 3.6 Sociétés par actions (clients T2 / CO-17) — la cible principale
 
-- **T2125 = travailleurs autonomes et sociétés de personnes** (déclaration T1). Les **sociétés par actions**
-  (incorporées) utilisent la déclaration T2 et les codes de l'**IGRF** (annexes 100 et 125). Proposition : même
-  plan BVY, avec une deuxième colonne de correspondance IGRF pour les sociétés.
-- **Québec** : le travailleur autonome québécois remplit aussi le formulaire **TP-80** de Revenu Québec, dont les
-  lignes diffèrent. Ajouter la colonne de correspondance TP-80 (à valider par le propriétaire).
-- Les règles (50 % des repas, plafonds des véhicules, DPA) sont celles de l'ARC à la date de construction ; elles
-  changent avec les années : à revoir chaque année.
+Bonne nouvelle : les numéros de lignes du T2125 **sont les codes de l'IGRF** (Index général des renseignements
+financiers) utilisés par la T2 pour l'état des résultats (annexe 125) : 8000, 8320, 8521, 8523, 8590, 8690, 8710,
+8760, 8810, 8811, 8860, 8871, 8910, 8960, 9060, 9180, 9200, 9220, 9224, 9275, 9281, 9270. Revenu Québec accepte
+les mêmes renseignements IGRF avec la CO-17. **Le même plan BVY sert donc aux deux.** Différences pour une société :
+
+| Sujet | Travailleur autonome (T2125) | Société par actions (T2 / CO-17) |
+|---|---|---|
+| Amortissement | DPA ligne 9936 | Amortissement comptable (IGRF 9936) et DPA à l'annexe 8 |
+| Bureau à la maison | Partie 7 (ligne 9945) | Pas de partie 7 : la société paie un loyer ou rembourse l'actionnaire |
+| Véhicule | % d'affaires (tableau A) | Avantage imposable ou allocation : à revoir par BVY |
+| Argent pris par le propriétaire | Retraits (3200), sans impôt | **Prêt à l'actionnaire, salaire ou dividende** : à classer avec BVY (règles fiscales strictes) |
+| Avoir | Apports, retraits, avoir du propriétaire | Capital-actions, bénéfices non répartis, dividendes |
+
+Comptes de bilan propres aux sociétés (codes IGRF du bilan, annexe 100) :
+
+| Compte | Nom affiché | IGRF |
+|---|---|---|
+| 2780 | Avances de l'actionnaire (argent que vous avez prêté à la société) | 2780 |
+| 1310 | Avances à l'actionnaire (argent pris dans la société) — **alerte BVY** | 1301 (à confirmer) |
+| 3500 | Capital-actions | 3500 |
+| 3600 | Bénéfices non répartis | 3600 |
+| 3700 | Dividendes déclarés | 3700 |
+
+Les codes IGRF du bilan pour les autres comptes (encaisse 1001, clients 1060, stocks 1120, fournisseurs 2620,
+taxes à payer 2680, emprunts 2700 / 3140, etc.) seront vérifiés un par un dans le guide de l'IGRF (RC4088)
+avant la construction.
+
+**Alerte automatique** : quand un client incorporé classe une sortie d'argent « pour moi » (épicerie, dépense
+personnelle), BVY ne la met pas en dépense ; il la place dans « Avances à l'actionnaire » et avertit le client
+qu'il faudra la régulariser avec BVY avant la fin de l'année (règle du prêt à l'actionnaire). C'est aussi une
+occasion naturelle de proposer le service.
+
+### 3.7 Limites de cette base
+
+- **Québec** : le travailleur autonome québécois remplit aussi le **TP-80** de Revenu Québec, dont les lignes
+  diffèrent ; colonne de correspondance TP-80 à ajouter (à valider par le propriétaire).
+- Les règles (50 % des repas, plafonds des véhicules, DPA, prêt à l'actionnaire) sont celles de l'ARC et de
+  Revenu Québec à la date de construction ; à revoir chaque année.
 
 ## 4. Limites du forfait gratuit (à décider)
 
