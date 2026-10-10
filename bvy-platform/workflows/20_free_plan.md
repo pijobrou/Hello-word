@@ -278,13 +278,32 @@ occasion naturelle de proposer le service.
 7. **Textes légaux**, évaluation Loi 25, registre des incidents.
 8. **Lancement marketing** (page, publicités, courriels).
 
-## 9. Décisions attendues du propriétaire
+## 9. Décisions du propriétaire (2026-10-10)
 
-1. Nom du forfait (ex. « BVY Essentiel », « BVY Départ »).
-2. Prix du forfait mensuel et ce qu'il inclut.
-3. Limites du gratuit (opérations par mois, nombre d'utilisateurs, durée de conservation).
-4. Qui peut s'inscrire : Québec seulement, Canada, ou partout.
-5. Confirmation, avec l'Ordre des CPA ou un conseiller, de la façon de présenter le « bilan ».
-6. L'équipe BVY regarde-t-elle les dossiers gratuits (et combien de temps), ou le gratuit est-il 100 % libre-service ?
-7. Plan comptable (section 3) : validation de la liste ; carte de crédit = « compte bancaire » ou non ;
-   ajout des correspondances IGRF (sociétés) et TP-80 (Revenu Québec).
+| Sujet | Décision |
+|---|---|
+| But | Outil de marketing : le gratuit mène à la T2/CO-17 (et T1/TP-80, TPS/TVQ) |
+| Nom | **BVY Libre** |
+| Qui peut s'inscrire | **Tout le Canada** |
+| Carte de crédit d'entreprise | **Compte comme un compte bancaire** : 2 au total (ex. 1 compte + 1 carte) ; le 3e = forfait payant |
+| Dépassement des limites (opérations, utilisateurs) | Facturé par le **forfait supplémentaire** ou ajouté au **prix de la T2** |
+| Suivi par l'équipe BVY pendant l'année | **Non**, 100 % libre-service — **sauf si le client paie** : revue en cours d'année, T2, CO-17, TPS/TVQ |
+| Plan comptable | Lignes T2125 = codes IGRF (sections 3.1 à 3.6) |
+
+Conséquences de « tout le Canada » :
+- Hors Québec : pas de CO-17 ; T2 seulement, sauf l'**Alberta** (déclaration provinciale AT1 séparée) — à offrir
+  ou non. Travailleurs autonomes hors Québec : T1/T2125 sans TP-80.
+- Taxes : **TVH** (Ontario, provinces de l'Atlantique) et **TVP** (Colombie-Britannique, Saskatchewan, Manitoba)
+  en plus de TPS/TVQ : comptes de taxes à ajouter selon la province choisie à l'inscription.
+- Vie privée : Loi 25 pour les clients du Québec, **LPRPDE** (fédérale) pour les autres provinces ; même niveau de
+  protection pour tous.
+
+## 10. Décisions encore attendues
+
+1. Prix de la **T2 + CO-17** (société au Québec) et de la **T2 seule** (hors Québec).
+2. Prix de la **T1 + T2125 + TP-80** (travailleur autonome).
+3. Prix des **déclarations TPS/TVQ** (par période) et de la **revue en cours d'année** (si offerte).
+4. Prix du **forfait mensuel** (3 comptes ou plus) et du dépassement (opérations, utilisateurs).
+5. Limites du gratuit : proposé **300 opérations par mois** et **1 utilisateur**.
+6. Offrir l'**AT1 (Alberta)** ou non.
+7. Confirmation (Ordre des CPA ou conseiller) de la présentation du rapport (section 2).
