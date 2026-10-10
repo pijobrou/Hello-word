@@ -1,0 +1,755 @@
+{
+  "id": "avorynDemarche5E",
+  "name": "AVORYN — Démarche en cinq étapes",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "avoryn-demande",
+        "authentication": "headerAuth",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "45c5429b-5e44-428c-9410-5405cbf649f9",
+      "name": "Webhook – Demande du site",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REMPLACER",
+          "name": "AVORYN – Secret du webhook"
+        }
+      },
+      "webhookId": "1aada5c2-bf21-4c0f-988e-73faa17f6ae1"
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8a0dec60-87a6-4eb1-bcd3-eb8291c16311",
+              "name": "avorynEmail",
+              "type": "string",
+              "value": "equipe@exemple.ca"
+            },
+            {
+              "id": "52809a8c-9dc6-436f-bece-3656b8452619",
+              "name": "fromEmail",
+              "type": "string",
+              "value": "AVORYN <no-reply@exemple.ca>"
+            },
+            {
+              "id": "500f1fb6-58f5-4f5c-be4e-df3189c3953e",
+              "name": "useAI",
+              "type": "boolean",
+              "value": false
+            },
+            {
+              "id": "c86aa2ea-b0e1-49bd-b082-d00cbf7196d9",
+              "name": "claudeModel",
+              "type": "string",
+              "value": "claude-opus-5-5"
+            },
+            {
+              "id": "59570552-a327-4c32-a775-88da85b312ce",
+              "name": "claudeEffort",
+              "type": "string",
+              "value": "medium"
+            },
+            {
+              "id": "229f878e-0a3c-4c55-91f6-e1ad77c15749",
+              "name": "approvalDays",
+              "type": "number",
+              "value": 14
+            },
+            {
+              "id": "58de4dd0-5441-494f-b093-854f6bf689fb",
+              "name": "followUpDays",
+              "type": "number",
+              "value": 30
+            }
+          ]
+        }
+      },
+      "id": "1625941a-37e8-4ac0-94cd-1551a6ba7b44",
+      "name": "Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalise la demande reçue du site et ouvre la fiche de cadrage.\nconst cfg = $('Configuration').first().json;\nconst b = cfg.body ?? {};\nconst clean = (v, max = 4000) => String(v ?? '').replace(/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F]/g, ' ').trim().slice(0, max);\nconst now = new Date();\nconst projectId = 'AVR-' + now.toISOString().slice(0, 10).replace(/-/g, '') + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();\n\nconst types = { contact: 'Question générale', project: 'Demande de projet', partnership: 'Demande de partenariat' };\nconst sectors = {\n  professional: 'Services professionnels', accounting: 'Comptabilité et administration',\n  hr: 'Ressources humaines et recrutement', realEstate: 'Immobilier',\n  ecommerce: 'Commerce électronique', publicProcurement: 'Marchés publics', other: 'Autre / non précisé',\n};\n\n// Questions de cadrage de base, complétées selon le secteur.\nconst questions = [\n  'Quel résultat concret attendez-vous, et comment saurez-vous que c’est réussi ?',\n  'Qui est concerné au quotidien par ce processus ?',\n  'Quels outils et fichiers utilisez-vous aujourd’hui ?',\n  'Quelle est votre échéance et votre marge de manœuvre budgétaire ?',\n];\nconst bySector = {\n  accounting: 'Quelles pièces et quels contrôles sont les plus chronophages ?',\n  hr: 'Combien de candidatures ou de dossiers traitez-vous par mois ?',\n  realEstate: 'Combien d’immeubles, de baux ou d’acquisitions suivez-vous ?',\n  ecommerce: 'Quelle plateforme et quels volumes de commandes ?',\n  publicProcurement: 'Combien de soumissions préparez-vous par année ?',\n  professional: 'Comment le temps et la facturation sont-ils suivis aujourd’hui ?',\n};\nif (bySector[b.sector]) questions.push(bySector[b.sector]);\n\nreturn [{ json: {\n  projectId,\n  stage: '1-comprendre',\n  receivedAt: clean(b.receivedAt, 40) || now.toISOString(),\n  locale: b.locale === 'en' ? 'en' : 'fr',\n  type: b.type in types ? b.type : 'contact',\n  typeLabel: types[b.type] ?? types.contact,\n  name: clean(b.name, 120),\n  email: clean(b.email, 254).toLowerCase(),\n  organization: clean(b.organization, 160),\n  sector: b.sector in sectors ? b.sector : 'other',\n  sectorLabel: sectors[b.sector] ?? sectors.other,\n  message: clean(b.message),\n  cadrageQuestions: questions,\n}}];"
+      },
+      "id": "45ce006a-b85d-4e92-8fbb-ca8749da5e54",
+      "name": "① Comprendre – Fiche de cadrage",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $('Configuration').first().json.fromEmail }}",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ $json.locale === 'en' ? 'AVORYN — We received your request (' + $json.projectId + ')' : 'AVORYN — Votre demande est bien reçue (' + $json.projectId + ')' }}",
+        "emailFormat": "text",
+        "text": "={{ $json.locale === 'en'\n? 'Hello ' + $json.name + ',\\n\\nThank you for contacting AVORYN. Your request (' + $json.typeLabel + ') has been received under reference ' + $json.projectId + '.\\n\\nWe will review it carefully and get back to you to arrange an initial conversation.\\n\\nAVORYN'\n: 'Bonjour ' + $json.name + ',\\n\\nMerci d’avoir communiqué avec AVORYN. Votre demande (' + $json.typeLabel + ') est bien reçue sous la référence ' + $json.projectId + '.\\n\\nNous en prendrons connaissance attentivement et vous répondrons pour convenir d’un premier échange.\\n\\nAVORYN — L’ambition de créer. La vision de durer.' }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "49285975-f61e-414c-89bb-e27eebbd8b8d",
+      "name": "① Comprendre – Accusé de réception (client)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        720,
+        140
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "REMPLACER",
+          "name": "AVORYN – SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "960e8afd-7518-43c4-9ebc-fc4f88f9640e",
+              "leftValue": "={{ $('Configuration').first().json.useAI }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "4634f000-47ab-447b-b2c8-6fe294f85b00",
+      "name": "② Analyser – IA autorisée ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "anthropic-beta",
+              "value": "server-side-fallback-2026-07-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: $('Configuration').first().json.claudeModel,\n  max_tokens: 16000,\n  fallbacks: 'default',\n  output_config: {\n    effort: $('Configuration').first().json.claudeEffort,\n    format: { type: 'json_schema', schema: {\"type\":\"object\",\"additionalProperties\":false,\"required\":[\"resume\",\"objectifs\",\"irritants\",\"questionsCadrage\",\"pistesSolutions\",\"risques\",\"priorite\",\"prochaineEtape\"],\"properties\":{\"resume\":{\"type\":\"string\"},\"objectifs\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"irritants\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"questionsCadrage\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"pistesSolutions\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"risques\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}},\"priorite\":{\"type\":\"string\",\"enum\":[\"haute\",\"moyenne\",\"basse\"]},\"prochaineEtape\":{\"type\":\"string\"}}} }\n  },\n  system: \"Tu es analyste d'affaires chez AVORYN, une entreprise québécoise de technologies et de solutions d'affaires. Tu prépares une pré-analyse interne d'une demande reçue, destinée à l'équipe et jamais envoyée telle quelle au client. Base-toi uniquement sur la demande : n'invente aucun fait, chiffre ou outil. Quand une information manque, formule une question de cadrage. Privilégie la solution la plus simple (réorganisation ou outil existant) avant le développement sur mesure. AVORYN n'offre pas de services comptables, fiscaux, juridiques ou de placement réglementés : signale-le comme risque si la demande en relève. Rédige en français canadien, de façon concise.\",\n  messages: [{ role: 'user', content:\n    'Type de demande : ' + $json.typeLabel + '\\n' +\n    'Secteur : ' + $json.sectorLabel + '\\n' +\n    'Organisation : ' + ($json.organization || 'non précisée') + '\\n\\n' +\n    'Description du besoin :\\n' + $json.message\n  }]\n}) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "id": "d20bd3bf-7ea0-452a-bb69-c80625dade82",
+      "name": "② Analyser – Pré-analyse Claude",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        300
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REMPLACER",
+          "name": "Anthropic – x-api-key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Le nom et le courriel ne sont jamais envoyés à l'IA (minimisation, Loi 25).\nconst fiche = $('① Comprendre – Fiche de cadrage').first().json;\nconst res = $json;\nlet analysis = null;\nlet note = '';\nif (res.stop_reason === 'refusal') {\n  note = 'L’IA a décliné la demande : analyse manuelle requise.';\n} else if (Array.isArray(res.content)) {\n  // Des blocs « thinking » peuvent précéder la réponse : on lit le bloc texte.\n  const text = res.content.find((c) => c.type === 'text')?.text;\n  try { analysis = JSON.parse(text); } catch { note = 'Réponse IA illisible : analyse manuelle requise.'; }\n} else {\n  note = 'Appel IA en erreur (' + (res.error?.message ?? 'inconnue') + ') : analyse manuelle requise.';\n}\nreturn [{ json: { ...fiche, stage: '2-analyser', analysisSource: analysis ? 'IA (à vérifier)' : 'manuelle', analysisNote: note,\n  analysis: analysis ?? {\n    resume: '[À compléter]', objectifs: [], irritants: [], questionsCadrage: fiche.cadrageQuestions,\n    pistesSolutions: [], risques: [], priorite: 'moyenne', prochaineEtape: 'Planifier un appel de cadrage.',\n  } } }];"
+      },
+      "id": "bf30f940-9318-4d49-8980-f1ebb25eacbf",
+      "name": "② Analyser – Lire l'analyse IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// IA désactivée : grille d'analyse à remplir par l'équipe lors de l'appel de cadrage.\nconst fiche = $json;\nreturn [{ json: { ...fiche, stage: '2-analyser', analysisSource: 'manuelle', analysisNote: 'IA désactivée (useAI = false).',\n  analysis: {\n    resume: '[À compléter après l’appel de cadrage]',\n    objectifs: ['[Objectif 1]'],\n    irritants: ['[Irritant observé]'],\n    questionsCadrage: fiche.cadrageQuestions,\n    pistesSolutions: ['[Piste à évaluer]'],\n    risques: ['[Risque ou contrainte]'],\n    priorite: 'moyenne',\n    prochaineEtape: 'Planifier un appel de cadrage de 30 minutes.',\n  } } }];"
+      },
+      "id": "7bdd22e4-aeb9-470c-9db9-667f05b4a729",
+      "name": "② Analyser – Grille manuelle",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Assemble un brouillon de proposition structuré selon la méthode AVORYN.\nconst d = $json;\nconst a = d.analysis;\nconst list = (arr) => (arr && arr.length ? arr.map((x) => '  - ' + x).join('\\n') : '  - [À compléter]');\nconst proposal = [\n  'PROPOSITION — ' + d.projectId + ' (brouillon interne)',\n  'Client : ' + d.name + (d.organization ? ' — ' + d.organization : '') + ' | ' + d.sectorLabel,\n  '',\n  '1. Compréhension du besoin', '  ' + a.resume,\n  '', '2. Objectifs et critères de réussite', list(a.objectifs),\n  '', '3. Irritants identifiés', list(a.irritants),\n  '', '4. Démarche proposée',\n  '  Comprendre → Analyser → Concevoir → Déployer → Améliorer',\n  '  Pistes à évaluer :', list(a.pistesSolutions),\n  '', '5. Livrables types',\n  '  - Cartographie des processus et diagnostic priorisé',\n  '  - Architecture de la solution retenue et plan de mise en œuvre',\n  '  - Mise en service par étapes, documentation, transfert de connaissances',\n  '', '6. Risques et hypothèses', list(a.risques),\n  '', '7. Questions à valider avec le client', list(a.questionsCadrage),\n  '', '8. Échéancier et honoraires : [À compléter par l’équipe]',\n].join('\\n');\nreturn [{ json: { ...d, stage: '3-concevoir', proposal } }];"
+      },
+      "id": "de26eea2-e5f3-4264-beb2-3222d5525a55",
+      "name": "③ Concevoir – Brouillon de proposition",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $('Configuration').first().json.fromEmail }}",
+        "toEmail": "={{ $('Configuration').first().json.avorynEmail }}",
+        "subject": "=[AVORYN] {{ $json.projectId }} — {{ $json.typeLabel }} — priorité {{ $json.analysis.priorite }} — décision requise",
+        "emailFormat": "text",
+        "text": "=Nouvelle demande : {{ $json.projectId }}\nReçue le : {{ $json.receivedAt }}\nContact : {{ $json.name }} <{{ $json.email }}> {{ $json.organization ? '— ' + $json.organization : '' }}\nSecteur : {{ $json.sectorLabel }} | Langue : {{ $json.locale }}\n\n--- Message du client ---\n{{ $json.message }}\n\n--- Analyse ({{ $json.analysisSource }}) ---\n{{ $json.analysisNote }}\nRésumé : {{ $json.analysis.resume }}\nProchaine étape suggérée : {{ $json.analysis.prochaineEtape }}\n\n--- Brouillon de proposition ---\n{{ $json.proposal }}\n\n=====================================================\nDÉCISION (le lien expire après {{ $('Configuration').first().json.approvalDays }} jours) :\nApprouver et lancer le déploiement : {{ $execution.resumeUrl }}?decision=approve\nNe pas donner suite : {{ $execution.resumeUrl }}?decision=reject\n\nRappel : relisez et adaptez la proposition avant tout envoi au client.",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "b5a0f2f1-18ac-45c2-bfba-8b8483e0a21b",
+      "name": "③ Concevoir – Validation interne (courriel)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1680,
+        400
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "REMPLACER",
+          "name": "AVORYN – SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "httpMethod": "GET",
+        "limitWaitTime": true,
+        "limitType": "afterTimeInterval",
+        "resumeAmount": "={{ $('Configuration').first().json.approvalDays }}",
+        "resumeUnit": "days",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "ddf079f6-dae0-460a-ac99-1452117caa95",
+      "name": "③ Concevoir – Attente de la décision",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1920,
+        400
+      ],
+      "webhookId": "65e58571-f0ec-4ef6-b29f-511aa18c6dca"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f20ae88c-3c14-437e-9158-a15c3fb2b7a7",
+              "leftValue": "={{ $json.query?.decision }}",
+              "rightValue": "approve",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fcf7106f-4ed9-4566-947e-fc59be7cdb15",
+      "name": "④ Déployer – Projet approuvé ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2160,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Plan de déploiement par étapes, repris de la proposition approuvée.\nconst d = $('③ Concevoir – Brouillon de proposition').first().json;\nconst phases = [\n  { phase: 'Lancement', tasks: ['Rencontre de démarrage', 'Confirmer objectifs et critères de réussite', 'Accès aux outils et documents'] },\n  { phase: 'Prototype', tasks: ['Construire la première version', 'Tester avec 1 à 2 utilisateurs', 'Ajuster'] },\n  { phase: 'Mise en service', tasks: ['Déploiement progressif', 'Documentation', 'Formation des utilisateurs'] },\n  { phase: 'Stabilisation', tasks: ['Suivi des incidents', 'Mesure des indicateurs de départ', 'Transfert de connaissances'] },\n];\nconst checklist = phases.map((p, i) => (i + 1) + '. ' + p.phase + '\\n' + p.tasks.map((t) => '   [ ] ' + t).join('\\n')).join('\\n');\nreturn [{ json: { ...d, stage: '4-deployer', approvedAt: new Date().toISOString(), deploymentPlan: phases, checklist } }];"
+      },
+      "id": "1599b2e4-0d95-4618-88ea-5288f88c4bcd",
+      "name": "④ Déployer – Plan de déploiement",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $('Configuration').first().json.fromEmail }}",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ $json.locale === 'en' ? 'AVORYN — Next steps for your project (' + $json.projectId + ')' : 'AVORYN — Prochaines étapes de votre projet (' + $json.projectId + ')' }}",
+        "emailFormat": "text",
+        "text": "={{ $json.locale === 'en'\n? 'Hello ' + $json.name + ',\\n\\nThank you for your trust. We are ready to begin. Our approach follows five steps: understand, analyze, design, deploy and improve.\\n\\nWe will contact you shortly to schedule the kick-off meeting.\\n\\nAVORYN'\n: 'Bonjour ' + $json.name + ',\\n\\nMerci de votre confiance. Nous sommes prêts à commencer. Notre démarche suit cinq étapes : comprendre, analyser, concevoir, déployer et améliorer.\\n\\nNous communiquerons avec vous sous peu pour planifier la rencontre de démarrage.\\n\\nAVORYN' }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "8823c332-86ff-4a75-8c45-932d54704597",
+      "name": "④ Déployer – Lancement (client)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        2640,
+        200
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "REMPLACER",
+          "name": "AVORYN – SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $('Configuration').first().json.fromEmail }}",
+        "toEmail": "={{ $('Configuration').first().json.avorynEmail }}",
+        "subject": "=[AVORYN] {{ $json.projectId }} — approuvé — plan de déploiement",
+        "emailFormat": "text",
+        "text": "=Projet {{ $json.projectId }} approuvé le {{ $json.approvedAt }}.\nClient : {{ $json.name }} <{{ $json.email }}>\n\nPlan de déploiement :\n{{ $json.checklist }}\n\nLe bilan d'amélioration sera envoyé automatiquement dans {{ $('Configuration').first().json.followUpDays }} jours.",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "d1f00fb1-c77d-47c5-bbb0-fd9585ae7da7",
+      "name": "④ Déployer – Plan interne",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        2640,
+        400
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "REMPLACER",
+          "name": "AVORYN – SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": "={{ $('Configuration').first().json.followUpDays }}",
+        "unit": "days"
+      },
+      "id": "70e03363-bd44-484a-ba9c-9af46f12e6a0",
+      "name": "⑤ Améliorer – Attente du suivi",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2880,
+        400
+      ],
+      "webhookId": "8a6fb6f9-69e5-4f9d-9b08-ecff9a96d284"
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $('Configuration').first().json.fromEmail }}",
+        "toEmail": "={{ $('④ Déployer – Plan de déploiement').first().json.email }}",
+        "subject": "={{ $('④ Déployer – Plan de déploiement').first().json.locale === 'en' ? 'AVORYN — How is it going?' : 'AVORYN — Où en êtes-vous ?' }}",
+        "emailFormat": "text",
+        "text": "={{ $('④ Déployer – Plan de déploiement').first().json.locale === 'en'\n? 'Hello ' + $('④ Déployer – Plan de déploiement').first().json.name + ',\\n\\nIt has been a few weeks since the solution went live. Could you tell us, in a few lines:\\n- what works well,\\n- what could be improved,\\n- whether the agreed indicators are moving in the right direction?\\n\\nSimply reply to this email.\\n\\nAVORYN'\n: 'Bonjour ' + $('④ Déployer – Plan de déploiement').first().json.name + ',\\n\\nQuelques semaines ont passé depuis la mise en service. Pourriez-vous nous dire, en quelques lignes :\\n- ce qui fonctionne bien,\\n- ce qui pourrait être amélioré,\\n- si les indicateurs convenus évoluent dans le bon sens ?\\n\\nIl suffit de répondre à ce courriel.\\n\\nAVORYN' }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "36bda0d7-9b84-4a6f-a671-408b4336510f",
+      "name": "⑤ Améliorer – Bilan (client)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        3120,
+        300
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "REMPLACER",
+          "name": "AVORYN – SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $('Configuration').first().json.fromEmail }}",
+        "toEmail": "={{ $('Configuration').first().json.avorynEmail }}",
+        "subject": "=[AVORYN] {{ $('④ Déployer – Plan de déploiement').first().json.projectId }} — revue d'amélioration",
+        "emailFormat": "text",
+        "text": "=Revue d'amélioration — {{ $('④ Déployer – Plan de déploiement').first().json.projectId }}\n\n[ ] Comparer les indicateurs aux critères de réussite définis à l'étape « Comprendre »\n[ ] Analyser la réponse du client au courriel de bilan\n[ ] Lister les ajustements et les prioriser\n[ ] Mettre à jour la documentation\n[ ] Décider : ajustements mineurs, ou nouveau cycle « Comprendre » (évolution du mandat)\n\nLa cinquième étape alimente la première : chaque amélioration mesurée ouvre un nouveau cycle.",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "fe634709-3e2b-40b6-bad9-2d2c9e1a5367",
+      "name": "⑤ Améliorer – Revue interne",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        3120,
+        500
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "REMPLACER",
+          "name": "AVORYN – SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $('Configuration').first().json.fromEmail }}",
+        "toEmail": "={{ $('Configuration').first().json.avorynEmail }}",
+        "subject": "=[AVORYN] {{ $('③ Concevoir – Brouillon de proposition').first().json.projectId }} — sans suite",
+        "emailFormat": "text",
+        "text": "=La demande {{ $('③ Concevoir – Brouillon de proposition').first().json.projectId }} a été refusée, ou le délai de décision est expiré.\n\nAucun courriel n'a été envoyé au client : répondez-lui personnellement.\nContact : {{ $('③ Concevoir – Brouillon de proposition').first().json.name }} <{{ $('③ Concevoir – Brouillon de proposition').first().json.email }}>\n\nRappel Loi 25 : appliquez la durée de conservation prévue à votre politique, puis supprimez ou anonymisez la demande.",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "29c46667-6ef2-4292-a051-b17288726917",
+      "name": "Demande non retenue – Note interne",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        2400,
+        600
+      ],
+      "credentials": {
+        "smtp": {
+          "id": "REMPLACER",
+          "name": "AVORYN – SMTP"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## ① Comprendre\nNormaliser la demande, ouvrir la fiche de cadrage, accuser réception.",
+        "height": 720,
+        "width": 460,
+        "color": 5
+      },
+      "id": "12b5b901-1a3f-4c83-bdb4-2069489ba086",
+      "name": "① Comprendre",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        440,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## ② Analyser\nPré-analyse IA si autorisée (useAI), sinon grille manuelle. Le nom et le courriel ne sont jamais envoyés à l'IA.",
+        "height": 720,
+        "width": 480,
+        "color": 6
+      },
+      "id": "8a583bb7-ceec-4b31-84da-5391c9f842a2",
+      "name": "② Analyser",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        920,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## ③ Concevoir\nBrouillon de proposition, puis validation humaine obligatoire (liens Approuver / Ne pas donner suite).",
+        "height": 720,
+        "width": 720,
+        "color": 4
+      },
+      "id": "b0f4e882-b29e-4514-a109-8186b0b02725",
+      "name": "③ Concevoir",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## ④ Déployer\nSeulement après approbation : plan de déploiement et courriel de lancement.",
+        "height": 720,
+        "width": 740,
+        "color": 7
+      },
+      "id": "a9cf56a5-4542-41d1-9129-d26cf9537f95",
+      "name": "④ Déployer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2120,
+        20
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## ⑤ Améliorer\nAprès N jours : bilan client et revue interne, puis nouveau cycle.",
+        "height": 720,
+        "width": 480,
+        "color": 3
+      },
+      "id": "cdb98f78-9934-479f-bbec-6844b282a898",
+      "name": "⑤ Améliorer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2860,
+        20
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook – Demande du site": {
+      "main": [
+        [
+          {
+            "node": "Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Configuration": {
+      "main": [
+        [
+          {
+            "node": "① Comprendre – Fiche de cadrage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "① Comprendre – Fiche de cadrage": {
+      "main": [
+        [
+          {
+            "node": "① Comprendre – Accusé de réception (client)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "② Analyser – IA autorisée ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "② Analyser – IA autorisée ?": {
+      "main": [
+        [
+          {
+            "node": "② Analyser – Pré-analyse Claude",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "② Analyser – Grille manuelle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "② Analyser – Pré-analyse Claude": {
+      "main": [
+        [
+          {
+            "node": "② Analyser – Lire l'analyse IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "② Analyser – Lire l'analyse IA": {
+      "main": [
+        [
+          {
+            "node": "③ Concevoir – Brouillon de proposition",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "② Analyser – Grille manuelle": {
+      "main": [
+        [
+          {
+            "node": "③ Concevoir – Brouillon de proposition",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "③ Concevoir – Brouillon de proposition": {
+      "main": [
+        [
+          {
+            "node": "③ Concevoir – Validation interne (courriel)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "③ Concevoir – Validation interne (courriel)": {
+      "main": [
+        [
+          {
+            "node": "③ Concevoir – Attente de la décision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "③ Concevoir – Attente de la décision": {
+      "main": [
+        [
+          {
+            "node": "④ Déployer – Projet approuvé ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "④ Déployer – Projet approuvé ?": {
+      "main": [
+        [
+          {
+            "node": "④ Déployer – Plan de déploiement",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Demande non retenue – Note interne",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "④ Déployer – Plan de déploiement": {
+      "main": [
+        [
+          {
+            "node": "④ Déployer – Lancement (client)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "④ Déployer – Plan interne",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "④ Déployer – Plan interne": {
+      "main": [
+        [
+          {
+            "node": "⑤ Améliorer – Attente du suivi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⑤ Améliorer – Attente du suivi": {
+      "main": [
+        [
+          {
+            "node": "⑤ Améliorer – Bilan (client)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "⑤ Améliorer – Revue interne",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "America/Toronto"
+  },
+  "pinData": {},
+  "tags": []
+}
