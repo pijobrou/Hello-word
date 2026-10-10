@@ -312,6 +312,32 @@ BVY prépare le prix en quelques minutes, sans avoir à poser ces questions.
 Limites du gratuit (décision du 2026-10-10) : **300 opérations par mois** et **1 utilisateur** ; l'**AT1 (Alberta)**
 est offerte.
 
+### Prix du travailleur autonome : 449 $ par année, payés par mois (décision du 2026-10-10)
+
+> « 449 $ / 12 sont pris par mois pour le travailleur autonome. »
+
+| | Montant |
+|---|---|
+| Prix annuel (T1 + T2125 + TP-80, avec TPS/TVQ annuelle) | **449 $** avant taxes |
+| Prélèvement mensuel (Stripe, carte du client) | **37,42 $** par mois × 12 (= 449,04 $) ; le 12e mois ajusté à 37,38 $ pour un total exact de 449 $ |
+| Avec TPS (5 %) et TVQ (9,975 %) au Québec | 516,24 $ par année, environ **43,02 $ par mois** |
+
+Marketing : « Votre comptabilité gratuite toute l'année, et votre déclaration d'impôt de travailleur autonome pour
+37,42 $ par mois. »
+
+Règles à valider par le propriétaire (proposées) :
+- **Inscription en cours d'année** : prélèvements sur les mois restants jusqu'à la fin de l'exercice, ou 12 mois à
+  partir de l'inscription (proposé : **12 mois glissants**, la déclaration est produite à la date habituelle).
+- **Déclaration produite avant le 12e paiement** : le solde est prélevé au moment de la remise (ou les prélèvements
+  continuent ; proposé : **solde à la remise**, plus simple et sans risque d'impayé).
+- **Annulation** : les paiements faits sont crédités sur la déclaration ; aucun remboursement si la déclaration a été
+  produite ; sinon remboursement au prorata (à confirmer).
+- **Paiement refusé** : 2 nouvelles tentatives automatiques, puis courriel ; la déclaration n'est pas transmise tant
+  que le solde n'est pas payé.
+- **Cas plus complexes** (véhicule, bureau à la maison, plusieurs activités, revenus d'emploi en plus) : inclus
+  dans les 449 $ ou supplément sur soumission (à décider).
+- **Sociétés (T2 + CO-17)** : même principe possible, prix à fixer.
+
 ## 10. Décisions encore attendues
 
 1. Confirmation (Ordre des CPA ou conseiller) de la présentation du rapport (section 2).
