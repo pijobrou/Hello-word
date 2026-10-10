@@ -309,9 +309,10 @@ soumission : à la demande du client, le portail joint automatiquement le nombre
 d'employés (s'il y a des salaires), l'inscription aux taxes et l'indicateur « Prêt pour la fin d'année ». L'équipe
 BVY prépare le prix en quelques minutes, sans avoir à poser ces questions.
 
+Limites du gratuit (décision du 2026-10-10) : **300 opérations par mois** et **1 utilisateur** ; l'**AT1 (Alberta)**
+est offerte.
+
 ## 10. Décisions encore attendues
 
-1. Limites du gratuit : proposé **300 opérations par mois** et **1 utilisateur**.
-2. Offrir l'**AT1 (Alberta)** ou non.
-3. Confirmation (Ordre des CPA ou conseiller) de la présentation du rapport (section 2).
-4. Validation de ce plan : « STATUS: APPROVED », puis plan marketing complet et construction par étapes.
+1. Confirmation (Ordre des CPA ou conseiller) de la présentation du rapport (section 2).
+2. Validation de ce plan : « STATUS: APPROVED », puis plan marketing complet et construction par étapes.
